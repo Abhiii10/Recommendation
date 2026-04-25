@@ -1,0 +1,1600 @@
+{
+  "Kahun Danda": [
+    {
+      "name": "Armala Kot",
+      "score": 0.2174
+    },
+    {
+      "name": "Kristi Nachnechaur",
+      "score": 0.1852
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1831
+    },
+    {
+      "name": "Methlang",
+      "score": 0.17
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1561
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.1356
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.1288
+    },
+    {
+      "name": "Astam",
+      "score": 0.1202
+    }
+  ],
+  "Dhampus": [
+    {
+      "name": "Sikles",
+      "score": 0.1845
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.1831
+    },
+    {
+      "name": "Tangting",
+      "score": 0.1639
+    },
+    {
+      "name": "Khilang",
+      "score": 0.1568
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.1397
+    },
+    {
+      "name": "Nirmalpokhari",
+      "score": 0.1293
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.128
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.1222
+    }
+  ],
+  "Astam": [
+    {
+      "name": "Sundari Danda",
+      "score": 0.1655
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1488
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1393
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.1202
+    },
+    {
+      "name": "Panchase",
+      "score": 0.116
+    },
+    {
+      "name": "Pumdikot",
+      "score": 0.1155
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.1124
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1122
+    }
+  ],
+  "Hemjakot": [
+    {
+      "name": "Kalabang",
+      "score": 0.2383
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.1989
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.1805
+    },
+    {
+      "name": "Lwang Ghalel",
+      "score": 0.168
+    },
+    {
+      "name": "Sikles",
+      "score": 0.1296
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.1128
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1071
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.1049
+    }
+  ],
+  "Lwang Ghalel": [
+    {
+      "name": "Kalabang",
+      "score": 0.1961
+    },
+    {
+      "name": "Hemjakot",
+      "score": 0.168
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.1487
+    },
+    {
+      "name": "Astam",
+      "score": 0.1021
+    },
+    {
+      "name": "Chipli",
+      "score": 0.0957
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.084
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.0794
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.0768
+    }
+  ],
+  "Sikles": [
+    {
+      "name": "Bhadaure",
+      "score": 0.2693
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1845
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.1615
+    },
+    {
+      "name": "Chipli",
+      "score": 0.1573
+    },
+    {
+      "name": "Khilang",
+      "score": 0.1532
+    },
+    {
+      "name": "Tangting",
+      "score": 0.1426
+    },
+    {
+      "name": "Hemjakot",
+      "score": 0.1296
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.092
+    }
+  ],
+  "Mattikhana": [
+    {
+      "name": "Phosingkot",
+      "score": 0.1695
+    },
+    {
+      "name": "Sarangkot",
+      "score": 0.1661
+    },
+    {
+      "name": "Kristi Nachnechaur",
+      "score": 0.1559
+    },
+    {
+      "name": "Armala Kot",
+      "score": 0.1234
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1176
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.1141
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1134
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.108
+    }
+  ],
+  "Naudanda": [
+    {
+      "name": "Majhthana",
+      "score": 0.1859
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.171
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.1356
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.128
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.1252
+    },
+    {
+      "name": "Rupa Lake",
+      "score": 0.1214
+    },
+    {
+      "name": "Astam",
+      "score": 0.1124
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1114
+    }
+  ],
+  "Panchase": [
+    {
+      "name": "Pumdikot",
+      "score": 0.2584
+    },
+    {
+      "name": "World Peace Pagoda (Anadu Danda)",
+      "score": 0.2406
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1329
+    },
+    {
+      "name": "Tiger Hill",
+      "score": 0.1215
+    },
+    {
+      "name": "Astam",
+      "score": 0.116
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.0839
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.082
+    },
+    {
+      "name": "Pothana",
+      "score": 0.075
+    }
+  ],
+  "Australian Camp": [
+    {
+      "name": "Tiger Hill",
+      "score": 0.1324
+    },
+    {
+      "name": "Sarangkot",
+      "score": 0.1312
+    },
+    {
+      "name": "Armala Kot",
+      "score": 0.1306
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.1288
+    },
+    {
+      "name": "Methlang",
+      "score": 0.128
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.1141
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1096
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.1055
+    }
+  ],
+  "Pothana": [
+    {
+      "name": "Taprang",
+      "score": 0.2189
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.1228
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.1205
+    },
+    {
+      "name": "Chipli",
+      "score": 0.0972
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.0855
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.0815
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.0792
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.0783
+    }
+  ],
+  "Tangting": [
+    {
+      "name": "Khilang",
+      "score": 0.2881
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.229
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.177
+    },
+    {
+      "name": "Chipli",
+      "score": 0.1713
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1639
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.148
+    },
+    {
+      "name": "Sikles",
+      "score": 0.1426
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.1213
+    }
+  ],
+  "Begnas Lake": [
+    {
+      "name": "Rupa Lake",
+      "score": 0.1996
+    },
+    {
+      "name": "Dipang Lake",
+      "score": 0.1482
+    },
+    {
+      "name": "Maidi Lake",
+      "score": 0.1254
+    },
+    {
+      "name": "Methlang",
+      "score": 0.0881
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.0824
+    },
+    {
+      "name": "Khaste Lake",
+      "score": 0.0788
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.0755
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.0737
+    }
+  ],
+  "Rupa Lake": [
+    {
+      "name": "Khaste Lake",
+      "score": 0.2717
+    },
+    {
+      "name": "Dipang Lake",
+      "score": 0.2579
+    },
+    {
+      "name": "Maidi Lake",
+      "score": 0.2507
+    },
+    {
+      "name": "Begnas Lake",
+      "score": 0.1996
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.1214
+    },
+    {
+      "name": "Methlang",
+      "score": 0.0859
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.0701
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.0664
+    }
+  ],
+  "Dipang Lake": [
+    {
+      "name": "Rupa Lake",
+      "score": 0.2579
+    },
+    {
+      "name": "Khaste Lake",
+      "score": 0.1965
+    },
+    {
+      "name": "Maidi Lake",
+      "score": 0.1581
+    },
+    {
+      "name": "Begnas Lake",
+      "score": 0.1482
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1334
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.1112
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.0777
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.0723
+    }
+  ],
+  "Khaste Lake": [
+    {
+      "name": "Maidi Lake",
+      "score": 0.2939
+    },
+    {
+      "name": "Rupa Lake",
+      "score": 0.2717
+    },
+    {
+      "name": "Dipang Lake",
+      "score": 0.1965
+    },
+    {
+      "name": "Begnas Lake",
+      "score": 0.0788
+    },
+    {
+      "name": "Astam",
+      "score": 0.077
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.0615
+    },
+    {
+      "name": "Pothana",
+      "score": 0.0511
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.0475
+    }
+  ],
+  "Maidi Lake": [
+    {
+      "name": "Khaste Lake",
+      "score": 0.2939
+    },
+    {
+      "name": "Rupa Lake",
+      "score": 0.2507
+    },
+    {
+      "name": "Dipang Lake",
+      "score": 0.1581
+    },
+    {
+      "name": "Begnas Lake",
+      "score": 0.1254
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.0708
+    },
+    {
+      "name": "Tiger Hill",
+      "score": 0.0632
+    },
+    {
+      "name": "Pumdikot",
+      "score": 0.063
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.0608
+    }
+  ],
+  "Sarangkot": [
+    {
+      "name": "Mattikhana",
+      "score": 0.1661
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.1312
+    },
+    {
+      "name": "Lovely Hill",
+      "score": 0.1256
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.1111
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1016
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1014
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.092
+    },
+    {
+      "name": "Pumdikot",
+      "score": 0.0852
+    }
+  ],
+  "Pumdikot": [
+    {
+      "name": "Panchase",
+      "score": 0.2584
+    },
+    {
+      "name": "World Peace Pagoda (Anadu Danda)",
+      "score": 0.185
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1198
+    },
+    {
+      "name": "Astam",
+      "score": 0.1155
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.1025
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.0949
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.0856
+    },
+    {
+      "name": "Sarangkot",
+      "score": 0.0852
+    }
+  ],
+  "Chapakot": [
+    {
+      "name": "Kalabang",
+      "score": 0.218
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.213
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.2065
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.2052
+    },
+    {
+      "name": "Taprang",
+      "score": 0.2029
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.187
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.1824
+    },
+    {
+      "name": "Nirmalpokhari",
+      "score": 0.1722
+    }
+  ],
+  "Bhadaure": [
+    {
+      "name": "Sikles",
+      "score": 0.2693
+    },
+    {
+      "name": "Khilang",
+      "score": 0.2209
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.2038
+    },
+    {
+      "name": "Hemjakot",
+      "score": 0.1989
+    },
+    {
+      "name": "Tangting",
+      "score": 0.177
+    },
+    {
+      "name": "Chipli",
+      "score": 0.17
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.1665
+    },
+    {
+      "name": "Taprang",
+      "score": 0.154
+    }
+  ],
+  "Kaskikot": [
+    {
+      "name": "Saimarang",
+      "score": 0.1303
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.129
+    },
+    {
+      "name": "Nirmalpokhari",
+      "score": 0.1012
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.0923
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.0887
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.0863
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.084
+    },
+    {
+      "name": "Chipli",
+      "score": 0.0805
+    }
+  ],
+  "Ghachok": [
+    {
+      "name": "Chipli",
+      "score": 0.1539
+    },
+    {
+      "name": "Maujakot",
+      "score": 0.1535
+    },
+    {
+      "name": "Tangting",
+      "score": 0.148
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.1456
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1445
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.144
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1359
+    },
+    {
+      "name": "Pothana",
+      "score": 0.1228
+    }
+  ],
+  "Armala Kot": [
+    {
+      "name": "Kahun Danda",
+      "score": 0.2174
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1888
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.15
+    },
+    {
+      "name": "Tiger Hill",
+      "score": 0.1464
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.1306
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.13
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.1234
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1184
+    }
+  ],
+  "Thulakot": [
+    {
+      "name": "Kahun Danda",
+      "score": 0.1561
+    },
+    {
+      "name": "Armala Kot",
+      "score": 0.15
+    },
+    {
+      "name": "Astam",
+      "score": 0.1488
+    },
+    {
+      "name": "Tiger Hill",
+      "score": 0.1445
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1374
+    },
+    {
+      "name": "Panchase",
+      "score": 0.1329
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1247
+    },
+    {
+      "name": "Pumdikot",
+      "score": 0.1198
+    }
+  ],
+  "Kalabang": [
+    {
+      "name": "Hemjakot",
+      "score": 0.2383
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.218
+    },
+    {
+      "name": "Lwang Ghalel",
+      "score": 0.1961
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1545
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1484
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.1444
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.14
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1368
+    }
+  ],
+  "Kristi Nachnechaur": [
+    {
+      "name": "Kahun Danda",
+      "score": 0.1852
+    },
+    {
+      "name": "Methlang",
+      "score": 0.1703
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.1559
+    },
+    {
+      "name": "Lovely Hill",
+      "score": 0.1438
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1431
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1364
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1222
+    },
+    {
+      "name": "Majhthana",
+      "score": 0.112
+    }
+  ],
+  "Sundari Danda": [
+    {
+      "name": "Nirmalpokhari",
+      "score": 0.2156
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1746
+    },
+    {
+      "name": "Astam",
+      "score": 0.1655
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.1605
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.1601
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.1444
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1417
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1407
+    }
+  ],
+  "Bhalam": [
+    {
+      "name": "Taprang",
+      "score": 0.2194
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.187
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1583
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1417
+    },
+    {
+      "name": "Astam",
+      "score": 0.1393
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1392
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.1368
+    },
+    {
+      "name": "Chipli",
+      "score": 0.1349
+    }
+  ],
+  "Maujakot": [
+    {
+      "name": "Khilang",
+      "score": 0.3509
+    },
+    {
+      "name": "Chipli",
+      "score": 0.3087
+    },
+    {
+      "name": "Tangting",
+      "score": 0.229
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.2038
+    },
+    {
+      "name": "Hemjakot",
+      "score": 0.1805
+    },
+    {
+      "name": "Sikles",
+      "score": 0.1615
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.1535
+    },
+    {
+      "name": "Lwang Ghalel",
+      "score": 0.1487
+    }
+  ],
+  "Phosingkot": [
+    {
+      "name": "Armala Kot",
+      "score": 0.1888
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.1695
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1651
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.1524
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1374
+    },
+    {
+      "name": "Dipang Lake",
+      "score": 0.1334
+    },
+    {
+      "name": "Methlang",
+      "score": 0.1184
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.116
+    }
+  ],
+  "Dhikki Danda": [
+    {
+      "name": "Thumakodada",
+      "score": 0.1963
+    },
+    {
+      "name": "Methlang",
+      "score": 0.1747
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1651
+    },
+    {
+      "name": "Kristi Nachnechaur",
+      "score": 0.1431
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.1359
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1247
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.1176
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.0984
+    }
+  ],
+  "Tiger Hill": [
+    {
+      "name": "Thumakodada",
+      "score": 0.1557
+    },
+    {
+      "name": "Armala Kot",
+      "score": 0.1464
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1445
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.1324
+    },
+    {
+      "name": "Panchase",
+      "score": 0.1215
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1091
+    },
+    {
+      "name": "Methlang",
+      "score": 0.1003
+    },
+    {
+      "name": "Mattikhana",
+      "score": 0.0989
+    }
+  ],
+  "Karuwa": [
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1764
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1741
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.144
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.1339
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1316
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1302
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.1264
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.1222
+    }
+  ],
+  "World Peace Pagoda (Anadu Danda)": [
+    {
+      "name": "Panchase",
+      "score": 0.2406
+    },
+    {
+      "name": "Pumdikot",
+      "score": 0.185
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1086
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.0993
+    },
+    {
+      "name": "Dhikki Danda",
+      "score": 0.0974
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.0933
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.0835
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.0745
+    }
+  ],
+  "Methlang": [
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1747
+    },
+    {
+      "name": "Kristi Nachnechaur",
+      "score": 0.1703
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.17
+    },
+    {
+      "name": "Thumakodada",
+      "score": 0.1285
+    },
+    {
+      "name": "Australian Camp",
+      "score": 0.128
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1184
+    },
+    {
+      "name": "Armala Kot",
+      "score": 0.1183
+    },
+    {
+      "name": "Thulakot",
+      "score": 0.1155
+    }
+  ],
+  "Lovely Hill": [
+    {
+      "name": "Kristi Nachnechaur",
+      "score": 0.1438
+    },
+    {
+      "name": "Majhthana",
+      "score": 0.1407
+    },
+    {
+      "name": "Sarangkot",
+      "score": 0.1256
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.0969
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.0949
+    },
+    {
+      "name": "Kahun Danda",
+      "score": 0.0919
+    },
+    {
+      "name": "Methlang",
+      "score": 0.0919
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.0846
+    }
+  ],
+  "Taprang": [
+    {
+      "name": "Bhalam",
+      "score": 0.2194
+    },
+    {
+      "name": "Pothana",
+      "score": 0.2189
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.2029
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1838
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1698
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.1545
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.154
+    },
+    {
+      "name": "Chipli",
+      "score": 0.1457
+    }
+  ],
+  "Chipli": [
+    {
+      "name": "Maujakot",
+      "score": 0.3087
+    },
+    {
+      "name": "Khilang",
+      "score": 0.1902
+    },
+    {
+      "name": "Tangting",
+      "score": 0.1713
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.17
+    },
+    {
+      "name": "Sikles",
+      "score": 0.1573
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.1539
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.148
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1457
+    }
+  ],
+  "Khilang": [
+    {
+      "name": "Maujakot",
+      "score": 0.3509
+    },
+    {
+      "name": "Tangting",
+      "score": 0.2881
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.2209
+    },
+    {
+      "name": "Chipli",
+      "score": 0.1902
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1568
+    },
+    {
+      "name": "Sikles",
+      "score": 0.1532
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.1219
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.1182
+    }
+  ],
+  "Saimarang": [
+    {
+      "name": "Chapakot",
+      "score": 0.213
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.1746
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.1741
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1725
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1631
+    },
+    {
+      "name": "Chipli",
+      "score": 0.148
+    },
+    {
+      "name": "Ghachok",
+      "score": 0.1445
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1392
+    }
+  ],
+  "Majhthana": [
+    {
+      "name": "Bharatpokhari",
+      "score": 0.2434
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.1859
+    },
+    {
+      "name": "Lovely Hill",
+      "score": 0.1407
+    },
+    {
+      "name": "Kristi Nachnechaur",
+      "score": 0.112
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.1095
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1045
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1012
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.0968
+    }
+  ],
+  "Thumakodada": [
+    {
+      "name": "Dhikki Danda",
+      "score": 0.1963
+    },
+    {
+      "name": "Tiger Hill",
+      "score": 0.1557
+    },
+    {
+      "name": "Phosingkot",
+      "score": 0.1524
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1328
+    },
+    {
+      "name": "Armala Kot",
+      "score": 0.13
+    },
+    {
+      "name": "Methlang",
+      "score": 0.1285
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1281
+    },
+    {
+      "name": "Dipang Lake",
+      "score": 0.1112
+    }
+  ],
+  "Nirmalpokhari": [
+    {
+      "name": "Sundari Danda",
+      "score": 0.2156
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.1722
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1442
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1397
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1327
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1296
+    },
+    {
+      "name": "Dhampus",
+      "score": 0.1293
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.1289
+    }
+  ],
+  "Bharatpokhari": [
+    {
+      "name": "Majhthana",
+      "score": 0.2434
+    },
+    {
+      "name": "Chapakot",
+      "score": 0.2065
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1986
+    },
+    {
+      "name": "Karuwa",
+      "score": 0.1764
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1725
+    },
+    {
+      "name": "Naudanda",
+      "score": 0.171
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1698
+    },
+    {
+      "name": "Lahachok",
+      "score": 0.1618
+    }
+  ],
+  "Puranchaur": [
+    {
+      "name": "Chapakot",
+      "score": 0.2052
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1986
+    },
+    {
+      "name": "Taprang",
+      "score": 0.1838
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1631
+    },
+    {
+      "name": "Kalabang",
+      "score": 0.1484
+    },
+    {
+      "name": "Nirmalpokhari",
+      "score": 0.1442
+    },
+    {
+      "name": "Bhalam",
+      "score": 0.1417
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.1407
+    }
+  ],
+  "Lahachok": [
+    {
+      "name": "Chapakot",
+      "score": 0.1824
+    },
+    {
+      "name": "Bhadaure",
+      "score": 0.1665
+    },
+    {
+      "name": "Bharatpokhari",
+      "score": 0.1618
+    },
+    {
+      "name": "Sundari Danda",
+      "score": 0.1601
+    },
+    {
+      "name": "Puranchaur",
+      "score": 0.1294
+    },
+    {
+      "name": "Nirmalpokhari",
+      "score": 0.1289
+    },
+    {
+      "name": "Saimarang",
+      "score": 0.1284
+    },
+    {
+      "name": "Khilang",
+      "score": 0.1219
+    }
+  ]
+}

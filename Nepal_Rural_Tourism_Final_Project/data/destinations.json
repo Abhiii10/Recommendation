@@ -1,0 +1,1607 @@
+[
+  {
+    "id": "dest_001",
+    "name": "Ghandruk",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Annapurna Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "trekking"
+    ],
+    "activities": [
+      "culture",
+      "trekking",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 3,
+    "culture_level": 5,
+    "nature_level": 5,
+    "short_description": "Gurung settlement and Annapurna trekking node.",
+    "full_description": "Ghandruk is a picturesque traditional Gurung village situated at 2,012m. It serves as a key interface between lower agricultural zones and the Annapurna Base Camp trekking circuits, featuring stone architecture and the Gurung Cultural Museum.",
+    "latitude": 28.377,
+    "longitude": 83.807,
+    "tags": [
+      "gurung",
+      "museum",
+      "homestay",
+      "annapurna"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_002",
+    "name": "Dhampus",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Machhapuchchhre Rural Municipality",
+    "category": [
+      "village",
+      "trekking",
+      "viewpoint"
+    ],
+    "activities": [
+      "trekking",
+      "photography",
+      "wildlife"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "Accessible ridge village with major mountain views.",
+    "full_description": "Dhampus occupies a long ridge offering accessible views of Annapurna South and Machhapuchhre.",
+    "latitude": 28.31,
+    "longitude": 83.85,
+    "tags": [
+      "ridge",
+      "annapurna",
+      "machhapuchhre",
+      "australian-base-camp"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_003",
+    "name": "Sikles",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Madi Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "trekking"
+    ],
+    "activities": [
+      "culture",
+      "trekking",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 3,
+    "culture_level": 5,
+    "nature_level": 5,
+    "short_description": "Large Gurung settlement and eco-tourism gateway.",
+    "full_description": "One of the largest Gurung settlements in Nepal, Sikles is a model for eco-tourism and community-led conservation.",
+    "latitude": 28.35729,
+    "longitude": 84.10752,
+    "tags": [
+      "gurung",
+      "eco-tourism",
+      "conservation",
+      "tasa-danda"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_004",
+    "name": "Lwang",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Machhapuchhre Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "adventure"
+    ],
+    "activities": [
+      "culture",
+      "adventure",
+      "agriculture"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 4,
+    "nature_level": 4,
+    "short_description": "Eco-village known for tea gardens and canyoning.",
+    "full_description": "Lwang is renowned for its organic, community-managed tea gardens and adventure tourism, including canyoning at the Kudi River waterfalls.",
+    "latitude": 28.45,
+    "longitude": 83.91,
+    "tags": [
+      "tea-garden",
+      "canyoning",
+      "eco-village",
+      "homestay"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_005",
+    "name": "Astam",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Machhapuchchhre Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "viewpoint"
+    ],
+    "activities": [
+      "culture",
+      "photography",
+      "relaxation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "Hilltop eco-village focused on homestay tourism.",
+    "full_description": "Meaning 'Sunset,' Astam is a serene hilltop village focused on sustainable eco-living, organic local products, and slow-paced farm interaction.",
+    "latitude": 28.29651,
+    "longitude": 83.90701,
+    "tags": [
+      "sunset",
+      "homestay",
+      "eco-living",
+      "ridge-hiking"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_006",
+    "name": "Begnas Lake",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Pokhara Metropolis",
+    "category": [
+      "lake"
+    ],
+    "activities": [
+      "boating",
+      "relaxation",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 2,
+    "nature_level": 5,
+    "short_description": "Freshwater lake with boating and resort tourism.",
+    "full_description": "The second largest lake in the Pokhara Valley, Begnas is managed for irrigation and caged fisheries.",
+    "latitude": 28.173944,
+    "longitude": 84.097333,
+    "tags": [
+      "boating",
+      "resort",
+      "wetland",
+      "fishery"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_007",
+    "name": "Rupa Lake",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Pokhara Metropolis / Rupa Rural Municipality",
+    "category": [
+      "lake",
+      "wildlife"
+    ],
+    "activities": [
+      "photography",
+      "wildlife",
+      "relaxation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 2,
+    "nature_level": 5,
+    "short_description": "Protected freshwater lake with low-impact tourism.",
+    "full_description": "A protected preservation area that remains free of commercial shoreline development, Rupa Lake supports over 36 species of waterbirds.",
+    "latitude": 28.148611,
+    "longitude": 84.111111,
+    "tags": [
+      "waterbirds",
+      "preservation",
+      "sundari-danda",
+      "wetland"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_008",
+    "name": "Jomsom",
+    "province": "Gandaki",
+    "district": "Mustang",
+    "municipality": "Gharpajhong Rural Municipality",
+    "category": [
+      "trekking",
+      "heritage",
+      "adventure"
+    ],
+    "activities": [
+      "trekking",
+      "photography",
+      "culture"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": false,
+    "adventure_level": 4,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "Trans-Himalayan hub in the Kali Gandaki corridor.",
+    "full_description": "The administrative center of Mustang District, Jomsom is situated at 2,743m in the world's deepest gorge.",
+    "latitude": 28.783333,
+    "longitude": 83.730556,
+    "tags": [
+      "thakali",
+      "airport",
+      "kali-gandaki",
+      "mustang"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_009",
+    "name": "Marpha",
+    "province": "Gandaki",
+    "district": "Mustang",
+    "municipality": "Gharpajhong Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "heritage"
+    ],
+    "activities": [
+      "culture",
+      "photography",
+      "relaxation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 4,
+    "nature_level": 4,
+    "short_description": "Preserved Mustang village known for apples and monastery culture.",
+    "full_description": "Famous as the 'apple capital' of Nepal, Marpha features stone-lined streets and local distilleries producing apple brandy.",
+    "latitude": 28.79,
+    "longitude": 83.68,
+    "tags": [
+      "apple",
+      "brandy",
+      "monastery",
+      "stone-streets"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_010",
+    "name": "Kagbeni",
+    "province": "Gandaki",
+    "district": "Mustang",
+    "municipality": "Varagung Muktikshetra Rural Municipality",
+    "category": [
+      "village",
+      "religious",
+      "heritage"
+    ],
+    "activities": [
+      "culture",
+      "pilgrimage",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": false,
+    "adventure_level": 4,
+    "culture_level": 4,
+    "nature_level": 5,
+    "short_description": "Fortified confluence village and gateway to Upper Mustang.",
+    "full_description": "A fortified village at the confluence of the Kali Gandaki and Jhong rivers, Kagbeni is home to the ancient Red Monastery.",
+    "latitude": 28.836667,
+    "longitude": 83.783056,
+    "tags": [
+      "confluence",
+      "upper-mustang",
+      "monastery",
+      "pilgrimage"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_011",
+    "name": "Muktinath",
+    "province": "Gandaki",
+    "district": "Mustang",
+    "municipality": "Varagung Muktichhetra Rural Municipality",
+    "category": [
+      "religious",
+      "heritage"
+    ],
+    "activities": [
+      "pilgrimage",
+      "photography",
+      "sightseeing"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "High-altitude sacred pilgrimage complex.",
+    "full_description": "A sacred site for Hindus and Buddhists at 3,762m, Muktinath features 108 water spouts and an eternal flame.",
+    "latitude": 28.817083,
+    "longitude": 83.871694,
+    "tags": [
+      "temple",
+      "pilgrimage",
+      "108-water-spouts",
+      "eternal-flame"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_012",
+    "name": "Manang Village",
+    "province": "Gandaki",
+    "district": "Manang",
+    "municipality": "Manang (Nyeshang) Rural Municipality",
+    "category": [
+      "village",
+      "trekking",
+      "adventure"
+    ],
+    "activities": [
+      "trekking",
+      "photography",
+      "acclimatization"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "High-altitude acclimatization hub on the Annapurna Circuit.",
+    "full_description": "Situated at 3,519m, Manang is a principal stop on the Annapurna Circuit for acclimatization.",
+    "latitude": 28.666667,
+    "longitude": 84.016667,
+    "tags": [
+      "annapurna-circuit",
+      "acclimatization",
+      "gangapurna",
+      "high-altitude"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_013",
+    "name": "Pisang",
+    "province": "Gandaki",
+    "district": "Manang",
+    "municipality": "Manang (Nyeshang) Rural Municipality",
+    "category": [
+      "village",
+      "trekking",
+      "adventure"
+    ],
+    "activities": [
+      "trekking",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "Traditional Annapurna trail settlement below Pisang Peak.",
+    "full_description": "Divided into Upper and Lower settlements, Pisang offers superior views of Annapurna II.",
+    "latitude": 28.61673,
+    "longitude": 84.14991,
+    "tags": [
+      "upper-pisang",
+      "pisang-peak",
+      "annapurna",
+      "trekking"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_014",
+    "name": "Braga",
+    "province": "Gandaki",
+    "district": "Manang",
+    "municipality": "Manang (Nyeshang) Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "heritage"
+    ],
+    "activities": [
+      "culture",
+      "photography",
+      "sightseeing"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 4,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "Cliffside settlement with major monastery heritage.",
+    "full_description": "A cliffside village featuring 'stacked' architecture, Braga is home to one of the oldest monasteries in the region.",
+    "latitude": 28.39,
+    "longitude": 84.03,
+    "tags": [
+      "monastery",
+      "tibetan-buddhism",
+      "cliffside",
+      "heritage"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_015",
+    "name": "Ghalegaun",
+    "province": "Gandaki",
+    "district": "Lamjung",
+    "municipality": "Kwholasothar Rural Municipality",
+    "category": [
+      "village",
+      "cultural"
+    ],
+    "activities": [
+      "culture",
+      "photography",
+      "relaxation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "Model village known for Gurung homestay tourism.",
+    "full_description": "Known as 'Asia's model tourism village,' Ghalegaun features the SAARC Village Tourism Museum and structured community homestays.",
+    "latitude": 28.463889,
+    "longitude": 84.505556,
+    "tags": [
+      "homestay",
+      "gurung",
+      "museum",
+      "model-village"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_016",
+    "name": "Bhujung",
+    "province": "Gandaki",
+    "district": "Lamjung",
+    "municipality": "Kwholasothar Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "heritage"
+    ],
+    "activities": [
+      "culture",
+      "relaxation",
+      "village-life"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 4,
+    "nature_level": 4,
+    "short_description": "Dense Gurung hillside settlement with traditional architecture.",
+    "full_description": "Bhujung is arguably the largest and most concentrated Gurung village, famous for its traditional honey-hunting culture.",
+    "latitude": 28.316667,
+    "longitude": 84.266667,
+    "tags": [
+      "gurung",
+      "stone-houses",
+      "honey-hunting",
+      "hill-station"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_017",
+    "name": "Rainaskot",
+    "province": "Gandaki",
+    "district": "Lamjung",
+    "municipality": "Rainas Municipality",
+    "category": [
+      "heritage",
+      "viewpoint",
+      "cultural"
+    ],
+    "activities": [
+      "photography",
+      "culture",
+      "adventure"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "Historic fortified hill village with homestays and panoramic views.",
+    "full_description": "The ancestral home of the Shah dynasty, Rainaskot provides views of 18 mountain ranges.",
+    "latitude": 28.12335,
+    "longitude": 84.49295,
+    "tags": [
+      "fort",
+      "shah-dynasty",
+      "homestay",
+      "viewpoint"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_018",
+    "name": "Bandipur",
+    "province": "Gandaki",
+    "district": "Tanahun",
+    "municipality": "Bandipur Rural Municipality",
+    "category": [
+      "heritage",
+      "cultural"
+    ],
+    "activities": [
+      "culture",
+      "photography",
+      "relaxation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 5,
+    "nature_level": 3,
+    "short_description": "Preserved Newar hill town and heritage tourism center.",
+    "full_description": "A 'time-capsule' hill station featuring preserved 18th-century Newar architecture and slate-paved streets.",
+    "latitude": 27.933333,
+    "longitude": 84.416667,
+    "tags": [
+      "newar",
+      "trade-route",
+      "hill-town",
+      "heritage"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_019",
+    "name": "Tansen",
+    "province": "Lumbini",
+    "district": "Palpa",
+    "municipality": "Tansen Municipality",
+    "category": [
+      "heritage",
+      "cultural"
+    ],
+    "activities": [
+      "culture",
+      "sightseeing",
+      "shopping"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 5,
+    "nature_level": 3,
+    "short_description": "Historic administrative hill town of Palpa.",
+    "full_description": "The administrative center of Palpa District, Tansen is famous for its Dhaka weaving industry.",
+    "latitude": 27.86667,
+    "longitude": 83.55,
+    "tags": [
+      "palpali-dhaka",
+      "durbar",
+      "hill-station",
+      "newar"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_020",
+    "name": "Sirubari",
+    "province": "Gandaki",
+    "district": "Syangja",
+    "municipality": "Andhikhola Rural Municipality",
+    "category": [
+      "village",
+      "cultural"
+    ],
+    "activities": [
+      "culture",
+      "photography",
+      "relaxation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "Pioneer community homestay village in Syangja.",
+    "full_description": "Declared Nepal's first model tourist village in 2000, Sirubari is the birthplace of the community homestay movement.",
+    "latitude": 27.9962,
+    "longitude": 83.81113,
+    "tags": [
+      "homestay",
+      "gurung",
+      "model-village",
+      "pata-award"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_021",
+    "name": "Lo Manthang",
+    "province": "Gandaki",
+    "district": "Mustang",
+    "municipality": "Lo-Ghekar Damodarkunda Rural Municipality",
+    "category": [
+      "heritage",
+      "cultural",
+      "village"
+    ],
+    "activities": [
+      "exploring walled city",
+      "palace tours",
+      "cave exploration"
+    ],
+    "best_season": [
+      "spring",
+      "summer",
+      "autumn"
+    ],
+    "budget_level": "premium",
+    "accessibility": "difficult",
+    "family_friendly": true,
+    "adventure_level": 5,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "The capital of the former Kingdom of Lo, a walled medieval city.",
+    "full_description": "A remote settlement featuring a four-story royal palace and three major monasteries (Gompas).",
+    "latitude": 29.1824,
+    "longitude": 83.9575,
+    "tags": [
+      "upper mustang",
+      "forbidden kingdom",
+      "tiji festival"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_022",
+    "name": "Tilicho Lake",
+    "province": "Gandaki",
+    "district": "Manang",
+    "municipality": "Manang Ngisyang Rural Municipality",
+    "category": [
+      "lake",
+      "trekking",
+      "wildlife"
+    ],
+    "activities": [
+      "high altitude trekking",
+      "photography",
+      "camping"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 1,
+    "nature_level": 5,
+    "short_description": "One of the highest lakes in the world at 4,919 meters.",
+    "full_description": "A glacial lake situated in the Annapurna range requiring a side-trek from the Annapurna Circuit.",
+    "latitude": 28.6833,
+    "longitude": 83.8522,
+    "tags": [
+      "high altitude lake",
+      "glacial lake",
+      "annapurna circuit"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_023",
+    "name": "Barpak",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Dharche Rural Municipality",
+    "category": [
+      "village",
+      "cultural",
+      "heritage"
+    ],
+    "activities": [
+      "village homestay",
+      "hiking to Dharche Danda",
+      "earthquake memorial visit"
+    ],
+    "best_season": [
+      "spring",
+      "autumn",
+      "winter"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 4,
+    "nature_level": 4,
+    "short_description": "A large Ghale and Gurung village, known as the epicenter of the 2015 earthquake.",
+    "full_description": "Barpak is a densely clustered village with stone-roofed houses perched on a steep hillside.",
+    "latitude": 28.2058,
+    "longitude": 84.7475,
+    "tags": [
+      "ghale culture",
+      "earthquake epicenter",
+      "gorkha trekking"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_024",
+    "name": "Laprak",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Dharche Rural Municipality",
+    "category": [
+      "village",
+      "cultural"
+    ],
+    "activities": [
+      "cultural immersion",
+      "hiking",
+      "traditional handicraft observation"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 3,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "A traditional Gurung village located near Barpak.",
+    "full_description": "Located at an altitude of 2,100 meters, Laprak is known for its unique culture and traditional farming.",
+    "latitude": 28.2231,
+    "longitude": 84.7864,
+    "tags": [
+      "gurung village",
+      "manaslu region",
+      "remote tourism"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_025",
+    "name": "Mardi Himal High Camp",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Machhapuchhre Rural Municipality",
+    "category": [
+      "trekking",
+      "viewpoint"
+    ],
+    "activities": [
+      "trekking",
+      "mountain photography",
+      "sunrise viewing"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 4,
+    "culture_level": 1,
+    "nature_level": 5,
+    "short_description": "Final accommodation point before the Mardi Himal Base Camp.",
+    "full_description": "Sitting at 3,580 meters, High Camp offers spectacular close-up views of Machhapuchhre and the Annapurna range.",
+    "latitude": 28.4556,
+    "longitude": 83.9211,
+    "tags": [
+      "mardi trek",
+      "mountain view",
+      "fishtail"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_026",
+    "name": "Dhorpatan Hunting Reserve",
+    "province": "Gandaki",
+    "district": "Baglung",
+    "municipality": "Dhorpatan Municipality",
+    "category": [
+      "wildlife",
+      "adventure",
+      "trekking"
+    ],
+    "activities": [
+      "controlled hunting",
+      "wildlife spotting",
+      "trekking"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "premium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 2,
+    "nature_level": 5,
+    "short_description": "The only hunting reserve in Nepal.",
+    "full_description": "Spanning over Baglung, Myagdi, and Rukum, the reserve is home to Blue Sheep and is the only place in Nepal where licensed hunting is allowed.",
+    "latitude": 28.5167,
+    "longitude": 83.05,
+    "tags": [
+      "hunting",
+      "blue sheep",
+      "conservation"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_027",
+    "name": "Panchase Hill",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Pokhara Metropolitan Municipality",
+    "category": [
+      "viewpoint",
+      "religious",
+      "trekking"
+    ],
+    "activities": [
+      "hiking",
+      "bird watching",
+      "temple visit"
+    ],
+    "best_season": [
+      "spring",
+      "autumn",
+      "winter"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "A sacred hill and viewpoint shared by Kaski, Syangja, and Parbat.",
+    "full_description": "Panchase is a biological diversity hotspot and a religious site at 2,500m.",
+    "latitude": 28.2125,
+    "longitude": 83.8347,
+    "tags": [
+      "biodiversity",
+      "short trek",
+      "sacred hill"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_028",
+    "name": "Kushma Bungee & Suspension Bridges",
+    "province": "Gandaki",
+    "district": "Parbat",
+    "municipality": "Kushma Municipality",
+    "category": [
+      "adventure",
+      "viewpoint",
+      "landmark"
+    ],
+    "activities": [
+      "bridge walking",
+      "bungee jumping",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn",
+      "winter"
+    ],
+    "budget_level": "premium",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 5,
+    "culture_level": 1,
+    "nature_level": 4,
+    "short_description": "Home to one of the world's highest bungee jumps.",
+    "full_description": "Kushma is famous for its 228m bungee jump over the Kali Gandaki River and the Kushma-Gyadi suspension bridge.",
+    "latitude": 28.2256,
+    "longitude": 83.5931,
+    "tags": [
+      "bungee",
+      "suspension bridge",
+      "extreme adventure"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_029",
+    "name": "Baglung Kalika Temple",
+    "province": "Gandaki",
+    "district": "Baglung",
+    "municipality": "Baglung Municipality",
+    "category": [
+      "religious",
+      "heritage"
+    ],
+    "activities": [
+      "worship",
+      "sightseeing",
+      "festivals"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 5,
+    "nature_level": 3,
+    "short_description": "A highly revered Hindu temple dedicated to Goddess Kali.",
+    "full_description": "Located on the banks of the Kaligandaki River, this temple is a major pilgrimage site.",
+    "latitude": 28.2722,
+    "longitude": 83.6111,
+    "tags": [
+      "hinduism",
+      "kali",
+      "pilgrimage"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_030",
+    "name": "Devghat Dham",
+    "province": "Gandaki",
+    "district": "Tanahu",
+    "municipality": "Devghat Rural Municipality",
+    "category": [
+      "religious",
+      "cultural"
+    ],
+    "activities": [
+      "holy bathing",
+      "ashram visits",
+      "meditation"
+    ],
+    "best_season": [
+      "winter",
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 5,
+    "nature_level": 3,
+    "short_description": "A sacred confluence of Trisuli and Kaligandaki rivers.",
+    "full_description": "One of the most sacred places in Hindu mythology, Devghat is a center for Sanskrit education.",
+    "latitude": 27.7083,
+    "longitude": 84.425,
+    "tags": [
+      "confluence",
+      "holy site",
+      "meditation"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_034",
+    "name": "Ghorepani",
+    "province": "Gandaki",
+    "district": "Myagdi",
+    "municipality": "Annapurna Rural Municipality",
+    "category": [
+      "village",
+      "trekking",
+      "viewpoint"
+    ],
+    "activities": [
+      "trekking",
+      "rhododendron viewing",
+      "cultural interaction"
+    ],
+    "best_season": [
+      "spring",
+      "autumn",
+      "winter"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 3,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "A popular trekking crossroad famous for its rhododendron forests.",
+    "full_description": "Ghorepani was historically a rest stop for horse traders and is now the gateway to Poon Hill.",
+    "latitude": 28.4001,
+    "longitude": 83.6999,
+    "tags": [
+      "rhododendron",
+      "annapurna region",
+      "magar culture"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_035",
+    "name": "Poon Hill",
+    "province": "Gandaki",
+    "district": "Myagdi",
+    "municipality": "Annapurna Rural Municipality",
+    "category": [
+      "viewpoint"
+    ],
+    "activities": [
+      "sunrise viewing",
+      "photography",
+      "mountain sightseeing"
+    ],
+    "best_season": [
+      "spring",
+      "autumn",
+      "winter"
+    ],
+    "budget_level": "medium",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 1,
+    "nature_level": 5,
+    "short_description": "One of the most iconic Himalayan sunrise viewpoints in Nepal.",
+    "full_description": "Located at 3,210 meters, Poon Hill offers a 360-degree panorama of Dhaulagiri and Annapurna.",
+    "latitude": 28.3976,
+    "longitude": 83.6844,
+    "tags": [
+      "sunrise",
+      "panorama",
+      "trekking destination"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_036",
+    "name": "Tatopani (Myagdi)",
+    "province": "Gandaki",
+    "district": "Myagdi",
+    "municipality": "Annapurna Rural Municipality",
+    "category": [
+      "adventure",
+      "village"
+    ],
+    "activities": [
+      "natural hot spring bathing",
+      "rafting",
+      "village tour"
+    ],
+    "best_season": [
+      "autumn",
+      "winter",
+      "spring"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 2,
+    "nature_level": 4,
+    "short_description": "Famous for its natural riverside hot springs beside the Kali Gandaki.",
+    "full_description": "A key stop on the Annapurna Circuit. 'Tatopani' literally means 'Hot Water'.",
+    "latitude": 28.4981,
+    "longitude": 83.6536,
+    "tags": [
+      "hot spring",
+      "healing",
+      "kali gandaki"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_038",
+    "name": "Sarangkot",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Pokhara Metropolitan Municipality",
+    "category": [
+      "viewpoint",
+      "adventure"
+    ],
+    "activities": [
+      "paragliding",
+      "sunrise viewing",
+      "zipline"
+    ],
+    "best_season": [
+      "autumn",
+      "spring",
+      "winter"
+    ],
+    "budget_level": "medium",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 4,
+    "culture_level": 2,
+    "nature_level": 5,
+    "short_description": "The most popular hilltop viewpoint near Pokhara city.",
+    "full_description": "Sarangkot is world-renowned for its paragliding takeoff sites and views of the Annapurna range.",
+    "latitude": 28.2439,
+    "longitude": 83.9486,
+    "tags": [
+      "paragliding",
+      "sunrise",
+      "hill station"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_044",
+    "name": "Khopra Danda",
+    "province": "Gandaki",
+    "district": "Myagdi",
+    "municipality": "Annapurna Rural Municipality",
+    "category": [
+      "trekking",
+      "viewpoint"
+    ],
+    "activities": [
+      "trekking",
+      "wildlife spotting",
+      "mountain viewing"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 4,
+    "culture_level": 2,
+    "nature_level": 5,
+    "short_description": "An off-the-beaten-path ridge offering close-up views of Dhaulagiri.",
+    "full_description": "A community-managed trekking route offering eye-level views of Mount Dhaulagiri.",
+    "latitude": 28.4667,
+    "longitude": 83.7167,
+    "tags": [
+      "off-the-beaten-path",
+      "community trek",
+      "dhaulagiri"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_047",
+    "name": "Nar Phu Valley",
+    "province": "Gandaki",
+    "district": "Manang",
+    "municipality": "Narpa Bhumi Rural Municipality",
+    "category": [
+      "village",
+      "trekking",
+      "cultural"
+    ],
+    "activities": [
+      "trekking",
+      "monastery visit",
+      "cultural study"
+    ],
+    "best_season": [
+      "autumn",
+      "spring"
+    ],
+    "budget_level": "premium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 5,
+    "nature_level": 5,
+    "short_description": "A restricted 'Lost Valley' featuring medieval Tibetan culture.",
+    "full_description": "Nar and Phu are two remote villages in a hidden valley north of the Annapurna Circuit.",
+    "latitude": 28.7667,
+    "longitude": 84.2,
+    "tags": [
+      "restricted area",
+      "tibetan culture",
+      "manang"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_048",
+    "name": "World Peace Pagoda",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Pokhara Metropolitan Municipality",
+    "category": [
+      "landmark",
+      "religious",
+      "viewpoint"
+    ],
+    "activities": [
+      "sunset viewing",
+      "photography",
+      "hiking",
+      "boating"
+    ],
+    "best_season": [
+      "autumn",
+      "spring",
+      "winter"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 4,
+    "nature_level": 4,
+    "short_description": "A brilliant white stupa on Anadu Hill overlooking Phewa Lake.",
+    "full_description": "Built by Buddhist monks, this Peace Pagoda offers iconic views of Pokhara Valley and Mount Machhapuchhre.",
+    "latitude": 28.2045,
+    "longitude": 83.9436,
+    "tags": [
+      "shanti stupa",
+      "pokhara viewpoint",
+      "buddhism"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_053",
+    "name": "Phewa Lake",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "municipality": "Pokhara Metropolitan Municipality",
+    "category": [
+      "lake",
+      "nature",
+      "landmark"
+    ],
+    "activities": [
+      "boating",
+      "kayaking",
+      "cycling",
+      "bird watching",
+      "photography"
+    ],
+    "best_season": [
+      "autumn",
+      "spring",
+      "winter"
+    ],
+    "budget_level": "budget",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 3,
+    "nature_level": 5,
+    "short_description": "The second largest lake in Nepal and the primary tourism hub of Pokhara.",
+    "full_description": "Phewa Lake is famous for the mirror-like reflection of Mount Machhapuchhre on its surface.",
+    "latitude": 28.2111,
+    "longitude": 83.9455,
+    "tags": [
+      "baidam",
+      "lakeside",
+      "mirror reflection",
+      "iconic"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_040",
+    "name": "Samagaun",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Chumanwubri Rural Municipality",
+    "category": [
+      "village",
+      "trekking",
+      "cultural"
+    ],
+    "activities": [
+      "manaslu base camp hike",
+      "monastery visits",
+      "glacier viewing"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 5,
+    "nature_level": 5,
+    "short_description": "A high-altitude Tibetan-style village at the foot of Mount Manaslu.",
+    "full_description": "Samagaun is a key settlement on the Manaslu Circuit featuring the Pungyen Gompa.",
+    "latitude": 28.5858,
+    "longitude": 84.6364,
+    "tags": [
+      "manaslu circuit",
+      "tibetan culture",
+      "high himalayas"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_041",
+    "name": "Tsum Valley",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Chumanwubri Rural Municipality",
+    "category": [
+      "cultural",
+      "religious",
+      "trekking"
+    ],
+    "activities": [
+      "meditation",
+      "visiting nunneries",
+      "remote trekking"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 5,
+    "nature_level": 5,
+    "short_description": "A sacred Himalayan pilgrimage valley known as the 'Hidden Valley'.",
+    "full_description": "Tsum Valley is a culturally distinct region where the killing of animals is prohibited by tradition.",
+    "latitude": 28.5122,
+    "longitude": 85.0333,
+    "tags": [
+      "sacred valley",
+      "buddhism",
+      "remote tourism"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_042",
+    "name": "Larkya La Pass",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Chumanwubri Rural Municipality",
+    "category": [
+      "trekking",
+      "adventure"
+    ],
+    "activities": [
+      "high altitude pass crossing",
+      "photography"
+    ],
+    "best_season": [
+      "spring",
+      "autumn"
+    ],
+    "budget_level": "medium",
+    "accessibility": "difficult",
+    "family_friendly": false,
+    "adventure_level": 5,
+    "culture_level": 1,
+    "nature_level": 5,
+    "short_description": "The highest point of the Manaslu Circuit Trek at 5,106 meters.",
+    "full_description": "Larkya La is a challenging mountain pass connecting Gorkha and Manang districts.",
+    "latitude": 28.625,
+    "longitude": 84.475,
+    "tags": [
+      "mountain pass",
+      "manaslu",
+      "high altitude"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_051",
+    "name": "Gorkha Durbar",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Gorkha Municipality",
+    "category": [
+      "heritage",
+      "landmark",
+      "cultural"
+    ],
+    "activities": [
+      "historical tour",
+      "worship",
+      "city viewing"
+    ],
+    "best_season": [
+      "autumn",
+      "spring",
+      "winter"
+    ],
+    "budget_level": "budget",
+    "accessibility": "moderate",
+    "family_friendly": true,
+    "adventure_level": 2,
+    "culture_level": 5,
+    "nature_level": 4,
+    "short_description": "The historical fort, palace, and temple complex of King Prithvi Narayan Shah.",
+    "full_description": "Perched on a ridge, this 16th-century architectural marvel is the birthplace of unified Nepal.",
+    "latitude": 28.0019,
+    "longitude": 84.6293,
+    "tags": [
+      "unification of nepal",
+      "shah kings",
+      "historical fort"
+    ],
+    "confidence": "high"
+  },
+  {
+    "id": "dest_052",
+    "name": "Manakamana Temple",
+    "province": "Gandaki",
+    "district": "Gorkha",
+    "municipality": "Shahid Lakhan Rural Municipality",
+    "category": [
+      "religious",
+      "landmark"
+    ],
+    "activities": [
+      "cable car ride",
+      "pilgrimage",
+      "worship"
+    ],
+    "best_season": [
+      "year-round"
+    ],
+    "budget_level": "medium",
+    "accessibility": "easy",
+    "family_friendly": true,
+    "adventure_level": 1,
+    "culture_level": 5,
+    "nature_level": 3,
+    "short_description": "The sacred temple of the wish-fulfilling Hindu goddess.",
+    "full_description": "Situated on a prominent ridge, Manakamana is one of the most important pilgrimage sites in Nepal.",
+    "latitude": 27.8967,
+    "longitude": 84.5841,
+    "tags": [
+      "wish fulfilling goddess",
+      "cable car",
+      "pilgrimage"
+    ],
+    "confidence": "high"
+  }
+]

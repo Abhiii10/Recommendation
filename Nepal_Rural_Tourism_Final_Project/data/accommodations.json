@@ -1,0 +1,999 @@
+[
+  {
+    "id": "acc_001",
+    "destination_id": "dest_001",
+    "name": "Ghandruk Lodge (Mountain Lodges of Nepal)",
+    "accommodation_type": "lodge",
+    "price_range": "premium",
+    "amenities": [
+      "19th-century architecture",
+      "en-suite rooms",
+      "mountain views",
+      "restaurant",
+      "bar"
+    ],
+    "location_note": "Outskirts of Ghandruk village",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_002",
+    "destination_id": "dest_001",
+    "name": "Ashish Aama Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "local food",
+      "mountain view",
+      "Gurung culture experience",
+      "balcony"
+    ],
+    "location_note": "20-30 min hike from bus stop, street no 3",
+    "source": "Online review aggregator",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_003",
+    "destination_id": "dest_001",
+    "name": "Ghandruk Village Eco Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "eco-friendly",
+      "mountain views",
+      "restaurant"
+    ],
+    "location_note": "Near Maulakot Temple",
+    "source": "Map data",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_004",
+    "destination_id": "dest_001",
+    "name": "Hotel Milan",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "restaurant",
+      "mountain view",
+      "bar"
+    ],
+    "location_note": "Ghandruk village center",
+    "source": "Travel platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_005",
+    "destination_id": "dest_001",
+    "name": "Ghandruk Guest House",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "local food",
+      "mountain view"
+    ],
+    "location_note": "Main village area",
+    "source": "Travel platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_006",
+    "destination_id": "dest_001",
+    "name": "K&D Himalaya Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "restaurant",
+      "mountain view"
+    ],
+    "location_note": "Upper Ghandruk",
+    "source": "Travel platform",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_008",
+    "destination_id": "dest_002",
+    "name": "Dhampus Lodge (Mountain Lodges of Nepal)",
+    "accommodation_type": "lodge",
+    "price_range": "premium",
+    "amenities": [
+      "panoramic mountain views",
+      "8 en-suite rooms",
+      "solar-powered",
+      "happy hour",
+      "foot massage"
+    ],
+    "location_note": "Outskirts of Dhampus village",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_009",
+    "destination_id": "dest_002",
+    "name": "Dhampus Village Eco Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "garden",
+      "mountain views",
+      "eco-friendly",
+      "restaurant",
+      "bar",
+      "free WiFi"
+    ],
+    "location_note": "Pokhara",
+    "source": "Travel platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_010",
+    "destination_id": "dest_003",
+    "name": "Sikles Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "local food",
+      "cultural experience",
+      "view"
+    ],
+    "location_note": "Near Community Building of Sabhathar",
+    "source": "Map data",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_011",
+    "destination_id": "dest_003",
+    "name": "Namaste Guest House",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "8 rooms (25 beds)",
+      "Himalayan view",
+      "clean and comfortable"
+    ],
+    "location_note": "Heart of Sikles village",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_012",
+    "destination_id": "dest_004",
+    "name": "Lwang Community Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "traditional stone homes",
+      "organic food",
+      "almond farming",
+      "canoeing"
+    ],
+    "location_note": "Lwang village",
+    "source": "Hop Nepal",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_013",
+    "destination_id": "dest_004",
+    "name": "Lwang Ghalel Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "7 homestay houses",
+      "35 beds",
+      "family environment",
+      "Gurung community"
+    ],
+    "location_note": "Lwang Ghalel village",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_015",
+    "destination_id": "dest_005",
+    "name": "Annapurna Eco Village",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "family-run",
+      "garden",
+      "mountain views",
+      "quiet village atmosphere"
+    ],
+    "location_note": "30 mins from Lakeside Pokhara",
+    "source": "Travel platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_016",
+    "destination_id": "dest_005",
+    "name": "Machhapuchchhre Dhital Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "mountain view",
+      "free Wi-Fi",
+      "garden",
+      "free private parking",
+      "terrace"
+    ],
+    "location_note": "Astam",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_017",
+    "destination_id": "dest_006",
+    "name": "The Begnas Lake Resort & Villas",
+    "accommodation_type": "resort",
+    "price_range": "premium",
+    "amenities": [
+      "lake view",
+      "outdoor swimming pool",
+      "SPA",
+      "restaurant",
+      "bar",
+      "air-conditioned rooms"
+    ],
+    "location_note": "Southern shore of Begnas Lake",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_018",
+    "destination_id": "dest_006",
+    "name": "Hotel Begnas Bungalow",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "modern deluxe rooms",
+      "air conditioning",
+      "mini-bar",
+      "24-hour hot/cold water"
+    ],
+    "location_note": "Begnas Lake",
+    "source": "Tourism news website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_019",
+    "destination_id": "dest_007",
+    "name": "Rupa View Guest House",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "lake view",
+      "mountain view",
+      "restaurant",
+      "free Wi-Fi",
+      "terrace"
+    ],
+    "location_note": "1 km from Rupa Lake",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_020",
+    "destination_id": "dest_008",
+    "name": "Shinta Mani Mustang",
+    "accommodation_type": "hotel",
+    "price_range": "premium",
+    "amenities": [
+      "luxury",
+      "29 design-led suites",
+      "all-inclusive",
+      "mountain views",
+      "spa",
+      "restaurant"
+    ],
+    "location_note": "Hillside above Jomsom",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_021",
+    "destination_id": "dest_008",
+    "name": "Hotel Om's Home",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "electric bed heating",
+      "mountain view",
+      "bar/lounge",
+      "24-hour front desk"
+    ],
+    "location_note": "Walking distance from Jomsom Airport",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_022",
+    "destination_id": "dest_009",
+    "name": "Hotel Marpha Palace",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "wooden cottage rooms",
+      "apple tree garden",
+      "traditional architecture"
+    ],
+    "location_note": "Marpha village",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_023",
+    "destination_id": "dest_009",
+    "name": "Neeru Guest House",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "24-hour hot shower",
+      "filtered drinking water",
+      "roof top terrace",
+      "garden"
+    ],
+    "location_note": "Marpha village",
+    "source": "Travel review platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_026",
+    "destination_id": "dest_010",
+    "name": "Red House Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "historic building (400+ years old)",
+      "electric blankets",
+      "restaurant",
+      "terrace"
+    ],
+    "location_note": "Center of Kagbeni",
+    "source": "Travel review platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_027",
+    "destination_id": "dest_010",
+    "name": "Hotel Yac Donalds",
+    "accommodation_type": "hotel",
+    "price_range": "budget",
+    "amenities": [
+      "bar",
+      "restaurant",
+      "free Wi-Fi",
+      "terrace",
+      "gift shop"
+    ],
+    "location_note": "4-minute walk from center",
+    "source": "Booking platform",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_028",
+    "destination_id": "dest_011",
+    "name": "Lo Mustang Himalayan Resort",
+    "accommodation_type": "resort",
+    "price_range": "premium",
+    "amenities": [
+      "mountain views",
+      "air-conditioned rooms",
+      "restaurant",
+      "free Wi-Fi",
+      "free private parking"
+    ],
+    "location_note": "Ranipauwa, near Muktinath temple",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_029",
+    "destination_id": "dest_011",
+    "name": "Hotel Grand Shambala",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "large clean rooms",
+      "attached bathroom",
+      "restaurant",
+      "bar"
+    ],
+    "location_note": "Muktinath",
+    "source": "Travel review platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_031",
+    "destination_id": "dest_012",
+    "name": "Mountain Lodges of Nepal Manang",
+    "accommodation_type": "lodge",
+    "price_range": "premium",
+    "amenities": [
+      "14 rooms",
+      "stone-built",
+      "mountain views",
+      "free breakfast",
+      "floor-to-ceiling windows"
+    ],
+    "location_note": "Manang Sadak",
+    "source": "Travel magazine",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_032",
+    "destination_id": "dest_012",
+    "name": "Hotel Mountain Lake",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "panoramic views",
+      "heated dining hall",
+      "solarium restaurant"
+    ],
+    "location_note": "Manang village",
+    "source": "Travel review platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_033",
+    "destination_id": "dest_013",
+    "name": "Hotel Royal Nyesang Cottage",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "traditional architecture",
+      "mountain view",
+      "restaurant"
+    ],
+    "location_note": "Pisang village",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_034",
+    "destination_id": "dest_013",
+    "name": "Gulung Teahouse",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "tea house style",
+      "mountain views"
+    ],
+    "location_note": "Near Pisang Peak",
+    "source": "Map data",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_035",
+    "destination_id": "dest_014",
+    "name": "Mountain Lodges of Nepal Manang",
+    "accommodation_type": "lodge",
+    "price_range": "premium",
+    "amenities": [
+      "14 rooms",
+      "stone-built",
+      "views of Annapurna range",
+      "close to Braga Monastery"
+    ],
+    "location_note": "Between Manang and Braga Monastery",
+    "source": "Travel magazine",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_036",
+    "destination_id": "dest_015",
+    "name": "Ghalegaun Community Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "local food",
+      "cultural program",
+      "mountain view",
+      "community-run"
+    ],
+    "location_note": "Ghalegaun village",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_037",
+    "destination_id": "dest_016",
+    "name": "Bhujung Community Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "local food",
+      "family rooms",
+      "rural experience",
+      "Gurung culture"
+    ],
+    "location_note": "Bhujung village",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_038",
+    "destination_id": "dest_017",
+    "name": "Rainaskot Community Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "organic Nepali dishes",
+      "local rooster/mutton",
+      "mountain view",
+      "community-run"
+    ],
+    "location_note": "Rainaskot village (13+ participating homes)",
+    "source": "News article",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_039",
+    "destination_id": "dest_018",
+    "name": "Bandipur Samira Homestay & Mountain View Restaurant",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "mountain view",
+      "restaurant",
+      "bar",
+      "24-hour front desk",
+      "tour desk"
+    ],
+    "location_note": "Close to Bindebasini Temple",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_041",
+    "destination_id": "dest_018",
+    "name": "The Old Inn",
+    "accommodation_type": "inn",
+    "price_range": "premium",
+    "amenities": [
+      "heritage building",
+      "restaurant",
+      "terrace",
+      "Newari architecture"
+    ],
+    "location_note": "Main heritage street",
+    "source": "Travel platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_042",
+    "destination_id": "dest_018",
+    "name": "The Hotel",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "restaurant",
+      "bar",
+      "garden"
+    ],
+    "location_note": "Bandipur bazaar",
+    "source": "Travel platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_044",
+    "destination_id": "dest_019",
+    "name": "Hotel The Ranimahal",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "restaurant",
+      "garden",
+      "bar",
+      "free Wi-Fi",
+      "free self-parking",
+      "laundry"
+    ],
+    "location_note": "Near Tansen Durbar",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_045",
+    "destination_id": "dest_019",
+    "name": "Horizon Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "local experience",
+      "close to Tansen Durbar"
+    ],
+    "location_note": "Bhagwati Tole Road, Tansen",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_046",
+    "destination_id": "dest_020",
+    "name": "Sirubari Community Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "home-cooked Gurung meals",
+      "simple private rooms",
+      "shared bathroom",
+      "cultural immersion"
+    ],
+    "location_note": "Sirubari village",
+    "source": "Nepal Tourism Board",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_047",
+    "destination_id": "dest_021",
+    "name": "Royal Mustang Resort",
+    "accommodation_type": "resort",
+    "price_range": "premium",
+    "amenities": [
+      "luxury",
+      "Tibetan feel",
+      "consistent WiFi",
+      "hot water",
+      "restaurant",
+      "bar"
+    ],
+    "location_note": "Central Lo Manthang",
+    "source": "Travel review platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_049",
+    "destination_id": "dest_022",
+    "name": "Tilicho Hotel",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "yak steak",
+      "burger",
+      "crepes",
+      "helpful staff",
+      "great views"
+    ],
+    "location_note": "Manangbhot",
+    "source": "Travel review platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_050",
+    "destination_id": "dest_023",
+    "name": "Barpak Village Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "local food",
+      "organic products",
+      "mountain views",
+      "community experience"
+    ],
+    "location_note": "Barpak village",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_051",
+    "destination_id": "dest_024",
+    "name": "Laprak Model Community Homestay",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "traditional Gurung hospitality",
+      "mountain views",
+      "community-run"
+    ],
+    "location_note": "Dharche Rural Municipality-4",
+    "source": "Tourism news website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_052",
+    "destination_id": "dest_025",
+    "name": "High Camp Guest House & Restaurant",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "restaurant",
+      "mountain views",
+      "trekking base"
+    ],
+    "location_note": "Mardi High Camp (3550m)",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_053",
+    "destination_id": "dest_026",
+    "name": "Dhorpatan Homestay/Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "basic food",
+      "tea",
+      "coffee",
+      "milk",
+      "wildlife viewing"
+    ],
+    "location_note": "Pakhathar",
+    "source": "News article",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_054",
+    "destination_id": "dest_027",
+    "name": "Panchase Homestay (Kalabang/Pumdi)",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "local home",
+      "basic facilities",
+      "mountain views",
+      "community-run"
+    ],
+    "location_note": "Kalabang and Pumdi villages",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_062",
+    "destination_id": "dest_034",
+    "name": "Hotel Rainbow",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "spacious rooms",
+      "great beds",
+      "well-equipped bathrooms",
+      "restaurant"
+    ],
+    "location_note": "Beneath Ghorepani",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_063",
+    "destination_id": "dest_034",
+    "name": "Annapurna View Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "budget",
+    "amenities": [
+      "mountain views",
+      "basic rooms",
+      "restaurant"
+    ],
+    "location_note": "Ghorepani",
+    "source": "Map data",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_064",
+    "destination_id": "dest_035",
+    "name": "Hotel Hilltop & Restaurant",
+    "accommodation_type": "guesthouse",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "restaurant",
+      "mountain views"
+    ],
+    "location_note": "Near Poon Hill",
+    "source": "Map data",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_065",
+    "destination_id": "dest_036",
+    "name": "Shrestha Hotel HotSpring",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "36 rooms",
+      "memory foam mattresses",
+      "private balconies",
+      "free WiFi",
+      "restaurant",
+      "bar"
+    ],
+    "location_note": "Tatopani, Myagdi",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_067",
+    "destination_id": "dest_038",
+    "name": "Sarangkot Mountain Lodge",
+    "accommodation_type": "hotel",
+    "price_range": "premium",
+    "amenities": [
+      "30 rooms",
+      "pillowtop bed",
+      "minibar",
+      "LED TV",
+      "indoor/outdoor pool",
+      "hot tub",
+      "restaurant"
+    ],
+    "location_note": "Sarangkot Rd, Pokhara",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_069",
+    "destination_id": "dest_040",
+    "name": "Manaslu Mountain Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "clean rooms",
+      "warm blankets",
+      "hot meals",
+      "mountain views"
+    ],
+    "location_note": "Samagaun village center",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_070",
+    "destination_id": "dest_041",
+    "name": "Tsum Valley Homestay (Monastery Stay)",
+    "accommodation_type": "homestay",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "shared bathroom",
+      "cultural immersion",
+      "Tibetan-style hospitality"
+    ],
+    "location_note": "Tsum Valley villages",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_071",
+    "destination_id": "dest_042",
+    "name": "Larkya La Teahouse/Lodge",
+    "accommodation_type": "teahouse",
+    "price_range": "budget",
+    "amenities": [
+      "basic rooms",
+      "shared toilets",
+      "hot meals",
+      "trekker-friendly"
+    ],
+    "location_note": "Near Larkya La Pass",
+    "source": "Travel blog",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_073",
+    "destination_id": "dest_044",
+    "name": "Khopra Danda Community Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "medium",
+    "amenities": [
+      "basic amenities",
+      "community-run",
+      "authentic experience",
+      "mountain views"
+    ],
+    "location_note": "Khopra Danda (3600m)",
+    "source": "Travel blog",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_076",
+    "destination_id": "dest_047",
+    "name": "Nar Phu Valley Homestay/Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "premium",
+    "amenities": [
+      "basic but adequate",
+      "homestays",
+      "lodges",
+      "remote location"
+    ],
+    "location_note": "Nar and Phu villages",
+    "source": "Travel blog",
+    "confidence": "medium"
+  },
+  {
+    "id": "acc_077",
+    "destination_id": "dest_048",
+    "name": "Peace Dragon Lodge",
+    "accommodation_type": "lodge",
+    "price_range": "budget",
+    "amenities": [
+      "10 rooms",
+      "restaurant",
+      "bar",
+      "terrace",
+      "games room",
+      "mountain views",
+      "free WiFi"
+    ],
+    "location_note": "World Peace Pagoda, Pumdi Bhumdi",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_080",
+    "destination_id": "dest_051",
+    "name": "Hotel Gorkha Palace",
+    "accommodation_type": "hotel",
+    "price_range": "medium",
+    "amenities": [
+      "garden",
+      "shared lounge",
+      "terrace",
+      "bar",
+      "shared kitchen",
+      "room service",
+      "free WiFi"
+    ],
+    "location_note": "Gorkhā",
+    "source": "Booking platform",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_081",
+    "destination_id": "dest_052",
+    "name": "Soaltee Westend Resort",
+    "accommodation_type": "resort",
+    "price_range": "premium",
+    "amenities": [
+      "51 rooms",
+      "fitness centre",
+      "spa",
+      "yoga deck",
+      "swimming pool",
+      "kids' zone",
+      "jogging track"
+    ],
+    "location_note": "500m from Manakamana Temple",
+    "source": "News article",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_082",
+    "destination_id": "dest_053",
+    "name": "The Pavilions Himalayas Lake View",
+    "accommodation_type": "resort",
+    "price_range": "premium",
+    "amenities": [
+      "tented villas",
+      "lake view",
+      "rice fields",
+      "luxury",
+      "SPA"
+    ],
+    "location_note": "Southern shore of Phewa Lake",
+    "source": "Travel company website",
+    "confidence": "high"
+  },
+  {
+    "id": "acc_083",
+    "destination_id": "dest_053",
+    "name": "Pokhara Lake View Resort",
+    "accommodation_type": "resort",
+    "price_range": "medium",
+    "amenities": [
+      "cozy rooms",
+      "private balconies",
+      "lake view",
+      "Himalayan views",
+      "restaurant"
+    ],
+    "location_note": "Shore of Phewa Lake",
+    "source": "Travel blog",
+    "confidence": "high"
+  }
+]

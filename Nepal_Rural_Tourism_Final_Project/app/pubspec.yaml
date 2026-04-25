@@ -1,0 +1,38 @@
+name: rural_tourism_app
+description: Hybrid rural tourism guide with offline exploration and AI backend recommendations.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  url_launcher: ^6.3.1
+  sqflite: ^2.3.3+1
+  sqflite_common_ffi: ^2.3.3
+  path: ^1.9.0
+  speech_to_text: ^7.0.0
+  flutter_tts: ^3.8.5
+  http: ^1.2.0
+  flutter_dotenv: ^5.1.0
+  shared_preferences: ^2.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/data/
+    - assets/data/backend_destinations.json
+    - assets/images/
+    - .env

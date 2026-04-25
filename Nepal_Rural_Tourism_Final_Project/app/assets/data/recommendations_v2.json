@@ -1,0 +1,326 @@
+[
+  {
+    "preferences": {
+      "activity": "culture",
+      "budget": "Low",
+      "season": "All Year",
+      "vibe": "quiet"
+    },
+    "preference_text": "culture culture culture culture quiet quiet quiet low low all year year round all year year round",
+    "seed_places": [
+      {
+        "name": "Tangting",
+        "match_score": 7.5
+      },
+      {
+        "name": "Ghachok",
+        "match_score": 7.5
+      },
+      {
+        "name": "Hemjakot",
+        "match_score": 6.5
+      }
+    ],
+    "recommendations": [
+      {
+        "name": "Saimarang",
+        "type": "Village",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.2789,
+        "longitude": 84.1678,
+        "preference_score": 0.3905,
+        "seed_similarity": 0.2405,
+        "final_score": 0.3455,
+        "reasons": [
+          "matches activity 'culture'",
+          "matches vibe 'quiet'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Karuwa",
+        "type": "Village",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.389,
+        "longitude": 84.0567,
+        "preference_score": 0.292,
+        "seed_similarity": 0.1969,
+        "final_score": 0.2634,
+        "reasons": [
+          "matches activity 'culture'",
+          "matches vibe 'quiet'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Maujakot",
+        "type": "Village",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.2345,
+        "longitude": 84.1567,
+        "preference_score": 0.2231,
+        "seed_similarity": 0.2862,
+        "final_score": 0.242,
+        "reasons": [
+          "matches activity 'culture'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Chipli",
+        "type": "Village",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.4012,
+        "longitude": 84.0789,
+        "preference_score": 0.2289,
+        "seed_similarity": 0.2584,
+        "final_score": 0.2378,
+        "reasons": [
+          "matches activity 'culture'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Bhalam",
+        "type": "Village",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.2678,
+        "longitude": 84.0123,
+        "preference_score": 0.1949,
+        "seed_similarity": 0.1934,
+        "final_score": 0.1945,
+        "reasons": [
+          "matches vibe 'quiet'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      }
+    ],
+    "dataset_size": 47
+  },
+  {
+    "preferences": {
+      "activity": "hiking",
+      "budget": "Low",
+      "season": "Oct-May",
+      "vibe": "photography"
+    },
+    "preference_text": "hiking hiking hiking hiking photography photography photography low low oct-may dry season autumn spring oct-may dry season autumn spring",
+    "seed_places": [
+      {
+        "name": "Panchase",
+        "match_score": 7.2
+      },
+      {
+        "name": "Kalabang",
+        "match_score": 6.8
+      },
+      {
+        "name": "Karuwa",
+        "match_score": 6.8
+      }
+    ],
+    "recommendations": [
+      {
+        "name": "Armala Kot",
+        "type": "Viewpoint",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.289,
+        "longitude": 84.0345,
+        "preference_score": 0.3566,
+        "seed_similarity": 0.1441,
+        "final_score": 0.2929,
+        "reasons": [
+          "matches activity 'hiking'",
+          "matches vibe 'photography'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Tiger Hill",
+        "type": "Viewpoint",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.2567,
+        "longitude": 84.0456,
+        "preference_score": 0.3443,
+        "seed_similarity": 0.1312,
+        "final_score": 0.2803,
+        "reasons": [
+          "matches activity 'hiking'",
+          "matches vibe 'photography'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Thumakodada",
+        "type": "Viewpoint",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.2456,
+        "longitude": 84.1345,
+        "preference_score": 0.311,
+        "seed_similarity": 0.1598,
+        "final_score": 0.2657,
+        "reasons": [
+          "matches activity 'hiking'",
+          "matches vibe 'photography'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Phosingkot",
+        "type": "Viewpoint",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.1765,
+        "longitude": 83.8678,
+        "preference_score": 0.3217,
+        "seed_similarity": 0.1263,
+        "final_score": 0.2631,
+        "reasons": [
+          "matches activity 'hiking'",
+          "matches vibe 'photography'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Australian Camp",
+        "type": "Village",
+        "best_season": "Oct-May",
+        "price_tier": "Low",
+        "latitude": 28.3012,
+        "longitude": 83.8245,
+        "preference_score": 0.2849,
+        "seed_similarity": 0.1577,
+        "final_score": 0.2467,
+        "reasons": [
+          "matches activity 'hiking'",
+          "matches vibe 'photography'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      }
+    ],
+    "dataset_size": 47
+  },
+  {
+    "preferences": {
+      "activity": "lake",
+      "budget": "Low",
+      "season": "All Year",
+      "vibe": "family"
+    },
+    "preference_text": "lake lake lake lake family family family low low all year year round all year year round",
+    "seed_places": [
+      {
+        "name": "Begnas Lake",
+        "match_score": 7.5
+      },
+      {
+        "name": "Rupa Lake",
+        "match_score": 7.5
+      },
+      {
+        "name": "Dipang Lake",
+        "match_score": 6.5
+      }
+    ],
+    "recommendations": [
+      {
+        "name": "Maidi Lake",
+        "type": "Wetland",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.1956,
+        "longitude": 84.0212,
+        "preference_score": 0.1893,
+        "seed_similarity": 0.2827,
+        "final_score": 0.2173,
+        "reasons": [
+          "matches activity 'lake'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Khaste Lake",
+        "type": "Wetland",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.1912,
+        "longitude": 84.0345,
+        "preference_score": 0.1646,
+        "seed_similarity": 0.3034,
+        "final_score": 0.2062,
+        "reasons": [
+          "matches activity 'lake'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Chapakot",
+        "type": "Village",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.2134,
+        "longitude": 83.8956,
+        "preference_score": 0.1427,
+        "seed_similarity": 0.1211,
+        "final_score": 0.1362,
+        "reasons": [
+          "matches activity 'lake'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Karuwa",
+        "type": "Village",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.389,
+        "longitude": 84.0567,
+        "preference_score": 0.1118,
+        "seed_similarity": 0.13,
+        "final_score": 0.1173,
+        "reasons": [
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      },
+      {
+        "name": "Kalabang",
+        "type": "Village",
+        "best_season": "All Year",
+        "price_tier": "Low",
+        "latitude": 28.1876,
+        "longitude": 83.9123,
+        "preference_score": 0.1243,
+        "seed_similarity": 0.0995,
+        "final_score": 0.1169,
+        "reasons": [
+          "matches activity 'lake'",
+          "fits budget 'low'"
+        ],
+        "is_seed": false
+      }
+    ],
+    "dataset_size": 47
+  }
+]

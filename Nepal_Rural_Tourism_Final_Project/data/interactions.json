@@ -1,0 +1,44 @@
+[
+  {
+    "user_id": "demo_user_1",
+    "destination_id": "dest_018",
+    "event_type": "detail_view",
+    "value": 1.0,
+    "timestamp": null
+  },
+  {
+    "user_id": "demo_user_1",
+    "destination_id": "dest_001",
+    "event_type": "detail_view",
+    "value": 1.0,
+    "timestamp": null
+  },
+  {
+    "user_id": "demo_user_1",
+    "destination_id": "dest_018",
+    "event_type": "save",
+    "value": 1.0,
+    "timestamp": null
+  },
+  {
+    "user_id": "demo_user_1",
+    "destination_id": "dest_018",
+    "event_type": "save",
+    "value": 1.0,
+    "timestamp": null
+  },
+  {
+    "user_id": "demo_user_1",
+    "destination_id": "dest_018",
+    "event_type": "detail_view",
+    "value": 1.0,
+    "timestamp": null
+  },
+  {
+    "user_id": "demo_user_1",
+    "destination_id": "dest_001",
+    "event_type": "detail_view",
+    "value": 1.0,
+    "timestamp": null
+  }
+]

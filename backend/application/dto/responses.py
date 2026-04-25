@@ -1,5 +1,6 @@
-from typing import List, Dict, Optional
-from pydantic import BaseModel
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class RecommendationResponseItemDto(BaseModel):
@@ -10,7 +11,7 @@ class RecommendationResponseItemDto(BaseModel):
     score: float
     components: Dict[str, float]
     reasons: List[str]
-    metadata: Dict[str, str] = {}
+    metadata: Dict[str, str] = Field(default_factory=dict)
 
 
 class RecommendationResponseDto(BaseModel):
@@ -20,3 +21,9 @@ class RecommendationResponseDto(BaseModel):
 
 class SimilarResponseDto(BaseModel):
     results: List[RecommendationResponseItemDto]
+
+
+class ChatResponseDto(BaseModel):
+    answer: str
+    source: str = "gemini"
+    used_context: List[str] = Field(default_factory=list)

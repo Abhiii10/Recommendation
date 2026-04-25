@@ -3,11 +3,13 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+
 class Settings(BaseSettings):
     project_name: str = "Nepal Rural Tourism Recommendation API"
-    project_version: str = "3.0.0"
+    project_version: str = "3.2.0"
 
-    # Testing/development only
     allowed_origins: list[str] = ["*"]
 
     model_name: str = "all-MiniLM-L6-v2"
@@ -34,15 +36,21 @@ class Settings(BaseSettings):
     max_results_per_district: int = 2
     max_results_per_category: int = 2
 
-    root_dir: Path = Path(__file__).resolve().parents[2]
-    data_dir: Path = root_dir / "data"
+    # Gemini Flash chatbot config
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
+    gemini_max_output_tokens: int = 600
+    gemini_temperature: float = 0.4
+
+    root_dir: Path = ROOT_DIR
+    data_dir: Path = ROOT_DIR / "data"
 
     destinations_file: Path = data_dir / "destinations.json"
     accommodations_file: Path = data_dir / "accommodations.json"
     interactions_file: Path = data_dir / "interactions.json"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ROOT_DIR / ".env",
         env_prefix="",
         extra="ignore",
     )

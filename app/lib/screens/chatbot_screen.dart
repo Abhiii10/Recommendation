@@ -6,6 +6,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../models/chat_message.dart';
 import '../models/destination.dart';
 import '../services/chatbot_service.dart';
+import '../services/llm_chat_api_service.dart';
 import '../services/translation_service.dart';
 
 class ChatbotScreen extends StatefulWidget {
@@ -24,6 +25,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FlutterTts _tts = FlutterTts();
+  final LlmChatApiService _llmService = const LlmChatApiService();
 
   late final ChatbotService _service;
 
@@ -116,11 +118,27 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     _scrollToBottom();
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (!mounted) return;
 
-    final response = _service.respond(trimmed);
+    final localResponse = _service.respond(trimmed);
+
+    ChatMessage response = localResponse;
+
+    try {
+      final geminiAnswer = await _llmService.ask(trimmed);
+
+      response = ChatMessage.fromBot(
+        geminiAnswer,
+        detectedIntent: localResponse.detectedIntent,
+        confidence: localResponse.confidence,
+      );
+    } catch (_) {
+      response = localResponse;
+    }
+
+    if (!mounted) return;
 
     setState(() {
       _messages.add(response);
@@ -280,7 +298,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ),
                 ),
                 Text(
-                  'Offline · Nepal Rural Tourism',
+                  'Gemini Flash · Offline fallback',
                   style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.onSurfaceVariant,

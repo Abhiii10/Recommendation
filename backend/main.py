@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.v1.chat import router as chat_router
 from backend.api.v1.destinations import router as destinations_router
 from backend.api.v1.interactions import router as interactions_router
 from backend.api.v1.recommend import router as recommend_router
@@ -15,8 +16,8 @@ class ApplicationFactory:
             version=settings.project_version,
             description=(
                 "AI-powered recommendation backend for Nepal Rural Tourism app. "
-                "Uses SBERT semantic retrieval, contextual reranking, and "
-                "collaborative filtering."
+                "Uses SBERT semantic retrieval, contextual reranking, "
+                "collaborative filtering, and Gemini Flash chatbot generation."
             ),
         )
 
@@ -33,16 +34,25 @@ class ApplicationFactory:
             prefix="/recommend",
             tags=["Recommendations"],
         )
+
+        application.include_router(
+            chat_router,
+            prefix="/chat",
+            tags=["Gemini Flash Chatbot"],
+        )
+
         application.include_router(
             interactions_router,
             prefix="/interactions",
             tags=["Interactions"],
         )
+
         application.include_router(
             similar_router,
             prefix="/similar",
             tags=["Similar"],
         )
+
         application.include_router(
             destinations_router,
             prefix="/destinations",

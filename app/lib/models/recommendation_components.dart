@@ -45,7 +45,9 @@ class RecommendationComponents {
         accommodationFit = 0.0;
 
   factory RecommendationComponents.fromJson(Map<String, dynamic> json) {
-    double asDouble(String key) => (json[key] as num?)?.toDouble() ?? 0.0;
+    double asDouble(String key) {
+      return (json[key] as num?)?.toDouble() ?? 0.0;
+    }
 
     return RecommendationComponents(
       semantic: asDouble('semantic'),
@@ -58,6 +60,20 @@ class RecommendationComponents {
       familyFit: asDouble('family_fit'),
       accommodationFit: asDouble('accommodation_fit'),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'semantic': semantic,
+      'collaborative': collaborative,
+      'activity_match': activityMatch,
+      'vibe_match': vibeMatch,
+      'season_match': seasonMatch,
+      'budget_match': budgetMatch,
+      'accessibility_fit': accessibilityFit,
+      'family_fit': familyFit,
+      'accommodation_fit': accommodationFit,
+    };
   }
 
   bool get hasCollaborativeSignal => collaborative > 0.01;

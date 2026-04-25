@@ -1,3 +1,15 @@
+"""
+Recommendation pipeline (v2 — cold-start aware).
+
+Pipeline:
+  1. Build natural-language query from preferences  (PreferenceQueryBuilder)
+  2. Retrieve top-K candidates via SBERT + structured boosts (CandidateRetriever)
+  3. Score candidates with item-item collaborative filtering  (CollaborativeFilter)
+  4. Cold-start blend: if user has no history, mix collab (0%) with popularity (100%).
+     Warm users: 75% collab + 25% popularity soft prior.
+  5. Contextual reranking with 7 signals + diversity  (ContextualReranker)
+  6. Build explainable reasons, cold-start-aware         (RecommendationExplainer)
+"""
 from __future__ import annotations
 
 from backend.application.dto.requests import RecommendationRequestDto
@@ -21,21 +33,25 @@ from backend.infrastructure.repositories.json_interaction_repository import (
     JsonInteractionRepository,
 )
 
+_COLD_START_POPULARITY_WEIGHT = 1.0
+_COLD_START_COLLABORATIVE_WEIGHT = 0.0
+_WARM_POPULARITY_WEIGHT = 0.25
+_WARM_COLLABORATIVE_WEIGHT = 0.75
+
 
 class RecommendationService:
-    """
-    Existing recommendation service upgraded to a consistent four-step pipeline:
-    retrieve -> score -> rerank -> explain.
-    """
+    """Four-step recommendation pipeline: retrieve -> score -> rerank -> explain."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         destination_repo = JsonDestinationRepository()
         accommodation_repo = JsonAccommodationRepository()
         self._interaction_repo = JsonInteractionRepository()
 
         self._destinations = destination_repo.get_all()
         self._accommodations = accommodation_repo.get_all()
-        self._destination_by_id = {destination.id: destination for destination in self._destinations}
+        self._destination_by_id = {
+            destination.id: destination for destination in self._destinations
+        }
 
         self._query_builder = PreferenceQueryBuilder()
         self._retriever = CandidateRetriever(self._destinations)
@@ -60,18 +76,40 @@ class RecommendationService:
             season=request.season,
             budget=request.budget,
         )
+        candidate_ids = [c["destination"].id for c in candidates]
 
         interactions = self._interaction_repo.get_all()
-        collaborative_filter = CollaborativeFilter(interactions)
-        collaborative_scores = collaborative_filter.score_candidates(
+        collab_filter = CollaborativeFilter(interactions)
+
+        raw_collab = collab_filter.score_candidates(
             user_id=request.user_id or "",
-            candidate_ids=[candidate["destination"].id for candidate in candidates],
+            candidate_ids=candidate_ids,
         )
+
+        popularity = collab_filter.popular_destinations(candidate_ids)
+        is_cold_start = self._is_cold_start(raw_collab)
+
+        if is_cold_start:
+            blended_scores = {
+                cid: (
+                    _COLD_START_COLLABORATIVE_WEIGHT * raw_collab.get(cid, 0.0)
+                    + _COLD_START_POPULARITY_WEIGHT * popularity.get(cid, 0.0)
+                )
+                for cid in candidate_ids
+            }
+        else:
+            blended_scores = {
+                cid: (
+                    _WARM_COLLABORATIVE_WEIGHT * raw_collab.get(cid, 0.0)
+                    + _WARM_POPULARITY_WEIGHT * popularity.get(cid, 0.0)
+                )
+                for cid in candidate_ids
+            }
 
         ranked = self._reranker.rerank(
             candidates=candidates,
             accommodations=self._accommodations,
-            collaborative_scores=collaborative_scores,
+            collaborative_scores=blended_scores,
             activity=request.activity,
             budget=request.budget,
             season=request.season,
@@ -82,8 +120,10 @@ class RecommendationService:
         )
 
         items = []
+
         for recommendation in ranked:
             destination = self._destination_by_id[recommendation.id]
+
             recommendation.reasons = self._explainer.build(
                 recommendation=recommendation,
                 destination=destination,
@@ -92,7 +132,14 @@ class RecommendationService:
                 season=request.season,
                 vibe=request.vibe,
                 family_friendly=request.family_friendly,
+                is_cold_start=is_cold_start,
             )
+
+            recommendation.metadata["is_cold_start"] = str(is_cold_start).lower()
+            recommendation.metadata["popularity_score"] = (
+                f"{popularity.get(recommendation.id, 0.0):.4f}"
+            )
+
             items.append(
                 RecommendationResponseItemDto(
                     id=recommendation.id,
@@ -107,3 +154,7 @@ class RecommendationService:
             )
 
         return RecommendationResponseDto(results=items, total=len(items))
+
+    @staticmethod
+    def _is_cold_start(collab_scores: dict[str, float]) -> bool:
+        return all(score == 0.0 for score in collab_scores.values())

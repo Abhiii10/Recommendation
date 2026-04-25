@@ -1,3 +1,12 @@
+"""
+Upgraded RecommendationExplainer — cold-start aware.
+
+Changes:
+  - build() accepts is_cold_start
+  - Cold-start users get popularity-aware explanation
+  - Warm users get collaborative behaviour explanation
+  - Reasons remain weighted by actual scoring contribution
+"""
 from __future__ import annotations
 
 from typing import List, Optional
@@ -19,15 +28,25 @@ class RecommendationExplainer:
         season: str,
         vibe: str,
         family_friendly: Optional[bool],
+        is_cold_start: bool = False,
     ) -> List[str]:
+        if is_cold_start:
+            collaborative_reason = "Popular among travellers with similar interests"
+        else:
+            collaborative_reason = "Aligned with traveller behavior similar to yours"
+
         weighted_factors = [
             (
                 recommendation.components.semantic * settings.semantic_weight,
-                self._semantic_reason(activity=activity, vibe=vibe, destination=destination),
+                self._semantic_reason(
+                    activity=activity,
+                    vibe=vibe,
+                    destination=destination,
+                ),
             ),
             (
                 recommendation.components.collaborative * settings.collaborative_weight,
-                "Aligned with traveler behavior similar to yours",
+                collaborative_reason,
             ),
             (
                 recommendation.components.activity_match
@@ -78,12 +97,14 @@ class RecommendationExplainer:
             for score, message in weighted_factors
             if score > 0.0 and message
         ]
+
         total = sum(score for score, _ in active_factors)
 
         if total <= 0:
-            return ["Strong overall fit across your travel profile"]
+            return [f"Strong overall fit for {destination.name}"]
 
         active_factors.sort(key=lambda item: item[0], reverse=True)
+
         reasons: List[str] = []
 
         for score, message in active_factors[:3]:
@@ -99,42 +120,52 @@ class RecommendationExplainer:
         vibe: str,
         destination: Destination,
     ) -> str:
+        if activity and vibe:
+            return (
+                f"{destination.name} is a strong semantic match for "
+                f"{activity.lower()} with a {vibe.lower()} atmosphere"
+            )
+
         if activity:
-            return f"Strong semantic match for your {activity.lower()} travel style"
+            return f"Strong semantic match for {activity.lower()} travel"
+
         if vibe:
-            return f"Strong semantic match for a {vibe.lower()} trip"
-        return f"Strong semantic match to {destination.name}"
+            return f"Strong semantic match for a {vibe.lower()} experience"
+
+        return "Strong semantic match to your travel profile"
 
     def _activity_reason(self, activity: str) -> str:
-        return (
-            f"Matches your activity preference for {activity.lower()}"
-            if activity
-            else "Matches your activity preferences"
-        )
+        if activity:
+            return f"Matches your activity preference for {activity.lower()}"
+
+        return "Matches your activity preferences"
 
     def _vibe_reason(self, vibe: str) -> str:
-        return (
-            f"Matches your preferred {vibe.lower()} vibe"
-            if vibe
-            else "Matches your preferred vibe"
-        )
+        if vibe:
+            return f"Matches your preferred {vibe.lower()} vibe"
+
+        return "Matches your preferred vibe"
 
     def _season_reason(self, season: str) -> str:
-        return (
-            f"Best season match for {season.lower()}"
-            if season
-            else "Good seasonal fit"
-        )
+        if season:
+            return f"Best season match for {season.lower()}"
+
+        return "Good seasonal fit"
 
     def _budget_reason(self, budget: str) -> str:
-        return f"Fits your {budget.lower()} budget" if budget else "Fits your budget"
+        if budget:
+            return f"Fits your {budget.lower()} budget"
+
+        return "Fits your budget"
 
     def _accessibility_reason(self, destination: Destination) -> str:
         if destination.accessibility:
-            return f"Accessibility fit is strong ({destination.accessibility.lower()})"
-        return "Accessibility fit is strong"
+            return f"Accessibility fit: {destination.accessibility.lower()}"
+
+        return "Good accessibility for this trip"
 
     def _family_reason(self, family_friendly: Optional[bool]) -> str:
         if family_friendly:
-            return "Family friendly for the kind of trip you selected"
-        return "Flexible for mixed traveler groups"
+            return "Family friendly destination"
+
+        return "Flexible for mixed traveller groups"

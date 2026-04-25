@@ -38,8 +38,21 @@ class ApiRecommendationItem {
       metadata:
           ((json['metadata'] as Map<String, dynamic>?) ??
                   const <String, dynamic>{})
-          .map((key, value) => MapEntry(key, value.toString())),
+              .map((key, value) => MapEntry(key, value.toString())),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'district': district,
+      'province': province,
+      'score': score,
+      'components': components.toJson(),
+      'reasons': reasons,
+      'metadata': metadata,
+    };
   }
 
   String get location {
@@ -50,4 +63,10 @@ class ApiRecommendationItem {
   String get budgetLevel => metadata['budget_level'] ?? '';
 
   String get accessibility => metadata['accessibility'] ?? '';
+
+  bool get isColdStart => metadata['is_cold_start'] == 'true';
+
+  double get popularityScore {
+    return double.tryParse(metadata['popularity_score'] ?? '') ?? 0.0;
+  }
 }

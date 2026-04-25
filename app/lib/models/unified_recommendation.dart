@@ -5,6 +5,7 @@ import 'recommendation_components.dart';
 
 enum RecommendationMode {
   ai,
+  cached,
   offline,
 }
 
@@ -40,22 +41,33 @@ class UnifiedRecommendationResult {
   factory UnifiedRecommendationResult.fromAi({
     required Destination destination,
     required ApiRecommendationItem item,
+    RecommendationMode mode = RecommendationMode.ai,
   }) {
     return UnifiedRecommendationResult(
       destination: destination,
       score: item.score,
       reasons: item.reasons,
       components: item.components,
-      mode: RecommendationMode.ai,
+      mode: mode,
       aiItem: item,
     );
   }
 
-  bool get isAiBacked => mode == RecommendationMode.ai && aiItem != null;
+  bool get isAiBacked {
+    return (mode == RecommendationMode.ai || mode == RecommendationMode.cached) &&
+        aiItem != null;
+  }
 
-  String get modeLabel => mode == RecommendationMode.ai
-      ? 'AI Online Mode'
-      : 'Advanced Offline Mode';
+  String get modeLabel {
+    switch (mode) {
+      case RecommendationMode.ai:
+        return 'AI Online Mode';
+      case RecommendationMode.cached:
+        return 'Cached AI';
+      case RecommendationMode.offline:
+        return 'Advanced Offline Mode';
+    }
+  }
 }
 
 class UnifiedRecommendationResponse {

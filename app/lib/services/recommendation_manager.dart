@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../core/utils/backend_config.dart';
 import '../models/accommodation.dart';
 import '../models/api_recommendation_item.dart';
@@ -6,6 +10,9 @@ import '../models/unified_recommendation.dart';
 import '../models/user_preferences.dart';
 import 'recommendation_api_service.dart';
 import 'recommender_service.dart';
+
+const Duration _cacheTtl = Duration(hours: 24);
+const String _cacheTimestampSuffix = '_ts';
 
 class RecommendationManager {
   final RecommendationApiService _apiService;
@@ -46,8 +53,11 @@ class RecommendationManager {
     required bool familyFriendly,
     required int adventureLevel,
     int topK = 10,
-    String userId = 'demo_user_1',
+    String? userId,
   }) async {
+    final effectiveUserId = userId ?? await _stableUserId();
+    final cacheKey = _cacheKey(activity, budget, season, vibe);
+
     try {
       final apiResults = await _apiService.recommend(
         activity: activity,
@@ -56,19 +66,34 @@ class RecommendationManager {
         vibe: vibe,
         familyFriendly: familyFriendly,
         adventureLevel: adventureLevel,
-        userId: userId,
+        userId: effectiveUserId,
         topK: topK,
       );
+
+      await _saveCache(cacheKey, apiResults);
 
       return UnifiedRecommendationResponse(
         mode: RecommendationMode.ai,
         results: apiResults.map(_mapApiResult).toList(),
         indicatorLabel: 'AI Online Mode',
         message:
-            'Using the backend AI recommender with semantic retrieval, reranking, and explainable score factors.',
+            'Using the online hybrid AI recommender: SBERT retrieval, collaborative filtering, popularity fallback, contextual reranking, and explainable scoring.',
         usedFallback: false,
       );
     } catch (_) {
+      final cached = await _loadCache(cacheKey);
+
+      if (cached != null && cached.isNotEmpty) {
+        return UnifiedRecommendationResponse(
+          mode: RecommendationMode.cached,
+          results: cached.map(_mapCachedApiResult).toList(),
+          indicatorLabel: 'Cached AI Recommendations',
+          message:
+              'Backend is unavailable. Showing the last cached AI recommendations for this preference profile.',
+          usedFallback: true,
+        );
+      }
+
       return _buildOfflineResponse(
         activity: activity,
         budget: budget,
@@ -77,26 +102,29 @@ class RecommendationManager {
         familyFriendly: familyFriendly,
         adventureLevel: adventureLevel,
         topK: topK,
-        message:
-            'Using advanced offline recommendations because the backend is unavailable.',
-        usedFallback: true,
       );
     }
   }
 
   Future<void> logSave(
     UnifiedRecommendationResult result, {
-    String userId = 'demo_user_1',
+    String? userId,
   }) async {
     if (!result.isAiBacked) {
       return;
     }
 
-    await _apiService.logInteraction(
-      userId: userId,
-      destinationId: result.destination.id,
-      eventType: 'save',
-    );
+    try {
+      final effectiveUserId = userId ?? await _stableUserId();
+
+      await _apiService.logInteraction(
+        userId: effectiveUserId,
+        destinationId: result.destination.id,
+        eventType: 'save',
+      );
+    } catch (_) {
+      // Saving should not fail the UI when backend is unavailable.
+    }
   }
 
   UnifiedRecommendationResponse _buildOfflineResponse({
@@ -107,8 +135,6 @@ class RecommendationManager {
     required bool familyFriendly,
     required int adventureLevel,
     required int topK,
-    required String message,
-    required bool usedFallback,
   }) {
     final preferences = UserPreferences(
       activity: _mapActivityForOffline(activity),
@@ -128,22 +154,119 @@ class RecommendationManager {
 
     return UnifiedRecommendationResponse(
       mode: RecommendationMode.offline,
-      results: offlineResults
-          .map(UnifiedRecommendationResult.fromOffline)
-          .toList(),
+      results:
+          offlineResults.map(UnifiedRecommendationResult.fromOffline).toList(),
       indicatorLabel: 'Advanced Offline Mode',
-      message: message,
-      usedFallback: usedFallback,
+      message:
+          'Using local TF-IDF recommendations with contextual scoring and local user personalization.',
+      usedFallback: true,
     );
   }
 
+  String _cacheKey(
+    String activity,
+    String budget,
+    String season,
+    String vibe,
+  ) {
+    final raw = 'ai_cache_${activity}_${budget}_${season}_${vibe}';
+    return raw.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_');
+  }
+
+  Future<void> _saveCache(
+    String key,
+    List<ApiRecommendationItem> items,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final encoded = jsonEncode(
+        items.map((item) => item.toJson()).toList(),
+      );
+
+      await prefs.setString(key, encoded);
+
+      await prefs.setString(
+        '$key$_cacheTimestampSuffix',
+        DateTime.now().toIso8601String(),
+      );
+    } catch (_) {
+      // Cache writing is best-effort.
+    }
+  }
+
+  Future<List<ApiRecommendationItem>?> _loadCache(String key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final timestampText = prefs.getString('$key$_cacheTimestampSuffix');
+
+      if (timestampText == null) {
+        return null;
+      }
+
+      final timestamp = DateTime.tryParse(timestampText);
+
+      if (timestamp == null || DateTime.now().difference(timestamp) > _cacheTtl) {
+        return null;
+      }
+
+      final encoded = prefs.getString(key);
+
+      if (encoded == null || encoded.isEmpty) {
+        return null;
+      }
+
+      final decoded = jsonDecode(encoded) as List<dynamic>;
+
+      return decoded
+          .map(
+            (entry) => ApiRecommendationItem.fromJson(
+              Map<String, dynamic>.from(entry as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String> _stableUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      var id = prefs.getString('stable_user_id');
+
+      if (id == null || id.isEmpty) {
+        id = 'user_${DateTime.now().millisecondsSinceEpoch}';
+        await prefs.setString('stable_user_id', id);
+      }
+
+      return id;
+    } catch (_) {
+      return 'user_anonymous';
+    }
+  }
+
   UnifiedRecommendationResult _mapApiResult(ApiRecommendationItem item) {
+    return _mapApiResultWithMode(item, RecommendationMode.ai);
+  }
+
+  UnifiedRecommendationResult _mapCachedApiResult(ApiRecommendationItem item) {
+    return _mapApiResultWithMode(item, RecommendationMode.cached);
+  }
+
+  UnifiedRecommendationResult _mapApiResultWithMode(
+    ApiRecommendationItem item,
+    RecommendationMode mode,
+  ) {
     final destination = _destinationById[item.id.toLowerCase()] ??
         _buildFallbackDestination(item);
 
     return UnifiedRecommendationResult.fromAi(
       destination: destination,
       item: item,
+      mode: mode,
     );
   }
 

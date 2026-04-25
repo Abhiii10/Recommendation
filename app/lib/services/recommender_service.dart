@@ -99,15 +99,26 @@ class RecommenderService {
             accommodationFit * AppConstants.accommodationComponentWeight,
       );
 
-      final finalScore = _clamp(
+      final localAffinityBoost =
+          userProfileService?.affinityBoostFor(destination) ?? 0.0;
+
+      final localPersonalizationScore = AppConstants.maxAffinityBoost > 0
+          ? (localAffinityBoost / AppConstants.maxAffinityBoost)
+              .clamp(0.0, 1.0)
+              .toDouble()
+          : 0.0;
+
+      final baseScore = _clamp(
         candidate.textSimilarity * AppConstants.finalTextScoreWeight +
             candidate.numericSimilarity * AppConstants.finalNumericScoreWeight +
             contextualScore * AppConstants.finalContextualScoreWeight,
       );
 
+      final finalScore = _clamp(baseScore + localAffinityBoost);
+
       final components = RecommendationComponents(
         semantic: candidate.textSimilarity,
-        collaborative: 0.0,
+        collaborative: localPersonalizationScore,
         activityMatch: activityMatch,
         vibeMatch: vibeMatch,
         seasonMatch: seasonMatch,
@@ -497,6 +508,10 @@ class RecommenderService {
     required RecommendationComponents components,
   }) {
     final weightedContributions = <_WeightedReason>[
+      _WeightedReason(
+        score: components.collaborative * 0.20,
+        reason: 'Personalized from your saved and viewed destinations',
+      ),
       _WeightedReason(
         score: textSimilarity * AppConstants.finalTextScoreWeight,
         reason: 'Strong text match to your selected travel profile',

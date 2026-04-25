@@ -12,6 +12,45 @@ import '../widgets/score_breakdown_widget.dart';
 import 'ai_destination_detail_screen.dart';
 import 'details_screen.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Colour + icon maps for activity and vibe chips
+// ─────────────────────────────────────────────────────────────────────────────
+const _kActivityColours = {
+  'trekking':    Color(0xFF2E7D32),
+  'culture':     Color(0xFF6A1B9A),
+  'relaxation':  Color(0xFF0277BD),
+  'adventure':   Color(0xFFE65100),
+  'photography': Color(0xFF00838F),
+  'pilgrimage':  Color(0xFF558B2F),
+  'wildlife':    Color(0xFF4E342E),
+  'boating':     Color(0xFF1565C0),
+};
+
+const _kActivityIcons = {
+  'trekking':    Icons.hiking_rounded,
+  'culture':     Icons.account_balance_rounded,
+  'relaxation':  Icons.spa_rounded,
+  'adventure':   Icons.terrain_rounded,
+  'photography': Icons.camera_alt_rounded,
+  'pilgrimage':  Icons.temple_hindu_rounded,
+  'wildlife':    Icons.forest_rounded,
+  'boating':     Icons.sailing_rounded,
+};
+
+const _kVibeIcons = {
+  'cultural':  Icons.museum_rounded,
+  'adventure': Icons.bolt_rounded,
+  'peaceful':  Icons.self_improvement_rounded,
+  'spiritual': Icons.brightness_5_rounded,
+  'scenic':    Icons.landscape_rounded,
+  'historic':  Icons.domain_rounded,
+  'nature':    Icons.eco_rounded,
+  'social':    Icons.people_rounded,
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Widget
+// ─────────────────────────────────────────────────────────────────────────────
 class RecommendTab extends StatefulWidget {
   final List<Destination> destinations;
   final List<Accommodation> accommodations;
@@ -32,631 +71,404 @@ class RecommendTab extends StatefulWidget {
   State<RecommendTab> createState() => _RecommendTabState();
 }
 
-class _RecommendTabState extends State<RecommendTab> {
+class _RecommendTabState extends State<RecommendTab>
+    with SingleTickerProviderStateMixin {
+  // ── options ───────────────────────────────────────────────────────────────
   static const activityOptions = [
-    'trekking',
-    'culture',
-    'relaxation',
-    'adventure',
-    'photography',
-    'pilgrimage',
-    'wildlife',
-    'boating',
+    'trekking', 'culture', 'relaxation', 'adventure',
+    'photography', 'pilgrimage', 'wildlife', 'boating',
+  ];
+  static const budgetOptions  = ['budget', 'medium', 'premium'];
+  static const seasonOptions  = ['spring', 'summer', 'autumn', 'winter'];
+  static const vibeOptions    = [
+    'cultural', 'adventure', 'peaceful', 'spiritual',
+    'scenic', 'historic', 'nature', 'social',
   ];
 
-  static const budgetOptions = [
-    'budget',
-    'medium',
-    'premium',
-  ];
-
-  static const seasonOptions = [
-    'spring',
-    'summer',
-    'autumn',
-    'winter',
-  ];
-
-  static const vibeOptions = [
-    'cultural',
-    'adventure',
-    'peaceful',
-    'spiritual',
-    'scenic',
-    'historic',
-    'nature',
-    'social',
-  ];
-
+  // ── state ─────────────────────────────────────────────────────────────────
   late final RecommendationManager _manager;
+  late final AnimationController _shimmer;
 
   String activity = 'trekking';
-  String budget = 'medium';
-  String season = 'spring';
-  String vibe = 'cultural';
-  bool familyFriendly = false;
-  int adventureLevel = 3;
+  String budget   = 'medium';
+  String season   = 'spring';
+  String vibe     = 'cultural';
+  bool   familyFriendly = false;
+  int    adventureLevel = 3;
+  bool   _showOnlySaved = false;
 
-  bool _busy = false;
-  bool _checkingBackend = true;
-  bool _backendAvailable = false;
-  bool _showOnlySaved = false;
+  bool   _busy             = false;
+  bool   _checkingBackend  = true;
+  bool   _backendAvailable = false;
   String? _error;
   UnifiedRecommendationResponse? _response;
 
+  // ── lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
+    _shimmer = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
     _manager = RecommendationManager(
       offlineService: widget.service,
-      destinations: widget.destinations,
+      destinations:   widget.destinations,
       accommodations: widget.accommodations,
     );
     unawaited(_refreshBackendStatus());
   }
 
+  @override
+  void dispose() {
+    _shimmer.dispose();
+    super.dispose();
+  }
+
+  // ── helpers ───────────────────────────────────────────────────────────────
+  Color _actColor() =>
+      _kActivityColours[activity] ?? Theme.of(context).colorScheme.primary;
+
+  String _cap(String v) =>
+      v.isEmpty ? v : '${v[0].toUpperCase()}${v.substring(1)}';
+
+  List<UnifiedRecommendationResult> get _visible {
+    final r = _response?.results ?? const [];
+    return _showOnlySaved ? r.where((x) => widget.isSaved(x.destination)).toList() : r;
+  }
+
+  List<String> _badges(UnifiedRecommendationResult r, int idx) {
+    final b = <String>[];
+    final c = r.components;
+    if (idx == 0 || r.score >= 0.82)     b.add('Best Match');
+    if (c.budgetMatch >= 0.9)            b.add('Budget Friendly');
+    if (c.seasonMatch >= 0.9)            b.add('Seasonal Pick');
+    if (c.familyFit >= 0.9 && r.destination.familyFriendly == true)
+                                         b.add('Family Friendly');
+    if (c.accommodationFit >= 0.75)      b.add('Has Accommodation');
+    if (c.semantic >= 0.7 && c.collaborative < 0.1)
+                                         b.add('Hidden Gem');
+    return b.take(4).toList();
+  }
+
+  // ── actions ───────────────────────────────────────────────────────────────
   Future<void> _refreshBackendStatus() async {
     setState(() => _checkingBackend = true);
-
-    final available = await _manager.isBackendAvailable();
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _backendAvailable = available;
-      _checkingBackend = false;
-    });
+    final ok = await _manager.isBackendAvailable();
+    if (!mounted) return;
+    setState(() { _backendAvailable = ok; _checkingBackend = false; });
   }
 
-  Future<void> _generateRecommendations() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-
+  Future<void> _generate() async {
+    setState(() { _busy = true; _error = null; });
     try {
-      final response = await _manager.recommend(
-        activity: activity,
-        budget: budget,
-        season: season,
-        vibe: vibe,
-        familyFriendly: familyFriendly,
-        adventureLevel: adventureLevel,
-        topK: 10,
+      final r = await _manager.recommend(
+        activity: activity, budget: budget, season: season, vibe: vibe,
+        familyFriendly: familyFriendly, adventureLevel: adventureLevel, topK: 10,
       );
-
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       setState(() {
-        _response = response;
+        _response = r;
         _busy = false;
-        _backendAvailable = response.mode == RecommendationMode.ai;
+        _backendAvailable = r.mode == RecommendationMode.ai;
       });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _busy = false;
-        _error = 'Could not generate recommendations.\n\n$error';
-      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _busy = false; _error = 'Could not generate recommendations.\n\n$e'; });
     }
   }
 
-  Future<void> _toggleSavedAndRefresh(Destination destination) async {
-    await widget.onToggleSaved(destination);
-    if (!mounted) {
-      return;
-    }
+  Future<void> _saveResult(UnifiedRecommendationResult r) async {
+    await widget.onToggleSaved(r.destination);
+    try { await _manager.logSave(r); } catch (_) {}
+    if (!mounted) return;
     setState(() {});
   }
 
-  Future<void> _saveResult(UnifiedRecommendationResult result) async {
-    await widget.onToggleSaved(result.destination);
-
-    try {
-      await _manager.logSave(result);
-    } catch (_) {}
-
-    if (!mounted) {
-      return;
-    }
-
+  Future<void> _toggleAndRefresh(Destination d) async {
+    await widget.onToggleSaved(d);
+    if (!mounted) return;
     setState(() {});
   }
 
-  List<UnifiedRecommendationResult> get _visibleResults {
-    final results = _response?.results ?? const <UnifiedRecommendationResult>[];
-    if (!_showOnlySaved) {
-      return results;
-    }
-    return results
-        .where((result) => widget.isSaved(result.destination))
-        .toList();
+  // ── build helpers ─────────────────────────────────────────────────────────
+
+  /// Animated top banner showing AI vs offline mode
+  Widget _buildModeBanner() {
+    final cs = Theme.of(context).colorScheme;
+    final isAI = _response?.mode == RecommendationMode.ai ||
+        (_response == null && _backendAvailable);
+    final color = isAI ? cs.primary : cs.tertiary;
+    final icon  = isAI ? Icons.auto_awesome_rounded : Icons.offline_bolt_rounded;
+    final label = _response?.indicatorLabel ??
+        (_checkingBackend ? 'Checking backend…'
+            : _backendAvailable ? 'AI Online Mode Ready'
+            : 'Advanced Offline Mode Ready');
+    final body  = _response?.message ??
+        (_checkingBackend
+            ? 'Checking whether the AI backend is reachable.'
+            : _backendAvailable
+                ? 'AI pipeline: retrieve → score → rerank → explain.'
+                : 'Backend unreachable. Advanced offline recommender is ready.');
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color.withValues(alpha: 0.18), color.withValues(alpha: 0.04)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.30), width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: Row(children: [
+        Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.14), shape: BoxShape.circle),
+          child: Icon(icon, color: color, size: 22),
+        ),
+        const SizedBox(width: 14),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 13)),
+            const SizedBox(height: 2),
+            Text(body, style: TextStyle(color: color.withValues(alpha: 0.75), fontSize: 12, height: 1.4)),
+          ],
+        )),
+        IconButton(
+          onPressed: _refreshBackendStatus,
+          icon: Icon(Icons.refresh_rounded, color: color, size: 20),
+          tooltip: 'Refresh status',
+        ),
+      ]),
+    );
   }
 
-  String _labelize(String value) {
-    if (value.isEmpty) {
-      return value;
-    }
-    return value[0].toUpperCase() + value.substring(1);
-  }
-
-  String _scoreLabel(UnifiedRecommendationResult result) {
-    return '${(result.score * 100).toStringAsFixed(0)}%';
-  }
-
-  List<String> _qualityBadges(
-    UnifiedRecommendationResult result,
-    int index,
-  ) {
-    final badges = <String>[];
-    final components = result.components;
-
-    if (index == 0 || result.score >= 0.82) {
-      badges.add('Best Match');
-    }
-    if (components.budgetMatch >= 0.9) {
-      badges.add('Budget Friendly');
-    }
-    if (components.seasonMatch >= 0.9) {
-      badges.add('Seasonal Pick');
-    }
-    if (components.familyFit >= 0.9 && result.destination.familyFriendly == true) {
-      badges.add('Family Friendly');
-    }
-    if (components.accommodationFit >= 0.75) {
-      badges.add('Accommodation Available');
-    }
-    if (components.semantic >= 0.7 && components.collaborative < 0.1) {
-      badges.add('Hidden Gem');
-    }
-
-    return badges.take(4).toList();
-  }
-
-  Widget _buildChoiceChips({
+  /// Coloured pill chips with optional icon per option
+  Widget _buildDimension({
     required String title,
     required List<String> options,
     required String selected,
     required ValueChanged<String> onSelected,
+    Map<String, IconData>? icons,
+    Map<String, Color>? colours,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        Text(title,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: options.map((option) {
-            return ChoiceChip(
-              label: Text(_labelize(option)),
-              selected: option == selected,
-              onSelected: (_) => setState(() => onSelected(option)),
-            );
-          }).toList(),
-        ),
+        Wrap(spacing: 8, runSpacing: 8, children: options.map((opt) {
+          final sel   = opt == selected;
+          final color = colours?[opt] ?? cs.primary;
+          final icon  = icons?[opt];
+          return GestureDetector(
+            onTap: () => setState(() => onSelected(opt)),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(
+                color: sel ? color : cs.surfaceContainerHighest.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: sel ? color : cs.outlineVariant, width: sel ? 0 : 1),
+                boxShadow: sel
+                    ? [BoxShadow(color: color.withValues(alpha: 0.28), blurRadius: 8, offset: const Offset(0, 3))]
+                    : null,
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 15, color: sel ? Colors.white : cs.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                ],
+                Text(_cap(opt), style: TextStyle(
+                  color: sel ? Colors.white : cs.onSurface,
+                  fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 13,
+                )),
+              ]),
+            ),
+          );
+        }).toList()),
       ],
     );
   }
 
-  Widget _buildModeCard() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final response = _response;
-    final onlineActive =
-        response?.mode == RecommendationMode.ai || (response == null && _backendAvailable);
-    final toneColor = onlineActive ? colorScheme.primary : colorScheme.tertiary;
-    final badgeLabel = response?.indicatorLabel ??
-        (_checkingBackend
-            ? 'Checking backend'
-            : _backendAvailable
-                ? 'AI Online Mode Ready'
-                : 'Advanced Offline Mode Ready');
-
-    final bodyText = response?.message ??
-        (_checkingBackend
-            ? 'Checking whether the backend AI recommender is reachable.'
-            : _backendAvailable
-                ? 'The backend is available, so recommendations will use the AI pipeline first.'
-                : 'The backend is not reachable right now, but the advanced offline recommender is ready.');
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              toneColor.withValues(alpha: 0.14),
-              colorScheme.surface,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: toneColor.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          onlineActive
-                              ? Icons.auto_awesome_rounded
-                              : Icons.offline_bolt_rounded,
-                          size: 18,
-                          color: toneColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          badgeLabel,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: toneColor,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _refreshBackendStatus,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Refresh status'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Advanced recommendation pipeline',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                bodyText,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: const [
-                  _InfoPill(label: 'Retrieve'),
-                  _InfoPill(label: 'Score'),
-                  _InfoPill(label: 'Rerank'),
-                  _InfoPill(label: 'Explain'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _buildSwitch({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(children: [
+        Icon(icon, size: 20, color: cs.onSurfaceVariant),
+        const SizedBox(width: 10),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+            Text(subtitle, style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: cs.onSurfaceVariant)),
+          ],
+        )),
+        Switch(value: value, onChanged: onChanged),
+      ]),
     );
   }
 
   Widget _buildFilterCard() {
+    final cs = Theme.of(context).colorScheme;
+    const adventureLabels = ['Easy', 'Light', 'Moderate', 'Challenging', 'Extreme'];
+
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Recommendation Studio',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Tune the travel profile below. The app will try the online AI recommender first and automatically fall back to the advanced offline engine when needed.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 18),
-            _buildChoiceChips(
-              title: 'Activity',
-              options: activityOptions,
-              selected: activity,
-              onSelected: (value) => activity = value,
-            ),
-            const SizedBox(height: 16),
-            _buildChoiceChips(
-              title: 'Budget',
-              options: budgetOptions,
-              selected: budget,
-              onSelected: (value) => budget = value,
-            ),
-            const SizedBox(height: 16),
-            _buildChoiceChips(
-              title: 'Season',
-              options: seasonOptions,
-              selected: season,
-              onSelected: (value) => season = value,
-            ),
-            const SizedBox(height: 16),
-            _buildChoiceChips(
-              title: 'Trip vibe',
-              options: vibeOptions,
-              selected: vibe,
-              onSelected: (value) => vibe = value,
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'Adventure level: $adventureLevel / 5',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Slider(
-              value: adventureLevel.toDouble(),
-              min: 1,
-              max: 5,
-              divisions: 4,
-              onChanged: (value) {
-                setState(() => adventureLevel = value.round());
-              },
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Family friendly'),
-              subtitle: const Text(
-                'Use this when the trip should prioritize family-friendly places.',
+        padding: const EdgeInsets.all(20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(Icons.tune_rounded, color: cs.primary, size: 22),
+            const SizedBox(width: 10),
+            Text('Recommendation Studio',
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: 6),
+          Text(
+            'Tune your travel profile. The app tries AI first, falls back offline automatically.',
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: cs.onSurfaceVariant, height: 1.4),
+          ),
+          const SizedBox(height: 22),
+          _buildDimension(title: 'Activity', options: activityOptions, selected: activity,
+              onSelected: (v) => activity = v, icons: _kActivityIcons, colours: _kActivityColours),
+          const SizedBox(height: 18),
+          _buildDimension(title: 'Budget', options: budgetOptions, selected: budget,
+              onSelected: (v) => budget = v),
+          const SizedBox(height: 18),
+          _buildDimension(title: 'Season', options: seasonOptions, selected: season,
+              onSelected: (v) => season = v),
+          const SizedBox(height: 18),
+          _buildDimension(title: 'Trip vibe', options: vibeOptions, selected: vibe,
+              onSelected: (v) => vibe = v, icons: _kVibeIcons),
+          const SizedBox(height: 22),
+
+          // Adventure level slider
+          Row(children: [
+            Icon(Icons.terrain_rounded, size: 18, color: _actColor()),
+            const SizedBox(width: 8),
+            Text('Adventure level: ', style: Theme.of(context).textTheme.titleSmall),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: Text(
+                adventureLabels[adventureLevel - 1],
+                key: ValueKey(adventureLevel),
+                style: TextStyle(color: _actColor(), fontWeight: FontWeight.w800, fontSize: 13),
               ),
+            ),
+          ]),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: _actColor(),
+              thumbColor: _actColor(),
+              overlayColor: _actColor().withValues(alpha: 0.14),
+            ),
+            child: Slider(
+              value: adventureLevel.toDouble(), min: 1, max: 5, divisions: 4,
+              onChanged: (v) => setState(() => adventureLevel = v.round()),
+            ),
+          ),
+
+          _buildSwitch(icon: Icons.family_restroom_rounded,
+              title: 'Family friendly',
+              subtitle: 'Prioritise destinations suitable for children.',
               value: familyFriendly,
-              onChanged: (value) => setState(() => familyFriendly = value),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Show only saved results'),
-              subtitle: const Text(
-                'Filter the generated list down to places already bookmarked.',
-              ),
+              onChanged: (v) => setState(() => familyFriendly = v)),
+          _buildSwitch(icon: Icons.bookmark_rounded,
+              title: 'Show only saved results',
+              subtitle: 'Filter the list to bookmarked places only.',
               value: _showOnlySaved,
-              onChanged: (value) => setState(() => _showOnlySaved = value),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: _busy ? null : _generateRecommendations,
-                icon: const Icon(Icons.auto_awesome_rounded),
-                label: Text(_busy ? 'Generating recommendations...' : 'Generate Recommendations'),
+              onChanged: (v) => setState(() => _showOnlySaved = v)),
+
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: _actColor(),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: _busy ? null : _generate,
+              icon: _busy
+                  ? const SizedBox(width: 18, height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.auto_awesome_rounded),
+              label: Text(
+                _busy ? 'Generating recommendations…' : 'Generate Recommendations',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard() {
-    final response = _response;
-    final resultCount = _visibleResults.length;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Recommendation Summary',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _MetricTile(
-                  label: 'Results',
-                  value: '$resultCount',
-                  icon: Icons.explore_outlined,
-                ),
-                _MetricTile(
-                  label: 'Mode used',
-                  value: response?.indicatorLabel ?? 'Not run',
-                  icon: Icons.memory_rounded,
-                ),
-                _MetricTile(
-                  label: 'Saved in list',
-                  value: _visibleResults
-                      .where((result) => widget.isSaved(result.destination))
-                      .length
-                      .toString(),
-                  icon: Icons.bookmark_outline_rounded,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _SelectionChip(label: 'Activity', value: _labelize(activity)),
-                _SelectionChip(label: 'Budget', value: _labelize(budget)),
-                _SelectionChip(label: 'Season', value: _labelize(season)),
-                _SelectionChip(label: 'Vibe', value: _labelize(vibe)),
-                _SelectionChip(
-                  label: 'Adventure',
-                  value: '$adventureLevel/5',
-                ),
-                if (familyFriendly)
-                  const _SelectionChip(label: 'Family', value: 'Enabled'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFallbackBanner() {
-    final response = _response;
-    if (response == null || !response.usedFallback) {
-      return const SizedBox.shrink();
-    }
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: colorScheme.tertiaryContainer.withValues(alpha: 0.55),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.offline_bolt_rounded,
-            color: colorScheme.onTertiaryContainer,
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Using advanced offline recommendations. The backend AI service was unavailable for this run.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onTertiaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-          ),
-        ],
+        ]),
       ),
     );
   }
 
-  Widget _buildInitialState() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Icon(
-              Icons.travel_explore_rounded,
-              size: 40,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Generate a recommendation profile',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Select your activity, budget, season, and vibe, then generate recommendations to see one unified ranked list with explainable score factors.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ],
+  /// Score ring replaces flat badge — shows progress filled to score value
+  Widget _buildScoreRing(double score) {
+    final color = _actColor();
+    final pct   = (score * 100).round();
+    return SizedBox(
+      width: 46, height: 46,
+      child: Stack(fit: StackFit.expand, children: [
+        CircularProgressIndicator(
+          value: score,
+          strokeWidth: 4,
+          backgroundColor: color.withValues(alpha: 0.15),
+          valueColor: AlwaysStoppedAnimation(color),
         ),
-      ),
+        Center(child: Text('$pct',
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color))),
+      ]),
     );
   }
 
-  Widget _buildEmptyState() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 40,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              _showOnlySaved
-                  ? 'No saved recommendations matched this profile'
-                  : 'No recommendations matched this profile',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _showOnlySaved
-                  ? 'Try turning off "Show only saved results" or bookmark more places first.'
-                  : 'Try changing the activity, season, budget, or vibe to broaden the result set.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Column(
-      children: List.generate(
-        3,
-        (index) => Padding(
-          padding: EdgeInsets.only(bottom: index == 2 ? 0 : 14),
-          child: const _LoadingRecommendationCard(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecommendationCard(
-    UnifiedRecommendationResult result,
-    int index,
-  ) {
+  Widget _buildResultCard(UnifiedRecommendationResult result, int idx) {
     final saved = widget.isSaved(result.destination);
+    final cs    = Theme.of(context).colorScheme;
+    final color = _actColor();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: DestinationCard(
         destination: result.destination,
-        reasons: result.reasons,
-        scoreLabel: _scoreLabel(result),
-        modeLabel: result.modeLabel,
-        modeIcon: result.mode == RecommendationMode.ai
-            ? Icons.auto_awesome_rounded
-            : Icons.offline_bolt_rounded,
-        badges: _qualityBadges(result, index),
-        trailing: IconButton.filledTonal(
-          tooltip: saved ? 'Remove from saved' : 'Save destination',
-          onPressed: () => _saveResult(result),
-          icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
-        ),
+        reasons:     result.reasons,
+        scoreLabel:  '${(result.score * 100).round()}%',
+        modeLabel:   result.modeLabel,
+        modeIcon:    result.mode == RecommendationMode.ai
+            ? Icons.auto_awesome_rounded : Icons.offline_bolt_rounded,
+        badges: _badges(result, idx),
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          _buildScoreRing(result.score),
+          const SizedBox(width: 6),
+          IconButton.filledTonal(
+            tooltip: saved ? 'Remove from saved' : 'Save destination',
+            onPressed: () => _saveResult(result),
+            icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border, size: 20),
+          ),
+        ]),
         footer: ScoreBreakdownWidget(
           components: result.components,
           compact: true,
@@ -664,114 +476,170 @@ class _RecommendTabState extends State<RecommendTab> {
         ),
         onTap: () {
           if (result.isAiBacked) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AiDestinationDetailScreen(item: result.aiItem!),
-              ),
-            );
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_) => AiDestinationDetailScreen(item: result.aiItem!),
+            ));
             return;
           }
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => DetailsScreen(
-                destination: result.destination,
-                nearbyAccommodations: widget.accommodations,
-                isSaved: widget.isSaved(result.destination),
-                onToggleSaved: () => _toggleSavedAndRefresh(result.destination),
-              ),
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => DetailsScreen(
+              destination:          result.destination,
+              nearbyAccommodations: widget.accommodations,
+              isSaved:              saved,
+              onToggleSaved:        () => _toggleAndRefresh(result.destination),
             ),
-          );
+          ));
         },
       ),
     );
   }
 
-  Widget _buildResultsSection() {
-    if (_busy) {
-      return _buildLoadingState();
-    }
+  Widget _buildSummaryRow() {
+    final cs    = Theme.of(context).colorScheme;
+    final count = _visible.length;
+    final saved = _visible.where((r) => widget.isSaved(r.destination)).length;
+    final mode  = _response?.indicatorLabel ?? 'Not run';
 
-    if (_response == null) {
-      return _buildInitialState();
-    }
+    return Row(children: [
+      _StatPill(icon: Icons.explore_outlined,        label: 'Results', value: '$count', color: cs.primary),
+      const SizedBox(width: 10),
+      _StatPill(icon: Icons.memory_rounded,          label: 'Mode',    value: mode,     color: cs.secondary),
+      const SizedBox(width: 10),
+      _StatPill(icon: Icons.bookmark_outline_rounded,label: 'Saved',   value: '$saved', color: cs.tertiary),
+    ]);
+  }
 
-    if (_visibleResults.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    final response = _response!;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (response.usedFallback) ...[
-          _buildFallbackBanner(),
-          const SizedBox(height: 14),
-        ],
-        ..._visibleResults.asMap().entries.map(
-              (entry) => _buildRecommendationCard(entry.value, entry.key),
-            ),
-      ],
+  Widget _buildInitialState() {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(children: [
+          Container(
+            width: 72, height: 72,
+            decoration: BoxDecoration(color: cs.primaryContainer, shape: BoxShape.circle),
+            child: Icon(Icons.travel_explore_rounded, size: 36, color: cs.primary),
+          ),
+          const SizedBox(height: 16),
+          Text('Discover Nepal\'s hidden gems',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text('Set your activity, budget, season and vibe above,\nthen tap Generate Recommendations.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant, height: 1.5),
+            textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: const [
+            _InfoPill(label: 'Retrieve'), _InfoPill(label: 'Score'),
+            _InfoPill(label: 'Rerank'),   _InfoPill(label: 'Explain'),
+          ]),
+        ]),
+      ),
     );
   }
 
+  Widget _buildEmptyState() {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(children: [
+          Icon(Icons.search_off_rounded, size: 40, color: cs.primary),
+          const SizedBox(height: 14),
+          Text(
+            _showOnlySaved ? 'No saved results matched this profile' : 'No results matched this profile',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text(
+            _showOnlySaved
+                ? 'Turn off "Show only saved" or bookmark more places first.'
+                : 'Try changing the activity, season, budget or vibe.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+            textAlign: TextAlign.center),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildSkeleton() {
+    return Column(children: List.generate(3, (i) => Padding(
+      padding: EdgeInsets.only(bottom: i == 2 ? 0 : 14),
+      child: _ShimmerCard(animation: _shimmer),
+    )));
+  }
+
+  Widget _buildResultsSection() {
+    if (_busy)             return _buildSkeleton();
+    if (_response == null) return _buildInitialState();
+    if (_visible.isEmpty)  return _buildEmptyState();
+
+    final response = _response!;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      if (response.usedFallback) ...[
+        _FallbackBanner(
+          message: 'Using advanced offline recommendations — AI backend was unavailable.'),
+        const SizedBox(height: 14),
+      ],
+      _buildSummaryRow(),
+      const SizedBox(height: 20),
+      ..._visible.asMap().entries.map((e) => _buildResultCard(e.value, e.key)),
+    ]);
+  }
+
+  // ── main build ────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recommendations')),
+      appBar: AppBar(
+        title: const Text('Recommendations'),
+        centerTitle: false,
+        actions: [
+          if (_error != null)
+            IconButton(
+              icon: const Icon(Icons.warning_amber_rounded),
+              color: theme.colorScheme.error,
+              tooltip: 'View error',
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text('Error'),
+                  content: Text(_error!),
+                  actions: [TextButton(
+                    onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+                ),
+              ),
+            ),
+        ],
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 860),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildModeCard(),
-                  const SizedBox(height: 16),
-                  _buildFilterCard(),
-                  if (_error != null) ...[
-                    const SizedBox(height: 16),
-                    Card(
-                      color: theme.colorScheme.errorContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Text(
-                          _error!,
-                          style: TextStyle(
-                            color: theme.colorScheme.onErrorContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  _buildSummaryCard(),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Ranked destinations',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'One unified result list with explainable recommendation signals.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _buildModeBanner(),
+                const SizedBox(height: 16),
+                _buildFilterCard(),
+                const SizedBox(height: 20),
+                if (_response != null || _busy) ...[
+                  Row(children: [
+                    Text('Ranked destinations',
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                    const Spacer(),
+                    Text('${_visible.length} results',
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  ]),
                   const SizedBox(height: 14),
-                  _buildResultsSection(),
                 ],
-              ),
+                _buildResultsSection(),
+              ]),
             ),
           ),
         ],
@@ -780,63 +648,35 @@ class _RecommendTabState extends State<RecommendTab> {
   }
 }
 
-class _MetricTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
+// ─────────────────────────────────────────────────────────────────────────────
+// Small reusable widgets
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const _MetricTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+class _StatPill extends StatelessWidget {
+  final IconData icon;
+  final String   label;
+  final String   value;
+  final Color    color;
+  const _StatPill({required this.icon, required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      constraints: const BoxConstraints(minWidth: 180),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: colorScheme.primaryContainer.withValues(alpha: 0.55),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: colorScheme.primary),
-          ),
-          const SizedBox(width: 10),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-        ],
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(height: 4),
+          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
+          Text(label,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ]),
       ),
     );
   }
@@ -844,147 +684,113 @@ class _MetricTile extends StatelessWidget {
 
 class _InfoPill extends StatelessWidget {
   final String label;
-
   const _InfoPill({required this.label});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.5),
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-      ),
+      child: Text(label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
     );
   }
 }
 
-class _SelectionChip extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _SelectionChip({
-    required this.label,
-    required this.value,
-  });
+class _FallbackBanner extends StatelessWidget {
+  final String message;
+  const _FallbackBanner({required this.message});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: colorScheme.secondaryContainer.withValues(alpha: 0.5),
+        color: cs.tertiaryContainer.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(
-        '$label: $value',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: colorScheme.onSecondaryContainer,
-              fontWeight: FontWeight.w700,
-            ),
-      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.offline_bolt_rounded, color: cs.onTertiaryContainer),
+        const SizedBox(width: 10),
+        Expanded(child: Text(message,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: cs.onTertiaryContainer, fontWeight: FontWeight.w600))),
+      ]),
     );
   }
 }
 
-class _LoadingRecommendationCard extends StatelessWidget {
-  const _LoadingRecommendationCard();
+/// Animated shimmer skeleton card shown while loading
+class _ShimmerCard extends StatelessWidget {
+  final AnimationController animation;
+  const _ShimmerCard({required this.animation});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs   = Theme.of(context).colorScheme;
+    final base = cs.surfaceContainerHighest;
 
-    Widget line(double width, {double height = 12}) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(999),
+    Widget bar(double w, {double h = 12}) => AnimatedBuilder(
+      animation: animation,
+      builder: (_, __) {
+        final alpha = 0.35 + 0.45 * animation.value;
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            width: w,
+            height: h,
+            decoration: BoxDecoration(
+              color: base.withValues(alpha: alpha),
+              borderRadius: BorderRadius.circular(999),
+            ),
           ),
-        ),
-      );
-    }
+        );
+      },
+    );
 
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            AnimatedBuilder(
+              animation: animation,
+              builder: (_, __) => Container(
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  color: base.withValues(alpha: 0.35 + 0.45 * animation.value),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      line(120, height: 28),
-                      const SizedBox(height: 10),
-                      line(double.infinity),
-                      const SizedBox(height: 8),
-                      line(180),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 72,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            line(double.infinity),
-            const SizedBox(height: 8),
-            line(double.infinity),
-            const SizedBox(height: 8),
-            line(220),
-            const SizedBox(height: 18),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                children: [
-                  line(double.infinity),
-                  const SizedBox(height: 8),
-                  line(double.infinity),
-                  const SizedBox(height: 8),
-                  line(180),
-                ],
               ),
             ),
-          ],
-        ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              bar(140, h: 18), const SizedBox(height: 8), bar(200),
+            ])),
+            const SizedBox(width: 12),
+            AnimatedBuilder(
+              animation: animation,
+              builder: (_, __) => Container(
+                width: 46, height: 46,
+                decoration: BoxDecoration(
+                  color: base.withValues(alpha: 0.35 + 0.45 * animation.value),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          bar(double.infinity), const SizedBox(height: 8),
+          bar(double.infinity), const SizedBox(height: 8),
+          bar(220),
+        ]),
       ),
     );
   }

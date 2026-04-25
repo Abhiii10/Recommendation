@@ -6,6 +6,7 @@ import '../models/destination.dart';
 import '../services/local_data_service.dart';
 import '../services/offline_storage.dart';
 import '../services/recommender_service.dart';
+import 'chatbot_screen.dart';
 import 'home_tab.dart' as home;
 import 'map_screen.dart';
 import 'recommend_tab.dart' as recommend;
@@ -61,6 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -81,13 +83,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final updated = await LocalDataService.instance.getSavedDestinations();
 
     if (!mounted) return;
+
     setState(() => _savedDestinations = updated);
   }
 
-  bool _isSaved(Destination destination) =>
-      _savedDestinations.any((d) => d.id == destination.id);
+  bool _isSaved(Destination destination) {
+    return _savedDestinations.any((d) => d.id == destination.id);
+  }
 
-  void _goToTab(int index) => setState(() => _currentIndex = index);
+  void _goToTab(int index) {
+    setState(() => _currentIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,13 +137,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onToggleSaved: _toggleSaved,
       ),
       const TranslationScreen(),
+      ChatbotScreen(destinations: _destinations),
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: pages),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: pages,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -163,6 +175,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icon(Icons.translate_outlined),
             selectedIcon: Icon(Icons.translate),
             label: 'Translate',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline_rounded),
+            selectedIcon: Icon(Icons.chat_bubble_rounded),
+            label: 'Chat',
           ),
         ],
       ),

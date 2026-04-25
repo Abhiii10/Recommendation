@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "version": "1.0",
+    "region": "Gandaki Province, Nepal",
+    "description": "Tourism knowledge base for Nepal Rural Tourism chatbot"
+  },
+  "intents": {
+    "greeting": {
+      "keywords": ["hello", "hi", "hey", "namaste", "good morning", "good afternoon", "good evening", "start", "help me", "what can you do"],
+      "weight": 1.0
+    },
+    "best_time_to_visit": {
+      "keywords": ["best time", "when to visit", "when should i go", "which season", "good time", "when to travel", "what month", "spring", "autumn", "monsoon", "winter", "summer", "weather", "climate", "october", "november", "march", "april", "season"],
+      "weight": 1.2
+    },
+    "transport": {
+      "keywords": ["how to get", "how do i get", "transport", "travel", "jeep", "bus", "drive", "road", "reach", "way to go", "route", "getting there", "from pokhara", "from kathmandu", "directions", "taxi", "vehicle", "walk", "trek to"],
+      "weight": 1.2
+    },
+    "homestay": {
+      "keywords": ["homestay", "stay", "accommodation", "lodge", "sleep", "where to stay", "guesthouse", "teahouse", "hotel", "room", "night", "overnight", "rest", "bed"],
+      "weight": 1.1
+    },
+    "food": {
+      "keywords": ["food", "eat", "meal", "dal bhat", "local food", "cuisine", "vegetarian", "restaurant", "dining", "breakfast", "lunch", "dinner", "drink", "tea", "snack", "taste", "typical food"],
+      "weight": 1.1
+    },
+    "culture_etiquette": {
+      "keywords": ["culture", "etiquette", "custom", "tradition", "respect", "dress", "clothing", "temple", "monastery", "gurung", "magar", "tharu", "festival", "ritual", "sacred", "local custom", "behaviour", "behavior", "what to wear", "can i"],
+      "weight": 1.1
+    },
+    "safety": {
+      "keywords": ["safe", "safety", "danger", "risk", "crime", "robbery", "altitude", "altitude sickness", "emergency", "medical", "hospital", "insurance", "solo", "woman", "female", "night", "is it safe"],
+      "weight": 1.2
+    },
+    "budget": {
+      "keywords": ["cost", "budget", "price", "cheap", "expensive", "how much", "money", "rupee", "nrp", "usd", "dollar", "afford", "daily budget", "spend", "fee", "entry fee", "per day", "rupees"],
+      "weight": 1.2
+    },
+    "trekking": {
+      "keywords": ["trek", "trekking", "hike", "hiking", "trail", "walk", "annapurna", "abc", "base camp", "route", "days", "permits", "tims", "acap", "altitude", "elevation", "porter", "guide", "gear", "boot", "pack", "backpack"],
+      "weight": 1.2
+    },
+    "destination_info": {
+      "keywords": ["tell me about", "what is", "describe", "information about", "info about", "details about", "show me", "explain", "about", "overview", "ghandruk", "dhampus", "sikles", "sarangkot", "begnas", "rupa", "lwang", "panchase", "vinayak"],
+      "weight": 1.3
+    },
+    "nearby_places": {
+      "keywords": ["nearby", "close to", "near", "around", "close by", "what else", "other places", "similar", "neighbour", "adjacent", "from here", "also visit", "combination", "combine"],
+      "weight": 1.1
+    },
+    "recommendation_help": {
+      "keywords": ["recommend", "suggestion", "suggest", "where should i go", "best place", "top place", "which place", "good destination", "must visit", "popular", "favourite", "best destination"],
+      "weight": 1.2
+    },
+    "emergency_help": {
+      "keywords": ["emergency", "help", "sos", "injured", "accident", "lost", "missing", "rescue", "police", "ambulance", "hospital", "hurt", "sick", "call", "urgent", "danger"],
+      "weight": 1.5
+    },
+    "offline_help": {
+      "keywords": ["offline", "no internet", "no connection", "without internet", "network", "data", "wifi", "how does app work", "download", "cache", "work offline"],
+      "weight": 1.0
+    },
+    "smalltalk": {
+      "keywords": ["thank", "thanks", "great", "awesome", "nice", "wow", "cool", "ok", "okay", "understood", "got it", "bye", "goodbye", "see you", "cheers"],
+      "weight": 0.8
+    },
+    "fallback": {
+      "keywords": [],
+      "weight": 0.0
+    }
+  },
+  "responses": {
+    "greeting": [
+      "Namaste! 🙏 I'm your Nepal Rural Tourism assistant. I can help you with:\n• Best time to visit destinations\n• Transport and trekking routes\n• Homestays and accommodation\n• Local food and culture\n• Safety tips and budget info\n\nWhat would you like to know?",
+      "Namaste! Welcome to the Gandaki Rural Tourism guide. Ask me anything about destinations, trekking, transport, food, or culture. How can I help you today?"
+    ],
+    "best_time_to_visit_generic": "The best times to visit rural Nepal are:\n\n🌸 Spring (March–May): Clear skies, rhododendrons in bloom, ideal for trekking.\n🍂 Autumn (September–November): Best visibility, stable weather, peak trekking season.\n\nMonsoon (June–August) brings heavy rain but lush green landscapes. Winter (December–February) is cold at altitude but peaceful and crowd-free.",
+    "transport_generic": "Getting around the Gandaki region:\n\n🚗 Jeep/taxi from Pokhara: Most villages are 45 min–3 hours by road.\n🚌 Local bus: Cheaper but slower; available to most trailheads.\n🥾 Trekking: Many destinations are best reached on foot along well-marked trails.\n\nTip: Hire a local guide for first-time trekkers — they know the trails and can assist in emergencies.",
+    "homestay_generic": "Rural homestays are the heart of community tourism in Nepal. Most villages offer:\n\n🏠 Traditional Gurung or Magar stone houses\n🛏️ Clean rooms with local meals included (typically NRP 1,000–2,500 per night with dinner and breakfast)\n👨‍👩‍👧 Family-hosted — a great way to experience local culture\n\nBook in advance during peak season (Oct–Nov, Mar–Apr) as rooms fill up fast.",
+    "food_generic": "Local cuisine in the Gandaki region:\n\n🍱 Dal Bhat: The staple meal — lentils, rice, vegetables and curries. Usually included in homestay packages.\n🫖 Butter tea or milk tea with local snacks\n🥘 Dhido: Buckwheat or millet porridge — traditional and nutritious\n🍺 Tongba: Fermented millet beer, a local specialty in higher villages\n\nVegetarian options are almost always available. Be careful with drinking water — use purification tablets or buy sealed bottles.",
+    "culture_etiquette_generic": "Cultural tips for rural Nepal:\n\n🙏 Greet with 'Namaste' and a slight bow\n👟 Remove shoes before entering temples and homes\n👗 Dress modestly, especially near religious sites\n📸 Always ask before photographing people\n🚶 Walk clockwise around stupas and mani walls\n🤝 Accept offerings or food with your right hand\n⛩️ Do not touch religious objects unless invited\n\nLocals are warm and welcoming — a small gesture of respect goes a long way.",
+    "safety_generic": "Safety tips for rural tourism in Nepal:\n\n✅ Nepal's rural areas are generally very safe for tourists\n🏔️ Altitude sickness: Ascend gradually, stay hydrated, descend immediately if you feel very unwell\n🧭 Always carry a paper map or offline map — mobile signal is patchy\n💊 Bring a basic first aid kit and any prescription medicines\n🔒 Keep a photocopy of your passport and travel insurance\n📞 Emergency numbers: Police 100, Ambulance 102, Tourist Police 01-4247041\n\nTrekking with a local guide significantly reduces risk.",
+    "budget_generic": "Rough daily budget guide for rural Gandaki:\n\n💚 Budget (NRP 2,000–4,000 / day): Homestay with meals, local transport\n💛 Medium (NRP 4,000–8,000 / day): Comfortable guesthouse, guide hire\n🔴 Premium (NRP 8,000+ / day): Guided multi-day trek with porter and teahouse stays\n\nTrekking permits: ACAP permit NRP 3,000 (foreigners), TIMS card NRP 2,000.\nMost village shops accept Nepali rupees only — bring enough cash from Pokhara.",
+    "trekking_generic": "Trekking in the Gandaki region:\n\n🥾 Popular routes: Ghandruk Loop, Panchase Trek, Mardi Himal, Annapurna Base Camp\n📋 Permits needed: ACAP (Annapurna Conservation Area Permit) + TIMS card\n🗺️ Difficulty: From easy day hikes (Dhampus, Sarangkot) to challenging multi-day treks (ABC)\n🧭 Guides & porters: Recommended for first-timers; hire through Pokhara agencies\n👟 What to bring: Layered clothing, rain gear, trekking poles, water purification\n\nBest trekking season: October–November and March–May.",
+    "recommendation_help": "Great question! The best way to get personalised recommendations is to use the Recommend tab (the slider icon in the bottom navigation). You can set your:\n• Preferred activity (trekking, culture, relaxation…)\n• Budget (budget / medium / premium)\n• Season you plan to visit\n• Trip vibe (peaceful, adventure, cultural…)\n\nThe AI will suggest the best matching destinations from our database. Want me to suggest a few popular ones right now?",
+    "emergency_help": "🚨 Emergency contacts in Nepal:\n\n📞 Police: 100\n🚑 Ambulance: 102\n🏔️ Mountain Rescue: CAAN Helicopter Rescue — contact through your trekking agency\n🏥 Tourist Police: 01-4247041\n🌐 Pokhara Hospital: +977-61-520066\n\nIf you are on a trek and need help: stay calm, signal other trekkers, and use your emergency whistle (3 blasts = distress signal). Your lodge owner can also help contact rescue services.\n\n⚠️ Always carry travel insurance that covers helicopter evacuation.",
+    "offline_help": "This app is designed to work offline! Here's how:\n\n📦 All destination data is stored locally on your device — no internet needed to browse.\n🗺️ The map uses locally cached tiles for the Pokhara/Gandaki region.\n⭐ Saved destinations are stored on your device.\n🤖 Recommendations use an offline AI engine that runs entirely on your phone.\n\nInternet is only needed for: AI backend recommendations (optional), translation, and fetching real-time updates.",
+    "smalltalk": "You're welcome! 😊 Let me know if you have any other questions about Nepal's rural tourism.",
+    "fallback": "I'm not sure I understood that. I can help with:\n• Best time to visit 🗓️\n• Transport and routes 🚗\n• Homestays and accommodation 🏠\n• Food and cuisine 🍱\n• Culture and etiquette 🙏\n• Safety tips 🛡️\n• Budget info 💰\n• Trekking advice 🥾\n• Nearby places 📍\n• Destination details 🗺️\n\nTry asking something like: 'When is the best time to visit Ghandruk?' or 'How do I get to Sikles?'"
+  },
+  "top_destinations": [
+    "Ghandruk", "Dhampus", "Sikles", "Sarangkot", "Lwang",
+    "Begnas Lake", "Rupa Lake", "Panchase", "Vinayak Hill", "Ghachok"
+  ]
+}

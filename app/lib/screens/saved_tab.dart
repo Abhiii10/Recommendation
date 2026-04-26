@@ -29,22 +29,37 @@ class SavedTab extends StatelessWidget {
         title: Row(
           children: [
             Container(
-              width: 30, height: 30,
+              width: 30,
+              height: 30,
               decoration: BoxDecoration(
                 color: AppTheme.earthOchre,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.bookmark_rounded, color: Colors.white, size: 18),
+              child: const Icon(
+                Icons.bookmark_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Saved Places'),
-                if (savedDestinations.isNotEmpty)
-                  Text('${savedDestinations.length} destination${savedDestinations.length == 1 ? '' : 's'}',
-                    style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Saved Places',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (savedDestinations.isNotEmpty)
+                    Text(
+                      '${savedDestinations.length} destination${savedDestinations.length == 1 ? '' : 's'}',
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
           ],
         ),
@@ -56,7 +71,9 @@ class SavedTab extends StatelessWidget {
               itemCount: savedDestinations.length,
               itemBuilder: (context, index) {
                 final destination = savedDestinations[index];
-                final cat   = destination.category.isNotEmpty ? destination.category.first : 'scenic';
+                final cat = destination.category.isNotEmpty
+                    ? destination.category.first
+                    : 'scenic';
                 final color = AppTheme.categoryColour(cat);
 
                 return Padding(
@@ -77,25 +94,30 @@ class SavedTab extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Remove button
                       Positioned(
-                        top: 14, right: 14,
+                        top: 14,
+                        right: 14,
                         child: GestureDetector(
                           onTap: () async => onToggleSaved(destination),
                           child: Container(
-                            width: 36, height: 36,
+                            width: 36,
+                            height: 36,
                             decoration: BoxDecoration(
                               color: color,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
                                   color: color.withValues(alpha: 0.35),
-                                  blurRadius: 8, offset: const Offset(0, 3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.bookmark_rounded,
-                              color: Colors.white, size: 18),
+                            child: const Icon(
+                              Icons.bookmark_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ),
@@ -121,7 +143,8 @@ class _EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 96, height: 96,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -133,29 +156,41 @@ class _EmptyState extends StatelessWidget {
                 ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.bookmark_border_rounded,
-                size: 44, color: AppTheme.earthOchre),
+              child: Icon(
+                Icons.bookmark_border_rounded,
+                size: 44,
+                color: AppTheme.earthOchre,
+              ),
             ),
             const SizedBox(height: 24),
-            Text('No saved places yet',
+            Text(
+              'No saved places yet',
               style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              textAlign: TextAlign.center),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 10),
             Text(
               'Browse destinations on the Home tab or get\nAI recommendations and bookmark the ones\nyou want to revisit.',
               style: tt.bodyMedium?.copyWith(
-                color: cs.onSurfaceVariant, height: 1.6,
+                color: cs.onSurfaceVariant,
+                height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            // Hint pills
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
               children: [
-                _HintPill(icon: Icons.home_rounded, label: 'Browse Home'),
-                const SizedBox(width: 10),
-                _HintPill(icon: Icons.auto_awesome_rounded, label: 'Get AI Picks'),
+                _HintPill(
+                  icon: Icons.home_rounded,
+                  label: 'Browse Home',
+                ),
+                _HintPill(
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'Get AI Picks',
+                ),
               ],
             ),
           ],
@@ -168,11 +203,16 @@ class _EmptyState extends StatelessWidget {
 class _HintPill extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _HintPill({required this.icon, required this.label});
+
+  const _HintPill({
+    required this.icon,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
@@ -184,8 +224,16 @@ class _HintPill extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: cs.primary),
           const SizedBox(width: 6),
-          Text(label,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.primary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: cs.primary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

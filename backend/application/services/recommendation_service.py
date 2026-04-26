@@ -120,10 +120,8 @@ class RecommendationService:
         )
 
         items = []
-
         for recommendation in ranked:
             destination = self._destination_by_id[recommendation.id]
-
             recommendation.reasons = self._explainer.build(
                 recommendation=recommendation,
                 destination=destination,
@@ -134,12 +132,10 @@ class RecommendationService:
                 family_friendly=request.family_friendly,
                 is_cold_start=is_cold_start,
             )
-
             recommendation.metadata["is_cold_start"] = str(is_cold_start).lower()
             recommendation.metadata["popularity_score"] = (
                 f"{popularity.get(recommendation.id, 0.0):.4f}"
             )
-
             items.append(
                 RecommendationResponseItemDto(
                     id=recommendation.id,
@@ -152,7 +148,6 @@ class RecommendationService:
                     metadata=recommendation.metadata,
                 )
             )
-
         return RecommendationResponseDto(results=items, total=len(items))
 
     @staticmethod

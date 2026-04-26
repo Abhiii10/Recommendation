@@ -16,11 +16,12 @@ class TextNormalizer:
 
 class ContextualReranker:
     """
-    Combines normalized semantic, collaborative, and contextual signals into a
-    final score and then applies simple diversity constraints.
+    Combines semantic, collaborative, and contextual signals into a final
+    recommendation score, then applies diversity constraints so that the
+    output is not dominated by one district or category.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._norm = TextNormalizer()
 
     def rerank(
@@ -40,8 +41,11 @@ class ContextualReranker:
 
         for item in candidates:
             destination: Destination = item["destination"]
+
             semantic_score = self._clamp(item.get("semantic_score", 0.0))
-            collaborative_score = self._clamp(collaborative_scores.get(destination.id, 0.0))
+            collaborative_score = self._clamp(
+                collaborative_scores.get(destination.id, 0.0)
+            )
 
             activity_match = self._activity_match(destination, activity)
             vibe_match = self._vibe_match(destination, vibe)
@@ -49,7 +53,11 @@ class ContextualReranker:
             budget_match = self._budget_match(destination, budget)
             accessibility_fit = self._accessibility_fit(destination)
             family_fit = self._family_fit(destination, family_friendly)
-            accommodation_fit = self._accommodation_fit(destination, accommodations, budget)
+            accommodation_fit = self._accommodation_fit(
+                destination,
+                accommodations,
+                budget,
+            )
 
             contextual_score = self._clamp(
                 activity_match * settings.activity_weight
@@ -99,35 +107,168 @@ class ContextualReranker:
             )
 
         results.sort(key=lambda recommendation: recommendation.score, reverse=True)
-        return self._apply_diversity(results, top_k=top_k)
+
+        return self._apply_diversity(
+            results,
+            top_k=top_k,
+        )
 
     def _all_terms(self, destination: Destination) -> Set[str]:
+        terms = [
+            *destination.activities,
+            *destination.category,
+            *destination.tags,
+        ]
+
         return {
             self._norm.normalize(term)
-            for term in [*destination.activities, *destination.category, *destination.tags]
+            for term in terms
             if self._norm.normalize(term)
         }
 
     def _expanded_terms(self, value: str) -> Set[str]:
         query = self._norm.normalize(value)
+
         if not query:
             return set()
 
         alias_map = {
-            "trekking": {"hiking", "trail", "trek"},
-            "hiking": {"trekking", "trail", "trek"},
-            "culture": {"cultural", "heritage", "traditional"},
-            "cultural": {"culture", "heritage", "traditional"},
-            "photography": {"viewpoint", "scenic", "panorama"},
-            "boating": {"lake", "waterside"},
-            "pilgrimage": {"spiritual", "temple", "heritage"},
-            "relaxation": {"quiet", "peaceful", "retreat"},
-            "peaceful": {"quiet", "relaxation", "retreat"},
-            "nature": {"wildlife", "outdoors", "scenic"},
-            "historic": {"heritage", "cultural"},
+            "trekking": {
+                "hiking",
+                "trail",
+                "trek",
+                "high altitude pass crossing",
+                "acclimatization",
+                "mountaineering",
+            },
+            "hiking": {
+                "trekking",
+                "trail",
+                "trek",
+            },
+            "adventure": {
+                "trekking",
+                "hiking",
+                "high altitude pass crossing",
+                "mountaineering",
+                "expedition",
+                "rafting",
+                "paragliding",
+                "zipline",
+            },
+            "culture": {
+                "cultural",
+                "heritage",
+                "traditional",
+                "exploring walled city",
+                "palace tours",
+                "local crafts",
+                "museum",
+            },
+            "cultural": {
+                "culture",
+                "heritage",
+                "traditional",
+                "historic",
+                "exploring walled city",
+                "museum",
+            },
+            "historic": {
+                "heritage",
+                "cultural",
+                "traditional",
+            },
+            "photography": {
+                "viewpoint",
+                "scenic",
+                "panorama",
+                "sunrise",
+            },
+            "viewpoint": {
+                "photography",
+                "scenic",
+                "panorama",
+                "sunrise",
+            },
+            "boating": {
+                "lake",
+                "waterside",
+                "kayaking",
+            },
+            "lake": {
+                "boating",
+                "waterside",
+                "scenic",
+            },
+            "pilgrimage": {
+                "spiritual",
+                "temple",
+                "heritage",
+                "monastery visit",
+                "religious",
+                "shrine",
+                "sacred",
+                "cave exploration",
+                "cultural study",
+            },
+            "spiritual": {
+                "pilgrimage",
+                "temple",
+                "monastery visit",
+                "religious",
+                "shrine",
+                "sacred",
+            },
+            "relaxation": {
+                "quiet",
+                "peaceful",
+                "retreat",
+                "swimming",
+                "fishing",
+                "picnic",
+                "boating",
+            },
+            "peaceful": {
+                "quiet",
+                "relaxation",
+                "retreat",
+                "tranquil",
+                "serene",
+            },
+            "quiet": {
+                "peaceful",
+                "relaxation",
+                "retreat",
+                "tranquil",
+                "serene",
+            },
+            "nature": {
+                "wildlife",
+                "outdoors",
+                "scenic",
+                "bird watching",
+                "nature walk",
+                "forest",
+            },
+            "wildlife": {
+                "nature",
+                "forest",
+                "bird watching",
+                "conservation",
+            },
+            "family": {
+                "family",
+                "easy",
+                "safe",
+                "picnic",
+                "relaxation",
+            },
         }
 
-        return {query, *alias_map.get(query, set())}
+        return {
+            query,
+            *alias_map.get(query, set()),
+        }
 
     def _activity_match(self, destination: Destination, activity: str) -> float:
         if not activity:
@@ -135,10 +276,16 @@ class ContextualReranker:
 
         terms = self._all_terms(destination)
         query_terms = self._expanded_terms(activity)
+
         if query_terms.intersection(terms):
             return 1.0
-        if any(any(query in term or term in query for term in terms) for query in query_terms):
+
+        if any(
+            any(query in term or term in query for term in terms)
+            for query in query_terms
+        ):
             return 0.6
+
         return 0.0
 
     def _vibe_match(self, destination: Destination, vibe: str) -> float:
@@ -147,46 +294,70 @@ class ContextualReranker:
 
         terms = self._all_terms(destination)
         query_terms = self._expanded_terms(vibe)
+
         if query_terms.intersection(terms):
             return 1.0
-        if any(any(query in term or term in query for term in terms) for query in query_terms):
+
+        if any(
+            any(query in term or term in query for term in terms)
+            for query in query_terms
+        ):
             return 0.55
+
         return 0.0
 
     def _season_match(self, destination: Destination, season: str) -> float:
-        seasons = {self._norm.normalize(item) for item in destination.best_season}
+        seasons = {
+            self._norm.normalize(item)
+            for item in destination.best_season
+        }
+
         query = self._norm.normalize(season)
+
         if not query:
             return 0.5
+
         if query in seasons or "year-round" in seasons:
             return 1.0
+
         return 0.0
 
     def _budget_match(self, destination: Destination, budget: str) -> float:
         actual = self._norm.normalize(destination.budget_level)
         preferred = self._norm.normalize(budget)
+
         if not preferred:
             return 0.5
+
         if actual == preferred:
             return 1.0
 
         order = BudgetOrder.ORDER
+
         if actual in order and preferred in order:
             distance = abs(order.index(actual) - order.index(preferred))
             return 0.65 if distance == 1 else 0.0
+
         return 0.0
 
     def _accessibility_fit(self, destination: Destination) -> float:
         key = self._norm.normalize(destination.accessibility)
         return self._clamp(AccessibilityScores.MAP.get(key, 0.5))
 
-    def _family_fit(self, destination: Destination, family_friendly: Optional[bool]) -> float:
+    def _family_fit(
+        self,
+        destination: Destination,
+        family_friendly: Optional[bool],
+    ) -> float:
         if family_friendly is None:
             return 0.5
+
         if family_friendly and destination.family_friendly:
             return 1.0
+
         if family_friendly and not destination.family_friendly:
             return 0.0
+
         return 0.55
 
     def _accommodation_fit(
@@ -195,7 +366,12 @@ class ContextualReranker:
         accommodations: List[Accommodation],
         budget: str,
     ) -> float:
-        stays = [stay for stay in accommodations if stay.destination_id == destination.id]
+        stays = [
+            stay
+            for stay in accommodations
+            if stay.destination_id == destination.id
+        ]
+
         if not stays:
             return 0.35
 
@@ -204,6 +380,7 @@ class ContextualReranker:
 
         for stay in stays:
             stay_budget = self._norm.normalize(stay.price_range)
+
             if preferred_budget and stay_budget == preferred_budget:
                 best_score = max(best_score, 1.0)
             elif stay_budget:
@@ -216,6 +393,7 @@ class ContextualReranker:
     def _primary_category(self, destination: Destination) -> str:
         if not destination.category:
             return "destination"
+
         return self._norm.normalize(destination.category[0]) or "destination"
 
     def _apply_diversity(
@@ -233,27 +411,38 @@ class ContextualReranker:
                 break
 
             district = self._norm.normalize(recommendation.district) or "unknown"
-            category = recommendation.metadata.get("primary_category", "destination")
+            category = recommendation.metadata.get(
+                "primary_category",
+                "destination",
+            )
 
             district_count = district_counts.get(district, 0)
             category_count = category_counts.get(category, 0)
 
             if district_count >= settings.max_results_per_district:
                 continue
+
             if category_count >= settings.max_results_per_category:
                 continue
 
             district_counts[district] = district_count + 1
             category_counts[category] = category_count + 1
+
             diversified.append(recommendation)
 
         if len(diversified) < top_k:
-            chosen_ids = {recommendation.id for recommendation in diversified}
+            chosen_ids = {
+                recommendation.id
+                for recommendation in diversified
+            }
+
             for recommendation in ranked:
                 if len(diversified) >= top_k:
                     break
+
                 if recommendation.id not in chosen_ids:
                     diversified.append(recommendation)
+                    chosen_ids.add(recommendation.id)
 
         return diversified[:top_k]
 

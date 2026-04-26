@@ -14,6 +14,13 @@ class RecommendationRequestDto(BaseModel):
     user_id: Optional[str] = None
     top_k: int = Field(10, ge=1, le=30)
 
+    # ── Evaluation flag ───────────────────────────────────────────────────────
+    # When True, the pipeline skips collaborative filtering and contextual
+    # reranking entirely, returning candidates ranked purely by SBERT semantic
+    # score. Used by evaluation/benchmark.py to produce a clean baseline for
+    # A/B comparison. Has no effect on normal app usage.
+    semantic_only: bool = Field(False, exclude=True)
+
 
 class InteractionRequestDto(BaseModel):
     user_id: str

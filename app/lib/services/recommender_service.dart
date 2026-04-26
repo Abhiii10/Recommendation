@@ -16,7 +16,6 @@ class RecommenderService {
   _TfIdfIndex? _index;
 
   RecommenderService(this.similarPlaces, {this.userProfileService});
-
   List<RecommendationResult> recommendByPreferences(
     UserPreferences prefs,
     List<Destination> destinations, {
@@ -26,38 +25,30 @@ class RecommenderService {
     int topK = 10,
   }) {
     _index ??= _TfIdfIndex.build(destinations);
-
     final queryTextVector = _index!.queryVector(_queryTerms(prefs));
     final queryNumericVector = _numericQueryVector(
       prefs,
       familyFriendly: familyFriendly,
       adventureLevel: adventureLevel,
     );
-
     final candidates = <_CandidateScore>[];
-
     for (final destination in destinations) {
       final documentVector = _index!.documentVector(destination.id);
       if (documentVector == null) {
-        continue;
-      }
-
+        continue;}
       final textSimilarity = _clamp(
         _cosineSimilarity(queryTextVector, documentVector),
       );
       final numericSimilarity = _clamp(
         _cosineSimilarity(queryNumericVector, _numericDocVector(destination)),
       );
-
       final retrievalScore = _clamp(
         textSimilarity * AppConstants.retrievalTextWeight +
             numericSimilarity * AppConstants.retrievalNumericWeight,
       );
-
       if (retrievalScore <= 0) {
         continue;
       }
-
       candidates.add(
         _CandidateScore(
           destination: destination,

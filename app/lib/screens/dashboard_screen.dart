@@ -6,6 +6,7 @@ import '../models/destination.dart';
 import '../services/local_data_service.dart';
 import '../services/offline_storage.dart';
 import '../services/recommender_service.dart';
+import '../theme/app_theme.dart';
 import 'chatbot_screen.dart';
 import 'home_tab.dart' as home;
 import 'map_screen.dart';
@@ -26,9 +27,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _loading = true;
   String? _error;
 
-  List<Destination> _destinations = [];
-  List<Accommodation> _accommodations = [];
-  List<Destination> _savedDestinations = [];
+  List<Destination>   _destinations    = [];
+  List<Accommodation> _accommodations  = [];
+  List<Destination>   _savedDestinations = [];
 
   RecommenderService? _service;
 
@@ -42,73 +43,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       await LocalDataService.instance.init();
 
-      final destinations = await OfflineStorage.loadDestinations();
+      final destinations   = await OfflineStorage.loadDestinations();
       final accommodations = await OfflineStorage.loadAccommodations();
-      final similarPlaces = await OfflineStorage.loadSimilarPlaces();
-      final saved = await LocalDataService.instance.getSavedDestinations();
+      final similarPlaces  = await OfflineStorage.loadSimilarPlaces();
+      final saved          = await LocalDataService.instance.getSavedDestinations();
 
       if (!mounted) return;
 
       setState(() {
-        _destinations = destinations;
-        _accommodations = accommodations;
-        _service = RecommenderService(
-          similarPlaces,
-          userProfileService: userProfileService,
-        );
+        _destinations     = destinations;
+        _accommodations   = accommodations;
+        _service = RecommenderService(similarPlaces, userProfileService: userProfileService);
         _savedDestinations = saved;
         _loading = false;
-        _error = null;
+        _error   = null;
       });
     } catch (e) {
       if (!mounted) return;
-
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
+      setState(() { _error = e.toString(); _loading = false; });
     }
   }
 
   Future<void> _toggleSaved(Destination destination) async {
     final exists = _savedDestinations.any((d) => d.id == destination.id);
-
     if (exists) {
       await LocalDataService.instance.removeSavedDestination(destination.id);
     } else {
       await LocalDataService.instance.saveDestination(destination);
       await userProfileService.recordBookmark(destination);
     }
-
     final updated = await LocalDataService.instance.getSavedDestinations();
-
     if (!mounted) return;
-
     setState(() => _savedDestinations = updated);
   }
 
-  bool _isSaved(Destination destination) {
-    return _savedDestinations.any((d) => d.id == destination.id);
-  }
+  bool _isSaved(Destination destination) =>
+      _savedDestinations.any((d) => d.id == destination.id);
 
-  void _goToTab(int index) {
-    setState(() => _currentIndex = index);
-  }
+  void _goToTab(int index) => setState(() => _currentIndex = index);
 
+  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    if (_loading) return const _SplashScreen();
 
     if (_error != null || _service == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Gandaki Tourism Guide')),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('Could not load app data.\n\n$_error'),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 72, height: 72,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.error_outline_rounded,
+                      size: 36, color: Theme.of(context).colorScheme.error),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Could not load app data',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center),
+                  const SizedBox(height: 10),
+                  Text(_error ?? 'Unknown error',
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center, maxLines: 4),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: () { setState(() { _loading = true; }); _loadApp(); },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
@@ -141,48 +155,195 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tune_outlined),
-            selectedIcon: Icon(Icons.tune),
-            label: 'Recommend',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Map',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Saved',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.translate_outlined),
-            selectedIcon: Icon(Icons.translate),
-            label: 'Translate',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline_rounded),
-            selectedIcon: Icon(Icons.chat_bubble_rounded),
-            label: 'Chat',
-          ),
-        ],
+      body: IndexedStack(index: _currentIndex, children: pages),
+      bottomNavigationBar: _AppNavBar(
+        currentIndex: _currentIndex,
+        savedCount: _savedDestinations.length,
+        onTap: (i) => setState(() => _currentIndex = i),
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Splash / loading screen
+// ─────────────────────────────────────────────────────────────────────────────
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: cs.primary,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Logo mark
+            Container(
+              width: 88, height: 88,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: const Icon(Icons.landscape_rounded, color: Colors.white, size: 44),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Nepal Tourism Guide',
+              style: const TextStyle(
+                color: Colors.white, fontSize: 24,
+                fontWeight: FontWeight.w800, fontFamily: 'Georgia',
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Discover Rural Gandaki',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.70),
+                fontSize: 13, fontWeight: FontWeight.w500, letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 48),
+            SizedBox(
+              width: 28, height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Loading destinations…',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.55),
+                fontSize: 12, fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Custom nav bar
+// ─────────────────────────────────────────────────────────────────────────────
+class _AppNavBar extends StatelessWidget {
+  final int currentIndex;
+  final int savedCount;
+  final ValueChanged<int> onTap;
+
+  const _AppNavBar({
+    required this.currentIndex,
+    required this.savedCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    final items = <_NavItem>[
+      const _NavItem(icon: Icons.home_outlined,    activeIcon: Icons.home_rounded,             label: 'Home'),
+      const _NavItem(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome_rounded,label: 'Discover'),
+      const _NavItem(icon: Icons.map_outlined,     activeIcon: Icons.map_rounded,              label: 'Map'),
+      _NavItem(
+        icon: Icons.bookmark_border_rounded,
+        activeIcon: Icons.bookmark_rounded,
+        label: 'Saved',
+        badge: savedCount > 0 ? '$savedCount' : null,
+      ),
+      const _NavItem(icon: Icons.translate_outlined,   activeIcon: Icons.translate_rounded,    label: 'Translate'),
+      const _NavItem(icon: Icons.chat_bubble_outline_rounded, activeIcon: Icons.chat_bubble_rounded, label: 'Chat'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: const Color(0xFFE4EAE7), width: 1)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -4)),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 68,
+          child: Row(
+            children: items.asMap().entries.map((entry) {
+              final idx     = entry.key;
+              final item    = entry.value;
+              final isActive = idx == currentIndex;
+              final color   = isActive ? cs.primary : const Color(0xFF8E9E9A);
+
+              return Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(idx),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isActive ? cs.primaryContainer : Colors.transparent,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              isActive ? item.activeIcon : item.icon,
+                              color: color, size: 22,
+                            ),
+                          ),
+                          if (item.badge != null)
+                            Positioned(
+                              top: -2, right: -2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: cs.error,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(item.badge!,
+                                  style: const TextStyle(
+                                    color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800,
+                                  )),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.label,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final String? badge;
+  const _NavItem({required this.icon, required this.activeIcon, required this.label, this.badge});
 }

@@ -10,21 +10,21 @@ import 'details_screen.dart';
 // Category icon map
 // ─────────────────────────────────────────────────────────────────────────────
 const _kCategoryIcons = <String, IconData>{
-  'trekking':    Icons.hiking_rounded,
-  'cultural':    Icons.account_balance_rounded,
-  'culture':     Icons.account_balance_rounded,
-  'village':     Icons.home_work_rounded,
-  'nature':      Icons.eco_rounded,
-  'adventure':   Icons.terrain_rounded,
-  'relaxation':  Icons.spa_rounded,
-  'pilgrimage':  Icons.temple_hindu_rounded,
-  'wildlife':    Icons.forest_rounded,
-  'boating':     Icons.sailing_rounded,
+  'trekking': Icons.hiking_rounded,
+  'cultural': Icons.account_balance_rounded,
+  'culture': Icons.account_balance_rounded,
+  'village': Icons.home_work_rounded,
+  'nature': Icons.eco_rounded,
+  'adventure': Icons.terrain_rounded,
+  'relaxation': Icons.spa_rounded,
+  'pilgrimage': Icons.temple_hindu_rounded,
+  'wildlife': Icons.forest_rounded,
+  'boating': Icons.sailing_rounded,
   'photography': Icons.camera_alt_rounded,
-  'spiritual':   Icons.brightness_5_rounded,
-  'scenic':      Icons.landscape_rounded,
-  'historic':    Icons.domain_rounded,
-  'social':      Icons.people_rounded,
+  'spiritual': Icons.brightness_5_rounded,
+  'scenic': Icons.landscape_rounded,
+  'historic': Icons.domain_rounded,
+  'social': Icons.people_rounded,
 };
 
 IconData _iconFor(String cat) =>
@@ -66,7 +66,6 @@ class _HomeTabState extends State<HomeTab> {
     super.dispose();
   }
 
-  // ── helpers ───────────────────────────────────────────────────────────────
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     setState(() => _query = value);
@@ -80,7 +79,10 @@ class _HomeTabState extends State<HomeTab> {
   void _clearSearch() {
     _debounce?.cancel();
     _controller.clear();
-    setState(() { _query = ''; _debouncedQuery = ''; });
+    setState(() {
+      _query = '';
+      _debouncedQuery = '';
+    });
   }
 
   void _saveRecentSearch(String value) {
@@ -93,9 +95,13 @@ class _HomeTabState extends State<HomeTab> {
 
   void _applySuggestion(String value) {
     _controller.text = value;
-    _controller.selection = TextSelection.fromPosition(TextPosition(offset: value.length));
+    _controller.selection =
+        TextSelection.fromPosition(TextPosition(offset: value.length));
     _debounce?.cancel();
-    setState(() { _query = value; _debouncedQuery = value; });
+    setState(() {
+      _query = value;
+      _debouncedQuery = value;
+    });
     _saveRecentSearch(value);
   }
 
@@ -122,70 +128,127 @@ class _HomeTabState extends State<HomeTab> {
   List<_ScoredDestination> get _rankedResults {
     final q = _debouncedQuery.trim().toLowerCase();
     if (q.isEmpty && _activeCategory == null) return [];
+
     final scored = <_ScoredDestination>[];
+
     for (final d in widget.destinations) {
-      bool passesCategory = _activeCategory == null ||
-          d.category.any((c) => c.toLowerCase() == _activeCategory!.toLowerCase());
+      final passesCategory = _activeCategory == null ||
+          d.category.any(
+            (c) => c.toLowerCase() == _activeCategory!.toLowerCase(),
+          );
+
       if (!passesCategory) continue;
+
       final score = q.isEmpty ? 1 : _calculateScore(d, q);
-      if (score > 0) scored.add(_ScoredDestination(destination: d, score: score));
+
+      if (score > 0) {
+        scored.add(_ScoredDestination(destination: d, score: score));
+      }
     }
+
     scored.sort((a, b) {
       final s = b.score.compareTo(a.score);
-      return s != 0 ? s : a.destination.name.toLowerCase().compareTo(b.destination.name.toLowerCase());
+      return s != 0
+          ? s
+          : a.destination.name
+              .toLowerCase()
+              .compareTo(b.destination.name.toLowerCase());
     });
+
     return scored;
   }
 
   int _calculateScore(Destination d, String q) {
     int score = 0;
-    final name         = d.name.toLowerCase();
-    final district     = (d.district ?? '').toLowerCase();
+
+    final name = d.name.toLowerCase();
+    final district = (d.district ?? '').toLowerCase();
     final municipality = (d.municipality ?? '').toLowerCase();
-    final shortDesc    = d.shortDescription.toLowerCase();
-    final fullDesc     = d.fullDescription.toLowerCase();
-    final categories   = d.category.map((e) => e.toLowerCase()).toList();
-    final activities   = d.activities.map((e) => e.toLowerCase()).toList();
-    final tags         = d.tags.map((e) => e.toLowerCase()).toList();
+    final shortDesc = d.shortDescription.toLowerCase();
+    final fullDesc = d.fullDescription.toLowerCase();
+    final categories = d.category.map((e) => e.toLowerCase()).toList();
+    final activities = d.activities.map((e) => e.toLowerCase()).toList();
+    final tags = d.tags.map((e) => e.toLowerCase()).toList();
 
     if (name == q) score += 120;
     if (name.startsWith(q)) score += 80;
     if (name.contains(q)) score += 60;
+
     if (district == q) score += 45;
     if (district.contains(q)) score += 25;
+
     if (municipality == q) score += 45;
     if (municipality.contains(q)) score += 25;
-    for (final item in categories) { if (item == q) score += 40; else if (item.contains(q)) score += 20; }
-    for (final item in activities)  { if (item == q) score += 36; else if (item.contains(q)) score += 18; }
-    for (final item in tags)        { if (item == q) score += 32; else if (item.contains(q)) score += 16; }
+
+    for (final item in categories) {
+      if (item == q) {
+        score += 40;
+      } else if (item.contains(q)) {
+        score += 20;
+      }
+    }
+
+    for (final item in activities) {
+      if (item == q) {
+        score += 36;
+      } else if (item.contains(q)) {
+        score += 18;
+      }
+    }
+
+    for (final item in tags) {
+      if (item == q) {
+        score += 32;
+      } else if (item.contains(q)) {
+        score += 16;
+      }
+    }
+
     if (shortDesc.contains(q)) score += 12;
-    if (fullDesc.contains(q))  score += 6;
+    if (fullDesc.contains(q)) score += 6;
+
     return score;
   }
 
   String _matchReason(Destination d, String q) {
     final lq = q.toLowerCase();
-    if (d.name.toLowerCase().contains(lq))                                    return 'Matched destination name';
-    if ((d.district ?? '').toLowerCase().contains(lq))                        return 'Matched district';
-    if ((d.municipality ?? '').toLowerCase().contains(lq))                    return 'Matched municipality';
-    if (d.category.any((e) => e.toLowerCase().contains(lq)))                  return 'Matched category';
-    if (d.activities.any((e) => e.toLowerCase().contains(lq)))                return 'Matched activity';
-    if (d.tags.any((e) => e.toLowerCase().contains(lq)))                      return 'Matched tag';
+
+    if (d.name.toLowerCase().contains(lq)) {
+      return 'Matched destination name';
+    }
+
+    if ((d.district ?? '').toLowerCase().contains(lq)) {
+      return 'Matched district';
+    }
+
+    if ((d.municipality ?? '').toLowerCase().contains(lq)) {
+      return 'Matched municipality';
+    }
+
+    if (d.category.any((e) => e.toLowerCase().contains(lq))) {
+      return 'Matched category';
+    }
+
+    if (d.activities.any((e) => e.toLowerCase().contains(lq))) {
+      return 'Matched activity';
+    }
+
+    if (d.tags.any((e) => e.toLowerCase().contains(lq))) {
+      return 'Matched tag';
+    }
+
     return 'Matched description';
   }
 
-  // ── build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final cs            = Theme.of(context).colorScheme;
-    final tt            = Theme.of(context).textTheme;
-    final featured      = _featuredDestinations;
+    final cs = Theme.of(context).colorScheme;
+    final featured = _featuredDestinations;
     final rankedResults = _rankedResults;
-    final hasFilter     = _debouncedQuery.isNotEmpty || _activeCategory != null;
+    final hasFilter = _debouncedQuery.isNotEmpty || _activeCategory != null;
 
     return CustomScrollView(
       slivers: [
-        // ── Hero app bar ──────────────────────────────────────────────────
         SliverAppBar.large(
           pinned: true,
           expandedHeight: 300,
@@ -193,15 +256,26 @@ class _HomeTabState extends State<HomeTab> {
           title: Row(
             children: [
               Container(
-                width: 30, height: 30,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: cs.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.landscape_rounded, color: cs.onPrimary, size: 18),
+                child: Icon(
+                  Icons.landscape_rounded,
+                  color: cs.onPrimary,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 10),
-              const Text('Nepal Tourism Guide'),
+              const Expanded(
+                child: Text(
+                  'Nepal Tourism Guide',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           flexibleSpace: FlexibleSpaceBar(
@@ -225,7 +299,9 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
                 const Positioned(
-                  left: 20, right: 20, bottom: 28,
+                  left: 20,
+                  right: 20,
+                  bottom: 28,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -233,18 +309,25 @@ class _HomeTabState extends State<HomeTab> {
                       Text(
                         'Discover Rural Nepal',
                         style: TextStyle(
-                          color: Colors.white, fontSize: 28,
-                          fontWeight: FontWeight.w800, fontFamily: 'Georgia',
-                          height: 1.15, letterSpacing: -0.5,
-                          shadows: [Shadow(color: Colors.black38, blurRadius: 12)],
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          fontFamily: 'Georgia',
+                          height: 1.15,
+                          letterSpacing: -0.5,
+                          shadows: [
+                            Shadow(color: Colors.black38, blurRadius: 12),
+                          ],
                         ),
                       ),
                       SizedBox(height: 6),
                       Text(
                         'Hidden villages · Sacred trails · Authentic culture',
                         style: TextStyle(
-                          color: Colors.white70, fontSize: 13,
-                          fontWeight: FontWeight.w500, letterSpacing: 0.3,
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ],
@@ -264,7 +347,6 @@ class _HomeTabState extends State<HomeTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Search bar ───────────────────────────────────────
                     _SearchBar(
                       controller: _controller,
                       query: _query,
@@ -273,32 +355,37 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     const SizedBox(height: 14),
 
-                    // ── Category filter strip ────────────────────────────
                     _CategoryStrip(
                       categories: _allCategories,
                       active: _activeCategory,
                       onTap: (cat) => setState(() {
-                        _activeCategory = _activeCategory == cat ? null : cat;
+                        _activeCategory =
+                            _activeCategory == cat ? null : cat;
                       }),
                     ),
                     const SizedBox(height: 20),
 
-                    // ── Recent searches ──────────────────────────────────
                     if (_query.isEmpty && _recentSearches.isNotEmpty) ...[
                       _SectionLabel(text: 'Recent searches'),
                       const SizedBox(height: 10),
                       Wrap(
-                        spacing: 8, runSpacing: 8,
-                        children: _recentSearches.map((item) => ActionChip(
-                          avatar: Icon(Icons.history_rounded, size: 16, color: cs.onSurfaceVariant),
-                          label: Text(item),
-                          onPressed: () => _applySuggestion(item),
-                        )).toList(),
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _recentSearches.map((item) {
+                          return ActionChip(
+                            avatar: Icon(
+                              Icons.history_rounded,
+                              size: 16,
+                              color: cs.onSurfaceVariant,
+                            ),
+                            label: Text(item),
+                            onPressed: () => _applySuggestion(item),
+                          );
+                        }).toList(),
                       ),
                       const SizedBox(height: 22),
                     ],
 
-                    // ── Quick actions ────────────────────────────────────
                     if (!hasFilter) ...[
                       _SectionLabel(text: 'Explore the app'),
                       const SizedBox(height: 12),
@@ -310,35 +397,51 @@ class _HomeTabState extends State<HomeTab> {
                       const SizedBox(height: 28),
                     ],
 
-                    // ── Results or Featured ──────────────────────────────
                     if (!hasFilter) ...[
                       _SectionLabel(text: 'Featured Destinations'),
                       const SizedBox(height: 12),
                       _FeaturedCarousel(
                         destinations: featured,
-                        onTap: (d) => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => DetailsScreen(destination: d))),
+                        onTap: (d) => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DetailsScreen(destination: d),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 28),
-                      _SectionLabel(text: 'All Destinations (${widget.destinations.length})'),
+                      _SectionLabel(
+                        text: 'All Destinations (${widget.destinations.length})',
+                      ),
                       const SizedBox(height: 12),
-                      ...widget.destinations.map((d) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _CompactDestinationCard(
-                          destination: d,
-                          reason: 'Browse all destinations',
-                          onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => DetailsScreen(destination: d))),
-                          onMap: widget.onOpenMap,
-                        ),
-                      )),
+                      ...widget.destinations.map((d) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _CompactDestinationCard(
+                            destination: d,
+                            reason: 'Browse all destinations',
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    DetailsScreen(destination: d),
+                              ),
+                            ),
+                            onMap: widget.onOpenMap,
+                          ),
+                        );
+                      }),
                     ] else if (rankedResults.isEmpty) ...[
                       _EmptyResult(
                         query: _debouncedQuery,
                         category: _activeCategory,
                         featured: featured,
-                        onTap: (d) => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => DetailsScreen(destination: d))),
+                        onTap: (d) => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DetailsScreen(destination: d),
+                          ),
+                        ),
                         onMap: widget.onOpenMap,
                       ),
                     ] else ...[
@@ -349,18 +452,29 @@ class _HomeTabState extends State<HomeTab> {
                             : null,
                       ),
                       const SizedBox(height: 12),
-                      ...rankedResults.take(14).map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _CompactDestinationCard(
-                          destination: item.destination,
-                          reason: _debouncedQuery.isNotEmpty
-                              ? _matchReason(item.destination, _debouncedQuery)
-                              : 'Filtered by $_activeCategory',
-                          onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => DetailsScreen(destination: item.destination))),
-                          onMap: widget.onOpenMap,
-                        ),
-                      )),
+                      ...rankedResults.take(14).map((item) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _CompactDestinationCard(
+                            destination: item.destination,
+                            reason: _debouncedQuery.isNotEmpty
+                                ? _matchReason(
+                                    item.destination,
+                                    _debouncedQuery,
+                                  )
+                                : 'Filtered by $_activeCategory',
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => DetailsScreen(
+                                  destination: item.destination,
+                                ),
+                              ),
+                            ),
+                            onMap: widget.onOpenMap,
+                          ),
+                        );
+                      }),
                     ],
                   ],
                 ),
@@ -392,6 +506,7 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
@@ -399,7 +514,8 @@ class _SearchBar extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.07),
-            blurRadius: 16, offset: const Offset(0, 4),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -409,10 +525,18 @@ class _SearchBar extends StatelessWidget {
         style: const TextStyle(fontSize: 15),
         decoration: InputDecoration(
           hintText: 'Search destination, district, activity…',
-          prefixIcon: Icon(Icons.search_rounded, color: cs.primary, size: 22),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: cs.primary,
+            size: 22,
+          ),
           suffixIcon: query.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.cancel_rounded, color: cs.onSurfaceVariant, size: 20),
+                  icon: Icon(
+                    Icons.cancel_rounded,
+                    color: cs.onSurfaceVariant,
+                    size: 20,
+                  ),
                   onPressed: onClear,
                 )
               : null,
@@ -444,7 +568,11 @@ class _CategoryStrip extends StatelessWidget {
   final String? active;
   final ValueChanged<String> onTap;
 
-  const _CategoryStrip({required this.categories, required this.active, required this.onTap});
+  const _CategoryStrip({
+    required this.categories,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -455,9 +583,10 @@ class _CategoryStrip extends StatelessWidget {
         itemCount: categories.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
-          final cat     = categories[i];
+          final cat = categories[i];
           final isActive = cat == active;
-          final color   = AppTheme.categoryColour(cat);
+          final color = AppTheme.categoryColour(cat);
+
           return GestureDetector(
             onTap: () => onTap(cat),
             child: AnimatedContainer(
@@ -470,19 +599,33 @@ class _CategoryStrip extends StatelessWidget {
                   color: isActive ? color : const Color(0xFFD8DDD9),
                   width: isActive ? 0 : 1,
                 ),
-                boxShadow: isActive ? [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))] : null,
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(_iconFor(cat), size: 14,
-                      color: isActive ? Colors.white : color),
+                  Icon(
+                    _iconFor(cat),
+                    size: 14,
+                    color: isActive ? Colors.white : color,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     '${cat[0].toUpperCase()}${cat.substring(1)}',
                     style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700,
-                      color: isActive ? Colors.white : const Color(0xFF3A4040),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isActive
+                          ? Colors.white
+                          : const Color(0xFF3A4040),
                     ),
                   ),
                 ],
@@ -501,11 +644,16 @@ class _CategoryStrip extends StatelessWidget {
 class _SectionLabel extends StatelessWidget {
   final String text;
   final String? sub;
-  const _SectionLabel({required this.text, this.sub});
+
+  const _SectionLabel({
+    required this.text,
+    this.sub,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
@@ -514,7 +662,12 @@ class _SectionLabel extends StatelessWidget {
             children: [
               Text(text, style: Theme.of(context).textTheme.titleMedium),
               if (sub != null)
-                Text(sub!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.primary)),
+                Text(
+                  sub!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: cs.primary,
+                      ),
+                ),
             ],
           ),
         ),
@@ -524,43 +677,71 @@ class _SectionLabel extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Quick action row (3 cards)
+// Quick action row
 // ─────────────────────────────────────────────────────────────────────────────
 class _QuickActionRow extends StatelessWidget {
   final VoidCallback onRecommend;
   final VoidCallback onMap;
   final VoidCallback onSaved;
-  const _QuickActionRow({required this.onRecommend, required this.onMap, required this.onSaved});
+
+  const _QuickActionRow({
+    required this.onRecommend,
+    required this.onMap,
+    required this.onSaved,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        _ActionTile(
-          icon: Icons.auto_awesome_rounded,
-          label: 'AI Pick',
-          subtitle: 'Get smart recommendations',
-          color: cs.primary,
-          onTap: onRecommend,
-        ),
-        const SizedBox(width: 10),
-        _ActionTile(
-          icon: Icons.map_rounded,
-          label: 'Map',
-          subtitle: 'Explore destinations visually',
-          color: AppTheme.highlandSage,
-          onTap: onMap,
-        ),
-        const SizedBox(width: 10),
-        _ActionTile(
-          icon: Icons.bookmark_rounded,
-          label: 'Saved',
-          subtitle: 'Your shortlisted places',
-          color: AppTheme.earthOchre,
-          onTap: onSaved,
-        ),
-      ],
+
+    final tiles = [
+      _ActionTile(
+        icon: Icons.auto_awesome_rounded,
+        label: 'AI Pick',
+        subtitle: 'Get smart recommendations',
+        color: cs.primary,
+        onTap: onRecommend,
+      ),
+      _ActionTile(
+        icon: Icons.map_rounded,
+        label: 'Map',
+        subtitle: 'Explore destinations visually',
+        color: AppTheme.highlandSage,
+        onTap: onMap,
+      ),
+      _ActionTile(
+        icon: Icons.bookmark_rounded,
+        label: 'Saved',
+        subtitle: 'Your shortlisted places',
+        color: AppTheme.earthOchre,
+        onTap: onSaved,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 360) {
+          return Column(
+            children: [
+              tiles[0],
+              const SizedBox(height: 10),
+              tiles[1],
+              const SizedBox(height: 10),
+              tiles[2],
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: tiles[0]),
+            const SizedBox(width: 10),
+            Expanded(child: tiles[1]),
+            const SizedBox(width: 10),
+            Expanded(child: tiles[2]),
+          ],
+        );
+      },
     );
   }
 }
@@ -571,36 +752,64 @@ class _ActionTile extends StatelessWidget {
   final String subtitle;
   final Color color;
   final VoidCallback onTap;
-  const _ActionTile({required this.icon, required this.label, required this.subtitle, required this.color, required this.onTap});
+
+  const _ActionTile({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.09),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: color.withValues(alpha: 0.18), width: 1),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.09),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: color.withValues(alpha: 0.18),
+            width: 1,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38, height: 38,
-                decoration: BoxDecoration(
-                  color: color, borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: Colors.white, size: 20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 10),
-              Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
-              const SizedBox(height: 3),
-              Text(subtitle, style: const TextStyle(fontSize: 10, color: Color(0xFF6B7676)), maxLines: 2),
-            ],
-          ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 10,
+                color: Color(0xFF6B7676),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
@@ -613,7 +822,11 @@ class _ActionTile extends StatelessWidget {
 class _FeaturedCarousel extends StatelessWidget {
   final List<Destination> destinations;
   final ValueChanged<Destination> onTap;
-  const _FeaturedCarousel({required this.destinations, required this.onTap});
+
+  const _FeaturedCarousel({
+    required this.destinations,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -625,10 +838,10 @@ class _FeaturedCarousel extends StatelessWidget {
         itemCount: destinations.length,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, i) {
-          final d     = destinations[i];
-          final cat   = d.category.isNotEmpty ? d.category.first : 'scenic';
+          final d = destinations[i];
+          final cat = d.category.isNotEmpty ? d.category.first : 'scenic';
           final color = AppTheme.categoryColour(cat);
-          final icon  = _iconFor(cat);
+          final icon = _iconFor(cat);
 
           return GestureDetector(
             onTap: () => onTap(d),
@@ -646,17 +859,22 @@ class _FeaturedCarousel extends StatelessWidget {
                   ],
                 ),
                 boxShadow: [
-                  BoxShadow(color: color.withValues(alpha: 0.28), blurRadius: 14, offset: const Offset(0, 6)),
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.28),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
                 ],
               ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Decorative circle
                   Positioned(
-                    top: -30, right: -30,
+                    top: -30,
+                    right: -30,
                     child: Container(
-                      width: 120, height: 120,
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withValues(alpha: 0.10),
@@ -664,9 +882,11 @@ class _FeaturedCarousel extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    bottom: -20, left: -20,
+                    bottom: -20,
+                    left: -20,
                     child: Container(
-                      width: 80, height: 80,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withValues(alpha: 0.07),
@@ -679,7 +899,8 @@ class _FeaturedCarousel extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 42, height: 42,
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.22),
                             borderRadius: BorderRadius.circular(12),
@@ -690,32 +911,50 @@ class _FeaturedCarousel extends StatelessWidget {
                         Text(
                           d.name,
                           style: const TextStyle(
-                            color: Colors.white, fontSize: 16,
-                            fontWeight: FontWeight.w800, fontFamily: 'Georgia',
-                            shadows: [Shadow(color: Colors.black26, blurRadius: 6)],
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: 'Georgia',
+                            shadows: [
+                              Shadow(color: Colors.black26, blurRadius: 6),
+                            ],
                           ),
                           maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          d.district ?? (d.category.isNotEmpty ? d.category.first : ''),
+                          d.district ??
+                              (d.category.isNotEmpty ? d.category.first : ''),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.80),
-                            fontSize: 11, fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.20),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            d.bestSeasonText.isNotEmpty ? d.bestSeasonText : 'Year round',
+                            d.bestSeasonText.isNotEmpty
+                                ? d.bestSeasonText
+                                : 'Year round',
                             style: const TextStyle(
-                              color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -732,29 +971,38 @@ class _FeaturedCarousel extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Compact destination card (list view)
+// Compact destination card
 // ─────────────────────────────────────────────────────────────────────────────
 class _CompactDestinationCard extends StatelessWidget {
   final Destination destination;
   final String reason;
   final VoidCallback onTap;
   final VoidCallback onMap;
+
   const _CompactDestinationCard({
-    required this.destination, required this.reason,
-    required this.onTap, required this.onMap,
+    required this.destination,
+    required this.reason,
+    required this.onTap,
+    required this.onMap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cs    = Theme.of(context).colorScheme;
-    final tt    = Theme.of(context).textTheme;
-    final cat   = destination.category.isNotEmpty ? destination.category.first : 'scenic';
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    final cat = destination.category.isNotEmpty
+        ? destination.category.first
+        : 'scenic';
+
     final color = AppTheme.categoryColour(cat);
-    final icon  = _iconFor(cat);
+    final icon = _iconFor(cat);
 
     final locationParts = [
-      if ((destination.district ?? '').trim().isNotEmpty) destination.district!,
-      if ((destination.municipality ?? '').trim().isNotEmpty) destination.municipality!,
+      if ((destination.district ?? '').trim().isNotEmpty)
+        destination.district!,
+      if ((destination.municipality ?? '').trim().isNotEmpty)
+        destination.municipality!,
     ];
 
     final previewTags = {
@@ -771,73 +1019,128 @@ class _CompactDestinationCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE0E6E2), width: 1),
+            border: Border.all(
+              color: const Color(0xFFE0E6E2),
+              width: 1,
+            ),
           ),
           child: Column(
             children: [
-              // Colour strip
               Container(
                 height: 5,
                 decoration: BoxDecoration(
                   color: color,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 12, 10, 14),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon avatar
                     Container(
-                      width: 50, height: 50,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(icon, color: color, size: 24),
+                      child: Icon(
+                        icon,
+                        color: color,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(destination.name,
-                            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(
+                            destination.name,
+                            style: tt.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const SizedBox(height: 3),
                           if (locationParts.isNotEmpty)
-                            Row(children: [
-                              Icon(Icons.place_outlined, size: 12, color: color),
-                              const SizedBox(width: 4),
-                              Text(locationParts.join(' · '),
-                                style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                                maxLines: 1, overflow: TextOverflow.ellipsis),
-                            ]),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.place_outlined,
+                                  size: 12,
+                                  color: color,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    locationParts.join(' · '),
+                                    style: tt.bodySmall?.copyWith(
+                                      color: cs.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           const SizedBox(height: 6),
-                          Text(destination.shortDescription,
-                            maxLines: 2, overflow: TextOverflow.ellipsis,
-                            style: tt.bodySmall?.copyWith(height: 1.45)),
+                          Text(
+                            destination.shortDescription,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: tt.bodySmall?.copyWith(height: 1.45),
+                          ),
                           if (previewTags.isNotEmpty) ...[
                             const SizedBox(height: 8),
-                            Wrap(spacing: 6, runSpacing: 6, children: previewTags.map((tag) =>
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.10),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(tag,
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
-                              ),
-                            ).toList()),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: previewTags.map((tag) {
+                                return ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 120,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: color.withValues(alpha: 0.10),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      tag,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: color,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ],
                         ],
                       ),
                     ),
-                    // Arrow
                     const SizedBox(width: 4),
-                    Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant, size: 20),
+                    SizedBox(
+                      width: 24,
+                      child: Icon(
+                        Icons.chevron_right_rounded,
+                        color: cs.onSurfaceVariant,
+                        size: 20,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -858,12 +1161,19 @@ class _EmptyResult extends StatelessWidget {
   final List<Destination> featured;
   final ValueChanged<Destination> onTap;
   final VoidCallback onMap;
-  const _EmptyResult({required this.query, required this.category,
-    required this.featured, required this.onTap, required this.onMap});
+
+  const _EmptyResult({
+    required this.query,
+    required this.category,
+    required this.featured,
+    required this.onTap,
+    required this.onMap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Container(
@@ -872,20 +1182,30 @@ class _EmptyResult extends StatelessWidget {
           decoration: BoxDecoration(
             color: cs.errorContainer.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: cs.error.withValues(alpha: 0.15)),
+            border: Border.all(
+              color: cs.error.withValues(alpha: 0.15),
+            ),
           ),
           child: Column(
             children: [
-              Icon(Icons.search_off_rounded, size: 36, color: cs.error),
+              Icon(
+                Icons.search_off_rounded,
+                size: 36,
+                color: cs.error,
+              ),
               const SizedBox(height: 10),
-              Text('No results found',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-                textAlign: TextAlign.center),
+              Text(
+                'No results found',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 6),
               Text(
                 query.isNotEmpty
-                  ? 'Nothing matched "$query"${category != null ? ' in $category' : ''}. Try a different search.'
-                  : 'No destinations in this category yet.',
+                    ? 'Nothing matched "$query"${category != null ? ' in $category' : ''}. Try a different search.'
+                    : 'No destinations in this category yet.',
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -895,13 +1215,17 @@ class _EmptyResult extends StatelessWidget {
         const SizedBox(height: 20),
         const _SectionLabel(text: 'Try these instead'),
         const SizedBox(height: 12),
-        ...featured.take(3).map((d) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: _CompactDestinationCard(
-            destination: d, reason: 'Suggested featured destination',
-            onTap: () => onTap(d), onMap: onMap,
-          ),
-        )),
+        ...featured.take(3).map((d) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _CompactDestinationCard(
+              destination: d,
+              reason: 'Suggested featured destination',
+              onTap: () => onTap(d),
+              onMap: onMap,
+            ),
+          );
+        }),
       ],
     );
   }
@@ -913,5 +1237,9 @@ class _EmptyResult extends StatelessWidget {
 class _ScoredDestination {
   final Destination destination;
   final int score;
-  const _ScoredDestination({required this.destination, required this.score});
+
+  const _ScoredDestination({
+    required this.destination,
+    required this.score,
+  });
 }

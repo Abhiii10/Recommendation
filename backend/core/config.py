@@ -22,15 +22,9 @@ class Settings(BaseSettings):
     retrieval_category_weight:  float = 0.10
 
     # ── Final score weights (FIXED) ───────────────────────────────────────────
-    # Old:  semantic=0.50, collaborative=0.20, contextual=0.30
-    # Problem: collaborative component was carrying 100% popularity in cold-start,
-    # giving a blanket +0.20 boost to the most-interacted destination (Bandipur)
-    # regardless of query intent.
-    # Fix: raise semantic weight so SBERT meaning drives ranking, shrink collab
-    # so the popularity residual has less room to override semantic signal.
-    semantic_weight:      float = 0.60   # was 0.50
-    collaborative_weight: float = 0.10   # was 0.20
-    contextual_weight:    float = 0.30   # unchanged
+    semantic_weight:      float = 0.60
+    collaborative_weight: float = 0.10
+    contextual_weight:    float = 0.30
 
     # ── Contextual sub-weights (sum should equal 1.0) ─────────────────────────
     activity_weight:      float = 0.22
@@ -56,6 +50,14 @@ class Settings(BaseSettings):
     destinations_file:    Path = data_dir / "destinations.json"
     accommodations_file:  Path = data_dir / "accommodations.json"
     interactions_file:    Path = data_dir / "interactions.json"
+
+    # ── ML ranker settings ────────────────────────────────────────────────────
+    # users_file stores synthetic users generated for ML training
+    users_file:    Path = data_dir / "users.json"
+    # MODEL_DIR is where the trained ranking model is saved
+    MODEL_DIR:     str  = str(ROOT_DIR / "models")
+    # RANDOM_SEED ensures reproducible ML training runs
+    RANDOM_SEED:   int  = 42
 
     model_config = SettingsConfigDict(
         env_file=ROOT_DIR / ".env",

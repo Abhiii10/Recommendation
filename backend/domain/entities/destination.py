@@ -23,3 +23,8 @@ class Destination(BaseModel):
     longitude: Optional[float] = None
     tags: List[str] = []
     confidence: str = ""
+
+    # ── ML ranking fields (added for synthetic data + ranker) ─────────────────
+    popularity_score: float = 0.5
+    avg_rating: float = 0.0
+    total_interactions: int = 0

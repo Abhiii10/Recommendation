@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.v1.chat import router as chat_router
 from backend.api.v1.destinations import router as destinations_router
+from backend.api.v1.evaluate import router as evaluate_router
 from backend.api.v1.interactions import router as interactions_router
 from backend.api.v1.recommend import router as recommend_router
 from backend.api.v1.similar import router as similar_router
@@ -17,7 +18,8 @@ class ApplicationFactory:
             description=(
                 "AI-powered recommendation backend for Nepal Rural Tourism app. "
                 "Uses SBERT semantic retrieval, contextual reranking, "
-                "collaborative filtering, and Gemini Flash chatbot generation."
+                "collaborative filtering, Gemini Flash chatbot, "
+                "and ML-based ranking with offline evaluation."
             ),
         )
 
@@ -59,13 +61,20 @@ class ApplicationFactory:
             tags=["Destinations"],
         )
 
+        # ── ML evaluation and training endpoints ──────────────────────────────
+        application.include_router(
+            evaluate_router,
+            prefix="/evaluate",
+            tags=["Evaluation & Training"],
+        )
+
         @application.get("/", tags=["Health"])
         def root() -> dict[str, str]:
             return {
                 "project": settings.project_name,
                 "version": settings.project_version,
-                "status": "running",
-                "docs": "/docs",
+                "status":  "running",
+                "docs":    "/docs",
             }
 
         @application.get("/health", tags=["Health"])

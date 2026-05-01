@@ -45,5 +45,14 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is used to scan signs, menus, and notices for OCR translation.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access is used for voice input in translation and conversation mode.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech recognition is used to convert spoken English or Nepali into text before translation.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is used to select images for OCR translation.</string>
+
 </dict>
 </plist>

@@ -229,7 +229,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         builder: (_) {
           return AlertDialog(
             title: const Text('Nepali Translation'),
-            content: SelectableText(translated),
+            content: SelectableText(translated.text),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),

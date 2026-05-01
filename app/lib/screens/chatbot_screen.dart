@@ -8,7 +8,8 @@ import '../models/destination.dart';
 import '../services/chatbot_service.dart';
 import '../services/llm_chat_api_service.dart';
 import '../services/translation_service.dart';
-
+import '../translation/roman_nepali_normalizer.dart';
+import '../translation/translation_intent_model.dart';
 class ChatbotScreen extends StatefulWidget {
   final List<Destination> destinations;
 
@@ -215,9 +216,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     );
 
     try {
-      final translated = await TranslationService.translate(
-        text: message.text,
-        englishToNepali: true,
+      final translated = await TranslationService.instance.translate(
+        input: message.text,
+        mode: TranslationMode.englishToNepali,
+        allowOnline: true,
       );
 
       if (!mounted) return;
@@ -229,8 +231,32 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         builder: (_) {
           return AlertDialog(
             title: const Text('Nepali Translation'),
-            content: SelectableText(translated.text),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SelectableText(
+                  translated.isSuccess
+                      ? translated.translatedText
+                      : translated.errorMessage ?? 'Translation unavailable.',
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '${translated.strategyLabel} · ${translated.confidencePercent}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
             actions: [
+              TextButton.icon(
+                onPressed: translated.isSuccess
+                    ? () {
+                        _speak(translated.translatedText);
+                      }
+                    : null,
+                icon: const Icon(Icons.volume_up_rounded),
+                label: const Text('Listen'),
+              ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Close'),
@@ -239,14 +265,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           );
         },
       );
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
 
       Navigator.of(context).pop();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Translation failed — check your connection.'),
+        SnackBar(
+          content: Text('Translation failed: $e'),
         ),
       );
     }
@@ -438,9 +464,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               padding: const EdgeInsets.all(12),
               backgroundColor: colorScheme.primary,
             ),
-            onPressed: (_loading || _botTyping)
-                ? null
-                : () => _send(_controller.text),
+            onPressed:
+                (_loading || _botTyping) ? null : () => _send(_controller.text),
             child: const Icon(Icons.send_rounded, size: 20),
           ),
         ],

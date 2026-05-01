@@ -1,0 +1,297 @@
+{
+  "version": "1.0",
+  "intents": [
+    {
+      "id": "greeting",
+      "category": "greetings",
+      "output_en": "Hello / Namaste",
+      "output_ne": "नमस्ते",
+      "patterns": [
+        "hello",
+        "hi",
+        "hey",
+        "namaste",
+        "namaskar",
+        "नमस्ते",
+        "नमस्कार"
+      ]
+    },
+    {
+      "id": "thank_you",
+      "category": "greetings",
+      "output_en": "Thank you",
+      "output_ne": "धन्यवाद",
+      "patterns": [
+        "thank you",
+        "thanks",
+        "dhanyabad",
+        "dhanyavaad",
+        "धन्यवाद"
+      ]
+    },
+    {
+      "id": "request_water",
+      "category": "food",
+      "output_en": "Water please",
+      "output_ne": "पानी दिनुस् कृपया",
+      "patterns": [
+        "water please",
+        "i need water",
+        "can i have water",
+        "please give me water",
+        "पानी दिनुस्",
+        "मलाई पानी चाहियो",
+        "पानी चाहियो",
+        "pani dinus",
+        "paani dinus",
+        "pani dinu na",
+        "malai pani chaiyo",
+        "malai paani chahiyo",
+        "malai pani chahiyo",
+        "water chaiyo"
+      ]
+    },
+    {
+      "id": "drank_water",
+      "category": "food",
+      "output_en": "I drank water",
+      "output_ne": "मैले पानी खाएँ",
+      "patterns": [
+        "i drank water",
+        "मैले पानी खाएँ",
+        "मैले पानी खाए",
+        "maile pani khaye",
+        "mailay paani khaye",
+        "mailey pani khae",
+        "moiley paani khaye"
+      ]
+    },
+    {
+      "id": "hungry",
+      "category": "food",
+      "output_en": "I am hungry",
+      "output_ne": "मलाई भोक लाग्यो",
+      "patterns": [
+        "i am hungry",
+        "i need food",
+        "food please",
+        "मलाई भोक लाग्यो",
+        "मलाई खाना चाहियो",
+        "malai bhok lagyo",
+        "malay bhok lagyo",
+        "malai bhukh lagyo",
+        "malai khana chaiyo"
+      ]
+    },
+    {
+      "id": "thirsty",
+      "category": "food",
+      "output_en": "I am thirsty",
+      "output_ne": "मलाई तिर्खा लाग्यो",
+      "patterns": [
+        "i am thirsty",
+        "मलाई तिर्खा लाग्यो",
+        "malai tirkha lagyo",
+        "malai tirka lagyo",
+        "malai trikha lagyo"
+      ]
+    },
+    {
+      "id": "ask_homestay_location",
+      "category": "accommodation",
+      "output_en": "Where is the homestay?",
+      "output_ne": "होमस्टे कहाँ छ?",
+      "patterns": [
+        "where is the homestay",
+        "homestay location",
+        "होमस्टे कहाँ छ",
+        "homestay kata cha",
+        "homestay kata xa",
+        "homestay kaha chha"
+      ]
+    },
+    {
+      "id": "ask_hotel_location",
+      "category": "accommodation",
+      "output_en": "Where is the hotel?",
+      "output_ne": "होटल कहाँ छ?",
+      "patterns": [
+        "where is the hotel",
+        "hotel location",
+        "होटल कहाँ छ",
+        "hotel kata cha",
+        "hotel kata xa",
+        "hotel kaha chha"
+      ]
+    },
+    {
+      "id": "ask_room_available",
+      "category": "accommodation",
+      "output_en": "Is a room available?",
+      "output_ne": "कोठा खाली छ?",
+      "patterns": [
+        "do you have a room",
+        "is a room available",
+        "room available",
+        "कोठा खाली छ",
+        "kotha khali cha",
+        "kotha khali xa",
+        "room cha"
+      ]
+    },
+    {
+      "id": "ask_room_price",
+      "category": "accommodation",
+      "output_en": "How much is the room per night?",
+      "output_ne": "एक रातको कोठा कति हो?",
+      "patterns": [
+        "how much is the room",
+        "room price",
+        "price per night",
+        "एक रातको कोठा कति हो",
+        "kotha kati ho",
+        "room kati ho",
+        "ek raat ko kati ho"
+      ]
+    },
+    {
+      "id": "ask_bus_stop",
+      "category": "transport",
+      "output_en": "Where is the bus stop?",
+      "output_ne": "बस स्टप कहाँ छ?",
+      "patterns": [
+        "where is the bus stop",
+        "bus stop location",
+        "बस स्टप कहाँ छ",
+        "bus stop kata cha",
+        "bus stop kata xa",
+        "bus stop kaha chha"
+      ]
+    },
+    {
+      "id": "ask_distance",
+      "category": "transport",
+      "output_en": "How far is it?",
+      "output_ne": "कति टाढा छ?",
+      "patterns": [
+        "how far is it",
+        "कति टाढा छ",
+        "kati tadha cha",
+        "kati tada xa",
+        "kati far cha"
+      ]
+    },
+    {
+      "id": "ask_time_required",
+      "category": "transport",
+      "output_en": "How long does it take?",
+      "output_ne": "कति समय लाग्छ?",
+      "patterns": [
+        "how long does it take",
+        "कति समय लाग्छ",
+        "kati samaya lagcha",
+        "kati time lagcha",
+        "kati time lagxa"
+      ]
+    },
+    {
+      "id": "lost",
+      "category": "transport",
+      "output_en": "I am lost",
+      "output_ne": "म हराएँ",
+      "patterns": [
+        "i am lost",
+        "lost",
+        "म हराएँ",
+        "ma haraye",
+        "ma harayen"
+      ],
+      "urgent": true
+    },
+    {
+      "id": "emergency_help",
+      "category": "emergency",
+      "output_en": "Help!",
+      "output_ne": "मद्दत गर्नुस्!",
+      "patterns": [
+        "help",
+        "help me",
+        "emergency",
+        "मद्दत गर्नुस्",
+        "madat garnus",
+        "maddat garnus",
+        "help chaiyo"
+      ],
+      "urgent": true
+    },
+    {
+      "id": "need_doctor",
+      "category": "emergency",
+      "output_en": "I need a doctor",
+      "output_ne": "मलाई डाक्टर चाहियो",
+      "patterns": [
+        "i need a doctor",
+        "doctor please",
+        "मलाई डाक्टर चाहियो",
+        "malai doctor chaiyo",
+        "doctor chaiyo",
+        "ma birami chu"
+      ],
+      "urgent": true
+    },
+    {
+      "id": "call_police",
+      "category": "emergency",
+      "output_en": "Call the police",
+      "output_ne": "प्रहरीलाई बोलाउनुस्",
+      "patterns": [
+        "call the police",
+        "police please",
+        "प्रहरीलाई बोलाउनुस्",
+        "police bolau",
+        "police bolai dinus"
+      ],
+      "urgent": true
+    },
+    {
+      "id": "need_guide",
+      "category": "trekking",
+      "output_en": "I need a guide",
+      "output_ne": "मलाई गाइड चाहियो",
+      "patterns": [
+        "i need a guide",
+        "guide please",
+        "malai guide chaiyo",
+        "guide chaiyo"
+      ]
+    },
+    {
+      "id": "ask_price",
+      "category": "shopping",
+      "output_en": "How much does this cost?",
+      "output_ne": "यो कति पर्छ?",
+      "patterns": [
+        "how much does this cost",
+        "how much is this",
+        "price please",
+        "यो कति पर्छ",
+        "yo kati parcha",
+        "yo kati ho",
+        "kati paisa"
+      ]
+    },
+    {
+      "id": "ask_photo_permission",
+      "category": "culture",
+      "output_en": "Can I take a photo?",
+      "output_ne": "फोटो खिच्न पाउँछु?",
+      "patterns": [
+        "can i take a photo",
+        "photo allowed",
+        "फोटो खिच्न पाउँछु",
+        "photo khichna pauchu",
+        "foto khichna pauchu"
+      ]
+    }
+  ]
+}

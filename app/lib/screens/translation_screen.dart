@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../services/translation_service.dart';
+import '../translation/roman_nepali_normalizer.dart';
+import '../translation/translation_intent_model.dart';
+import '../translation/translation_models.dart';
 
 class TranslationScreen extends StatefulWidget {
   const TranslationScreen({super.key});
@@ -14,827 +15,634 @@ class TranslationScreen extends StatefulWidget {
   State<TranslationScreen> createState() => _TranslationScreenState();
 }
 
-class _TranslationScreenState extends State<TranslationScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final TextEditingController _englishConversationController =
-      TextEditingController();
-  final TextEditingController _nepaliConversationController =
-      TextEditingController();
+class _TranslationScreenState extends State<TranslationScreen>
+    with TickerProviderStateMixin {
+  final TranslationService _service = TranslationService.instance;
+  final TextEditingController _inputController = TextEditingController();
+  final TextEditingController _conversationController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  late final TabController _tabController;
 
   final FlutterTts _tts = FlutterTts();
   final stt.SpeechToText _speech = stt.SpeechToText();
-  final ImagePicker _imagePicker = ImagePicker();
 
-  bool _englishToNepali = true;
+  bool _ready = false;
   bool _loading = false;
   bool _speechReady = false;
   bool _listening = false;
-  bool _ocrLoading = false;
-  bool _conversationLoading = false;
 
-  TranslationResult? _result;
-  TranslationResult? _englishConversationResult;
-  TranslationResult? _nepaliConversationResult;
-  TranslationResult? _ocrResult;
-  String _ocrText = '';
+  String? _error;
 
+  TranslationMode _mode = TranslationMode.autoDetect;
+  TranslationResult? _currentResult;
+
+  String _selectedCategory = 'greetings';
+
+  List<PhrasebookEntry> _categoryEntries = [];
   List<TranslationHistoryEntry> _history = [];
-  Map<String, Map<String, String>> _phrases = {};
-  String? _selectedCategory;
+
+  final List<_ConversationMessage> _messages = [];
 
   @override
   void initState() {
     super.initState();
-    _initSpeech();
-    _refreshHistory();
-    _loadPhrases();
+
+    _tabController = TabController(length: 4, vsync: this);
+    _initialize();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _englishConversationController.dispose();
-    _nepaliConversationController.dispose();
+    _tabController.dispose();
+    _inputController.dispose();
+    _conversationController.dispose();
+    _scrollController.dispose();
     _tts.stop();
     _speech.stop();
+
     super.dispose();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await _service.initialize();
+      await _initSpeech();
+      await _initTts();
+
+      _loadCategory(_selectedCategory);
+      _refreshHistory();
+
+      if (!mounted) return;
+
+      setState(() => _ready = true);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _error = e.toString());
+    }
   }
 
   Future<void> _initSpeech() async {
     try {
-      final ready = await _speech.initialize(
+      _speechReady = await _speech.initialize(
         onStatus: (status) {
           if (!mounted) return;
+
           if (status == 'done' || status == 'notListening') {
             setState(() => _listening = false);
           }
         },
         onError: (_) {
           if (!mounted) return;
+
           setState(() => _listening = false);
         },
       );
-      if (!mounted) return;
-      setState(() => _speechReady = ready);
     } catch (_) {
-      if (!mounted) return;
-      setState(() => _speechReady = false);
+      _speechReady = false;
     }
   }
 
-  Future<void> _refreshHistory() async {
-    final history = await TranslationService.getHistory();
-    if (!mounted) return;
-    setState(() => _history = history);
+  Future<void> _initTts() async {
+    await _tts.setPitch(1.0);
+    await _tts.setSpeechRate(0.45);
   }
 
-  Future<void> _loadPhrases() async {
-    final phrases = await TranslationService.getPhrases(
-      englishToNepali: _englishToNepali,
-    );
-    if (!mounted) return;
+  Future<void> _translateText() async {
+    final text = _inputController.text.trim();
+
+    if (text.isEmpty) return;
+
+    FocusScope.of(context).unfocus();
+
     setState(() {
-      _phrases = phrases;
-      _selectedCategory = phrases.keys.isEmpty ? null : phrases.keys.first;
+      _loading = true;
+      _currentResult = null;
     });
+
+    final result = await _service.translate(
+      input: text,
+      mode: _mode,
+      allowOnline: true,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentResult = result;
+      _loading = false;
+    });
+
+    _refreshHistory();
+
+    if (result.isSuccess) {
+      await _speakResult(result);
+    }
   }
 
-  Future<void> _translate() async {
-    final text = _controller.text.trim();
+  Future<void> _sendConversationMessage() async {
+    final text = _conversationController.text.trim();
+
     if (text.isEmpty) return;
 
     setState(() {
       _loading = true;
-      _result = null;
+      _messages.add(_ConversationMessage(text: text, isUser: true));
+      _conversationController.clear();
     });
 
-    final result = await TranslationService.translate(
-      text: text,
-      englishToNepali: _englishToNepali,
+    final result = await _service.translate(
+      input: text,
+      mode: _mode,
+      allowOnline: true,
     );
 
     if (!mounted) return;
+
     setState(() {
-      _result = result;
+      _messages.add(
+        _ConversationMessage(
+          text: result.isSuccess
+              ? result.translatedText
+              : result.errorMessage ?? 'No suitable translation found.',
+          isUser: false,
+          result: result,
+        ),
+      );
       _loading = false;
     });
+
     _refreshHistory();
+    _scrollConversationToBottom();
   }
 
-  Future<void> _translateConversation({required bool englishToNepali}) async {
-    final controller = englishToNepali
-        ? _englishConversationController
-        : _nepaliConversationController;
-    final text = controller.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() => _conversationLoading = true);
-    final result = await TranslationService.translate(
-      text: text,
-      englishToNepali: englishToNepali,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      if (englishToNepali) {
-        _englishConversationResult = result;
-      } else {
-        _nepaliConversationResult = result;
-      }
-      _conversationLoading = false;
-    });
-    _refreshHistory();
-  }
-
-  Future<void> _listenInto(
-    TextEditingController controller, {
-    required bool sourceIsEnglish,
-    Future<void> Function()? onFinal,
-  }) async {
+  Future<void> _listenInto(TextEditingController controller) async {
     if (!_speechReady) {
-      _showSnack('Speech recognition is not available on this device.');
+      _showSnack('Speech recognition is not available.');
       return;
     }
 
     if (_speech.isListening) {
       await _speech.stop();
+
       if (!mounted) return;
+
       setState(() => _listening = false);
       return;
     }
 
+    final locale = _mode == TranslationMode.nepaliToEnglish ? 'ne_NP' : 'en_US';
+
     setState(() => _listening = true);
+
     await _speech.listen(
-      localeId: sourceIsEnglish ? 'en_US' : 'ne_NP',
-      listenMode: stt.ListenMode.confirmation,
-      onResult: (result) async {
+      localeId: locale,
+      onResult: (result) {
         controller.text = result.recognizedWords;
         controller.selection = TextSelection.collapsed(
           offset: controller.text.length,
         );
-        if (result.finalResult && onFinal != null) {
-          await onFinal();
+
+        if (result.finalResult && mounted) {
+          setState(() => _listening = false);
         }
       },
     );
   }
 
-  Future<void> _speakText(String text, {required bool textIsNepali}) async {
-    if (text.trim().isEmpty) return;
-    await _tts.stop();
-    await _tts.setPitch(1.0);
-    await _tts.setSpeechRate(0.45);
-    await _tts.setLanguage(textIsNepali ? 'ne-NP' : 'en-US');
-    await _tts.speak(text);
+  Future<void> _speakResult(TranslationResult result) async {
+    if (!result.isSuccess) return;
+
+    final effectiveMode = _resolveOutputMode(result.translatedText);
+
+    await _speakText(
+      result.translatedText,
+      effectiveMode == TranslationMode.englishToNepali ? 'ne-NP' : 'en-US',
+    );
   }
 
-  Future<void> _scanImage(ImageSource source) async {
-    setState(() {
-      _ocrLoading = true;
-      _ocrText = '';
-      _ocrResult = null;
-    });
-
-    try {
-      final image = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 92,
-      );
-      if (image == null) {
-        if (!mounted) return;
-        setState(() => _ocrLoading = false);
-        return;
-      }
-
-      final script = _englishToNepali
-          ? TextRecognitionScript.latin
-          : TextRecognitionScript.devanagiri;
-      final recognizer = TextRecognizer(script: script);
-      final recognizedText = await recognizer.processImage(
-        InputImage.fromFilePath(image.path),
-      );
-      await recognizer.close();
-
-      final extracted = recognizedText.text.trim();
-      TranslationResult? translation;
-      if (extracted.isNotEmpty) {
-        translation = await TranslationService.translate(
-          text: extracted,
-          englishToNepali: _englishToNepali,
-        );
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _ocrText = extracted;
-        _ocrResult = translation;
-        _controller.text = extracted;
-        _result = translation;
-        _ocrLoading = false;
-      });
-      _refreshHistory();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _ocrLoading = false);
-      _showSnack('OCR failed: $e');
+  TranslationMode _resolveOutputMode(String output) {
+    if (RomanNepaliNormalizer.isDevanagari(output)) {
+      return TranslationMode.englishToNepali;
     }
+
+    return TranslationMode.nepaliToEnglish;
+  }
+
+  Future<void> _speakText(String text, String lang) async {
+    if (text.trim().isEmpty) return;
+
+    await _tts.stop();
+    await _tts.setLanguage(lang);
+    await _tts.speak(text);
   }
 
   Future<void> _copy(String text) async {
     if (text.trim().isEmpty) return;
+
     await Clipboard.setData(ClipboardData(text: text));
-    _showSnack('Copied to clipboard');
+    _showSnack('Copied');
   }
 
-  void _swapDirection() {
+  void _loadCategory(String category) {
     setState(() {
-      _englishToNepali = !_englishToNepali;
-      _result = null;
-      _ocrResult = null;
-      _ocrText = '';
+      _selectedCategory = category;
+      _categoryEntries = _service.entriesByCategory(category);
     });
-    _loadPhrases();
   }
 
-  void _reverseIntoInput() {
-    final result = _result;
-    if (result == null || result.text.trim().isEmpty || result.isError) return;
-    setState(() {
-      _controller.text = result.text;
-      _englishToNepali = !_englishToNepali;
-      _result = null;
-    });
-    _loadPhrases();
+  void _refreshHistory() {
+    setState(() => _history = _service.history);
   }
 
   Future<void> _clearHistory() async {
-    await TranslationService.clearHistory();
-    await _refreshHistory();
+    await _service.clearHistory();
+    _refreshHistory();
+    _showSnack('History cleared');
   }
 
-  void _showSnack(String message) {
+  void _scrollConversationToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  void _showSnack(String text) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
   Widget build(BuildContext context) {
-    final sourceLabel = _englishToNepali ? 'English' : 'Nepali';
-    final targetLabel = _englishToNepali ? 'Nepali' : 'English';
-
-    return DefaultTabController(
-      length: 5,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Translate'),
-          bottom: const TabBar(
-            isScrollable: true,
-            tabs: [
-              Tab(icon: Icon(Icons.translate_rounded), text: 'Text'),
-              Tab(icon: Icon(Icons.record_voice_over_rounded), text: 'Conversation'),
-              Tab(icon: Icon(Icons.document_scanner_outlined), text: 'Camera OCR'),
-              Tab(icon: Icon(Icons.menu_book_outlined), text: 'Phrasebook'),
-              Tab(icon: Icon(Icons.history_rounded), text: 'History'),
-            ],
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Tourism Translator')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text('Translation module failed to load:\n\n$_error'),
           ),
         ),
-        body: TabBarView(
+      );
+    }
+
+    if (!_ready) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tourism Translator'),
+        actions: [
+          IconButton(
+            onPressed: _clearHistory,
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Clear history',
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: const [
+            Tab(icon: Icon(Icons.translate), text: 'Text'),
+            Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Conversation'),
+            Tab(icon: Icon(Icons.menu_book_outlined), text: 'Phrasebook'),
+            Tab(icon: Icon(Icons.history), text: 'History'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          _buildModeBar(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildTextTab(),
+                _buildConversationTab(),
+                _buildPhrasebookTab(),
+                _buildHistoryTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Row(
+        children: TranslationMode.values.map((mode) {
+          final selected = _mode == mode;
+
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: ChoiceChip(
+                selected: selected,
+                label: Center(child: Text(mode.label)),
+                onSelected: (_) => setState(() => _mode = mode),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTextTab() {
+    final result = _currentResult;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.psychology_alt_outlined),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Translate common tourism phrases offline using a phrasebook, Roman Nepali support, and smart intent matching. Online translation is used only when no good offline match is found.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _inputController,
+          maxLines: 4,
+          decoration: InputDecoration(
+            labelText: 'Enter English, नेपाली, or Roman Nepali',
+            hintText: 'Example: malai paani chaiyo',
+            border: const OutlineInputBorder(),
+            suffixIcon: IconButton(
+              onPressed: () => _listenInto(_inputController),
+              icon: Icon(_listening ? Icons.mic : Icons.mic_none),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: _loading ? null : _translateText,
+          icon: _loading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.translate),
+          label: Text(_loading ? 'Translating...' : 'Translate'),
+        ),
+        const SizedBox(height: 18),
+        if (result != null) _buildResultCard(result),
+      ],
+    );
+  }
+
+  Widget _buildResultCard(TranslationResult result) {
+    final output = result.isSuccess
+        ? result.translatedText
+        : result.errorMessage ?? 'No suitable translation found.';
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTextTranslator(sourceLabel, targetLabel),
-            _buildConversationMode(),
-            _buildCameraOcr(sourceLabel, targetLabel),
-            _buildPhrasebook(),
-            _buildHistory(),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    result.strategyLabel,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                Chip(
+                  label: Text(result.confidencePercent),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            if (result.intent != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Intent: ${result.intent}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 14),
+            SelectableText(
+              output,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _copy(output),
+                  icon: const Icon(Icons.copy),
+                  label: const Text('Copy'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _speakResult(result),
+                  icon: const Icon(Icons.volume_up_outlined),
+                  label: const Text('Speak'),
+                ),
+              ],
+            ),
+            if (result.intent != null) _buildRelatedPhrases(result.intent!),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTextTranslator(String sourceLabel, String targetLabel) {
-    final result = _result;
-    final outputText = result?.text ?? 'Your translated text will appear here.';
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _RealityCheckCard(),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Translation direction',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: _LangBox(label: sourceLabel)),
-                    IconButton(
-                      onPressed: _swapDirection,
-                      icon: const Icon(Icons.swap_horiz_rounded),
-                      tooltip: 'Swap languages',
-                    ),
-                    Expanded(child: _LangBox(label: targetLabel)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _controller,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    labelText: 'Enter text in $sourceLabel',
-                    hintText: _englishToNepali
-                        ? 'Example: Where is the homestay?'
-                        : 'उदाहरण: होमस्टे कहाँ छ?',
-                    suffixIcon: IconButton(
-                      tooltip: 'Voice input',
-                      icon: Icon(
-                        _listening
-                            ? Icons.mic_rounded
-                            : Icons.mic_none_rounded,
-                      ),
-                      onPressed: () => _listenInto(
-                        _controller,
-                        sourceIsEnglish: _englishToNepali,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _loading ? null : _translate,
-                        icon: _loading
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.translate_rounded),
-                        label: Text(_loading ? 'Translating...' : 'Translate'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    IconButton.filledTonal(
-                      tooltip: 'Scan with camera',
-                      onPressed: _ocrLoading
-                          ? null
-                          : () => _scanImage(ImageSource.camera),
-                      icon: const Icon(Icons.camera_alt_outlined),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Translated output',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    if (result != null)
-                      _SourceBadge(result: result),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SelectableText(
-                  outputText,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        height: 1.5,
-                      ),
-                ),
-                if (result?.matchedPhrase != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Matched phrase: ${result!.matchedPhrase}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: result == null || result.text.isEmpty
-                          ? null
-                          : () => _speakText(
-                                result.text,
-                                textIsNepali: _englishToNepali,
-                              ),
-                      icon: const Icon(Icons.volume_up_outlined),
-                      label: const Text('Speak'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: result == null || result.text.isEmpty
-                          ? null
-                          : () => _copy(result.text),
-                      icon: const Icon(Icons.copy_rounded),
-                      label: const Text('Copy'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: result == null || result.isError
-                          ? null
-                          : _reverseIntoInput,
-                      icon: const Icon(Icons.reply_outlined),
-                      label: const Text('Reverse'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+  Widget _buildRelatedPhrases(String intentId) {
+    final categories = TranslationIntentModel.intentToPhrasebookCategories(
+      intentId,
     );
-  }
 
-  Widget _buildConversationMode() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'Two-way conversation',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Use this in tourist-host conversations. Each half has its own input direction.',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        const SizedBox(height: 16),
-        _ConversationPane(
-          title: 'Tourist speaks English',
-          subtitle: 'English → Nepali',
-          controller: _englishConversationController,
-          result: _englishConversationResult,
-          loading: _conversationLoading,
-          hint: 'Example: How much is the room per night?',
-          onListen: () => _listenInto(
-            _englishConversationController,
-            sourceIsEnglish: true,
-            onFinal: () => _translateConversation(englishToNepali: true),
-          ),
-          onTranslate: () => _translateConversation(englishToNepali: true),
-          onSpeakInput: () => _speakText(
-            _englishConversationController.text,
-            textIsNepali: false,
-          ),
-          onSpeakOutput: () => _speakText(
-            _englishConversationResult?.text ?? '',
-            textIsNepali: true,
-          ),
-          onCopyOutput: () => _copy(_englishConversationResult?.text ?? ''),
-        ),
-        const SizedBox(height: 16),
-        _ConversationPane(
-          title: 'Host speaks Nepali',
-          subtitle: 'Nepali → English',
-          controller: _nepaliConversationController,
-          result: _nepaliConversationResult,
-          loading: _conversationLoading,
-          hint: 'उदाहरण: कोठा खाली छ?',
-          onListen: () => _listenInto(
-            _nepaliConversationController,
-            sourceIsEnglish: false,
-            onFinal: () => _translateConversation(englishToNepali: false),
-          ),
-          onTranslate: () => _translateConversation(englishToNepali: false),
-          onSpeakInput: () => _speakText(
-            _nepaliConversationController.text,
-            textIsNepali: true,
-          ),
-          onSpeakOutput: () => _speakText(
-            _nepaliConversationResult?.text ?? '',
-            textIsNepali: false,
-          ),
-          onCopyOutput: () => _copy(_nepaliConversationResult?.text ?? ''),
-        ),
-      ],
-    );
-  }
+    if (categories.isEmpty) return const SizedBox.shrink();
 
-  Widget _buildCameraOcr(String sourceLabel, String targetLabel) {
-    final result = _ocrResult;
+    final entries = categories
+        .expand((category) => _service.entriesByCategory(category))
+        .take(4)
+        .toList();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'Camera OCR translation',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Scan printed signs, menus, or notice boards. OCR runs through ML Kit text recognition; translation uses the same phrasebook/online fallback chain.',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: _LangBox(label: sourceLabel)),
-                    IconButton(
-                      onPressed: _swapDirection,
-                      icon: const Icon(Icons.swap_horiz_rounded),
-                    ),
-                    Expanded(child: _LangBox(label: targetLabel)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _ocrLoading
-                            ? null
-                            : () => _scanImage(ImageSource.camera),
-                        icon: _ocrLoading
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.camera_alt_outlined),
-                        label: Text(_ocrLoading ? 'Scanning...' : 'Use camera'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _ocrLoading
-                            ? null
-                            : () => _scanImage(ImageSource.gallery),
-                        icon: const Icon(Icons.photo_library_outlined),
-                        label: const Text('Gallery'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Extracted text', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 10),
-                SelectableText(
-                  _ocrText.isEmpty ? 'No text scanned yet.' : _ocrText,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                if (_ocrText.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => _copy(_ocrText),
-                    icon: const Icon(Icons.copy_rounded),
-                    label: const Text('Copy extracted text'),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Translation',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    if (result != null) _SourceBadge(result: result),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                SelectableText(
-                  result?.text ?? 'OCR translation will appear here.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: result == null || result.text.isEmpty
-                          ? null
-                          : () => _speakText(
-                                result.text,
-                                textIsNepali: _englishToNepali,
-                              ),
-                      icon: const Icon(Icons.volume_up_outlined),
-                      label: const Text('Speak'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: result == null || result.text.isEmpty
-                          ? null
-                          : () => _copy(result.text),
-                      icon: const Icon(Icons.copy_rounded),
-                      label: const Text('Copy'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    if (entries.isEmpty) return const SizedBox.shrink();
 
-  Widget _buildPhrasebook() {
-    final categories = _phrases.keys.toList();
-    final selected = _selectedCategory;
-    final phrases = selected == null ? <MapEntry<String, String>>[] :
-        (_phrases[selected] ?? {}).entries.toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _englishToNepali ? 'English → Nepali phrases' : 'Nepali → English phrases',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              TextButton.icon(
-                onPressed: _swapDirection,
-                icon: const Icon(Icons.swap_horiz_rounded),
-                label: const Text('Swap'),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 52,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return ChoiceChip(
-                selected: category == selected,
-                label: Text(_humanizeCategory(category)),
-                onSelected: (_) => setState(() => _selectedCategory = category),
-              );
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: entries.map((entry) {
+          return ActionChip(
+            label: Text(entry.english),
+            onPressed: () {
+              _inputController.text = entry.english;
+              _tabController.animateTo(0);
+              _translateText();
             },
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemCount: categories.length,
-          ),
-        ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildConversationTab() {
+    return Column(
+      children: [
         Expanded(
-          child: phrases.isEmpty
-              ? const Center(child: Text('No phrases available.'))
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
+          child: _messages.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Start a conversation between a tourist and a local host.',
+                  ),
+                )
+              : ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _messages.length,
                   itemBuilder: (context, index) {
-                    final phrase = phrases[index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(phrase.key),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(phrase.value),
+                    final message = _messages[index];
+
+                    return Align(
+                      alignment: message.isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.all(12),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
                         ),
-                        trailing: Wrap(
-                          spacing: 4,
+                        decoration: BoxDecoration(
+                          color: message.isUser
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            IconButton(
-                              tooltip: 'Speak translation',
-                              onPressed: () => _speakText(
-                                phrase.value,
-                                textIsNepali: _englishToNepali,
+                            Text(message.text),
+                            if (message.result != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                '${message.result!.strategyLabel} · ${message.result!.confidencePercent}',
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
-                              icon: const Icon(Icons.volume_up_outlined),
-                            ),
-                            IconButton(
-                              tooltip: 'Use phrase',
-                              onPressed: () {
-                                _controller.text = phrase.key;
-                                _translate();
-                                _showSnack('Phrase copied to translator');
-                              },
-                              icon: const Icon(Icons.north_east_rounded),
-                            ),
+                            ],
                           ],
                         ),
                       ),
                     );
                   },
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemCount: phrases.length,
                 ),
+        ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => _listenInto(_conversationController),
+                  icon: Icon(_listening ? Icons.mic : Icons.mic_none),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _conversationController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type a message...',
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (_) => _sendConversationMessage(),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _loading ? null : _sendConversationMessage,
+                  icon: const Icon(Icons.send_rounded),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildHistory() {
+  Widget _buildPhrasebookTab() {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Recent translations',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              TextButton.icon(
-                onPressed: _history.isEmpty ? null : _clearHistory,
-                icon: const Icon(Icons.delete_outline_rounded),
-                label: const Text('Clear'),
-              ),
-            ],
+        SizedBox(
+          height: 56,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            scrollDirection: Axis.horizontal,
+            itemCount: PhrasebookCategory.all.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final category = PhrasebookCategory.all[index];
+
+              return ChoiceChip(
+                selected: _selectedCategory == category.id,
+                label: Text('${category.emoji} ${category.label}'),
+                onSelected: (_) => _loadCategory(category.id),
+              );
+            },
           ),
         ),
         Expanded(
-          child: _history.isEmpty
-              ? const Center(child: Text('No translation history yet.'))
+          child: _categoryEntries.isEmpty
+              ? const Center(child: Text('No phrases in this category.'))
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  itemCount: _history.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _categoryEntries.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    final entry = _history[index];
+                    final entry = _categoryEntries[index];
+
                     return Card(
                       child: ListTile(
-                        title: Text(entry.sourceText),
+                        title: Text(entry.english),
                         subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(entry.translatedText),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${entry.englishToNepali ? 'English → Nepali' : 'Nepali → English'} • ${entry.source.name}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Text(entry.nepali),
                         ),
                         trailing: IconButton(
-                          tooltip: 'Copy translation',
-                          onPressed: () => _copy(entry.translatedText),
-                          icon: const Icon(Icons.copy_rounded),
+                          icon: const Icon(Icons.volume_up_outlined),
+                          onPressed: () => _speakText(entry.nepali, 'ne-NP'),
                         ),
                         onTap: () {
-                          setState(() {
-                            _englishToNepali = entry.englishToNepali;
-                            _controller.text = entry.sourceText;
-                            _result = TranslationResult(
-                              text: entry.translatedText,
-                              source: entry.source,
-                              originalText: entry.sourceText,
-                              englishToNepali: entry.englishToNepali,
-                            );
-                          });
-                          _loadPhrases();
+                          _inputController.text = entry.english;
+                          _tabController.animateTo(0);
+                          _translateText();
                         },
                       ),
                     );
@@ -845,226 +653,59 @@ class _TranslationScreenState extends State<TranslationScreen> {
     );
   }
 
-  String _humanizeCategory(String category) {
-    if (category.isEmpty) return category;
-    return category[0].toUpperCase() + category.substring(1).replaceAll('_', ' ');
-  }
-}
+  Widget _buildHistoryTab() {
+    if (_history.isEmpty) {
+      return const Center(child: Text('No translation history yet.'));
+    }
 
-class _RealityCheckCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      color: cs.secondaryContainer.withValues(alpha: 0.45),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.info_outline_rounded, color: cs.secondary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Offline free-form Nepali translation is not provided by Google ML Kit. This module uses an offline tourism phrasebook first, then an online translator for free-form sentences.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    return ListView.separated(
+      padding: const EdgeInsets.all(12),
+      itemCount: _history.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final entry = _history[index];
 
-class _LangBox extends StatelessWidget {
-  final String label;
-
-  const _LangBox({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-    );
-  }
-}
-
-class _SourceBadge extends StatelessWidget {
-  final TranslationResult result;
-
-  const _SourceBadge({required this.result});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = result.isOffline
-        ? Theme.of(context).colorScheme.tertiary
-        : result.isError
-            ? Theme.of(context).colorScheme.error
-            : Theme.of(context).colorScheme.primary;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            result.isOffline
-                ? Icons.offline_bolt_outlined
-                : result.isError
-                    ? Icons.error_outline_rounded
-                    : Icons.cloud_done_outlined,
-            size: 14,
-            color: color,
-          ),
-          const SizedBox(width: 5),
-          Text(
-            result.sourceLabel,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ConversationPane extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final TextEditingController controller;
-  final TranslationResult? result;
-  final bool loading;
-  final String hint;
-  final VoidCallback onListen;
-  final VoidCallback onTranslate;
-  final VoidCallback onSpeakInput;
-  final VoidCallback onSpeakOutput;
-  final VoidCallback onCopyOutput;
-
-  const _ConversationPane({
-    required this.title,
-    required this.subtitle,
-    required this.controller,
-    required this.result,
-    required this.loading,
-    required this.hint,
-    required this.onListen,
-    required this.onTranslate,
-    required this.onSpeakInput,
-    required this.onSpeakOutput,
-    required this.onCopyOutput,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final result = this.result;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 2),
-                      Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-                    ],
+        return Card(
+          child: ListTile(
+            title: Text(entry.inputText),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(entry.outputText),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${entry.mode.label} · ${entry.strategy.name}',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ),
-                if (result != null) _SourceBadge(result: result),
-              ],
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: hint,
-                suffixIcon: IconButton(
-                  tooltip: 'Speak input',
-                  onPressed: onSpeakInput,
-                  icon: const Icon(Icons.volume_up_outlined),
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                FilledButton.icon(
-                  onPressed: loading ? null : onTranslate,
-                  icon: loading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.translate_rounded),
-                  label: const Text('Translate'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onListen,
-                  icon: const Icon(Icons.mic_none_rounded),
-                  label: const Text('Listen'),
-                ),
-              ],
+            trailing: IconButton(
+              icon: const Icon(Icons.replay),
+              onPressed: () {
+                _inputController.text = entry.inputText;
+                _mode = entry.mode;
+                _tabController.animateTo(0);
+                setState(() {});
+              },
             ),
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: SelectableText(
-                result?.text ?? 'Translation will appear here.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: result == null ? null : onSpeakOutput,
-                  icon: const Icon(Icons.volume_up_outlined),
-                  label: const Text('Speak output'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: result == null ? null : onCopyOutput,
-                  icon: const Icon(Icons.copy_rounded),
-                  label: const Text('Copy output'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
+}
+
+class _ConversationMessage {
+  final String text;
+  final bool isUser;
+  final TranslationResult? result;
+
+  const _ConversationMessage({
+    required this.text,
+    required this.isUser,
+    this.result,
+  });
 }

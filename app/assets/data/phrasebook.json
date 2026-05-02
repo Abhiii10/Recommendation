@@ -4,225 +4,652 @@
     {
       "id": "greeting",
       "category": "greetings",
-      "english": "Hello",
+      "english": "Hello / Namaste",
       "nepali": "नमस्ते",
-      "romanized": ["namaste", "namaskar", "hi", "hello"]
+      "romanized": ["namaste","namaskar","hi","hello","hey","helo","namazte","namste","namskar","namasthe"]
+    },
+    {
+      "id": "good_morning",
+      "category": "greetings",
+      "english": "Good morning",
+      "nepali": "शुभ प्रभात",
+      "romanized": ["shubha prabhaat","subha prabhat","good morning","subhaprabhaat","shubhaprabhat"]
+    },
+    {
+      "id": "good_evening",
+      "category": "greetings",
+      "english": "Good evening",
+      "nepali": "शुभ सन्ध्या",
+      "romanized": ["shubha sandhya","subha sandhya","good evening","shubhasandhya"]
+    },
+    {
+      "id": "good_night",
+      "category": "greetings",
+      "english": "Good night",
+      "nepali": "शुभ रात्री",
+      "romanized": ["shubha ratri","subha ratri","good night","shubharat","subharat"]
+    },
+    {
+      "id": "how_are_you",
+      "category": "greetings",
+      "english": "How are you?",
+      "nepali": "तपाईंलाई कस्तो छ?",
+      "romanized": ["tapailai kasto cha","tapai kasto cha","kasto cha","kasari cha","tapai theek cha","tapailai kasari cha"]
+    },
+    {
+      "id": "i_am_fine",
+      "category": "greetings",
+      "english": "I am fine",
+      "nepali": "म ठिक छु",
+      "romanized": ["ma thik chu","ma theek chu","ma sanchai chu","thik chu","theek chu","sanchai chhu"]
     },
     {
       "id": "thank_you",
       "category": "greetings",
       "english": "Thank you",
       "nepali": "धन्यवाद",
-      "romanized": ["dhanyabad", "dhanyavaad"]
+      "romanized": ["dhanyabad","dhanyavaad","dhanyavad","shukriya","thanks","thank you","dhanybad"]
+    },
+    {
+      "id": "welcome",
+      "category": "greetings",
+      "english": "You are welcome",
+      "nepali": "स्वागत छ",
+      "romanized": ["swagat cha","swagat chha","swagat xa","tapailai swagat"]
+    },
+    {
+      "id": "please",
+      "category": "greetings",
+      "english": "Please",
+      "nepali": "कृपया",
+      "romanized": ["kripaya","krpaya","please"]
     },
     {
       "id": "sorry",
       "category": "greetings",
-      "english": "Sorry",
+      "english": "Sorry / Excuse me",
       "nepali": "माफ गर्नुस्",
-      "romanized": ["maaf garnus", "sorry"]
+      "romanized": ["maaf garnus","maaf garnuhos","sorry","excuse me","maafi","maf garnus","mafi garnus"]
     },
     {
       "id": "yes",
       "category": "greetings",
       "english": "Yes",
       "nepali": "हो",
-      "romanized": ["ho"]
+      "romanized": ["ho","hoo","yes","haN","haan"]
     },
     {
       "id": "no",
       "category": "greetings",
       "english": "No",
       "nepali": "होइन",
-      "romanized": ["hoina", "haina"]
+      "romanized": ["hoina","haina","hoena","na","no","hoyana"]
     },
+    {
+      "id": "goodbye",
+      "category": "greetings",
+      "english": "Goodbye",
+      "nepali": "बिदाइ",
+      "romanized": ["bidai","bidaai","pheri bhetaula","goodbye","bye","feri bhetaula"]
+    },
+    {
+      "id": "my_name_is",
+      "category": "greetings",
+      "english": "My name is",
+      "nepali": "मेरो नाम हो",
+      "romanized": ["mero naam ho","mero nam ho","mero name ho","mero naam"]
+    },
+    {
+      "id": "what_is_your_name",
+      "category": "greetings",
+      "english": "What is your name?",
+      "nepali": "तपाईंको नाम के हो?",
+      "romanized": ["tapai ko naam ke ho","tapai ko name ke ho","tapai ko naam","timro naam ke ho"]
+    },
+    {
+      "id": "do_you_speak_english",
+      "category": "greetings",
+      "english": "Do you speak English?",
+      "nepali": "के तपाईं अंग्रेजी बोल्नुहुन्छ?",
+      "romanized": ["tapai english bolnu huncha","english bolnu huncha","angrejee bolnu huncha","english aaucha","english jaannu huncha"]
+    },
+    {
+      "id": "i_dont_understand",
+      "category": "greetings",
+      "english": "I don't understand",
+      "nepali": "मलाई बुझिएन",
+      "romanized": ["malai bujhiyena","malai bujhena","bujhina","ma bujhina","malai thaha chaina","bujhiena"]
+    },
+    {
+      "id": "speak_slowly",
+      "category": "greetings",
+      "english": "Please speak slowly",
+      "nepali": "बिस्तारै बोल्नुस्",
+      "romanized": ["bistaarai bolnus","bistare bolnus","bistari bolnus","slowly bolnus","aram le bolnus"]
+    },
+
     {
       "id": "request_water",
       "category": "food",
       "english": "Water please",
       "nepali": "पानी दिनुस् कृपया",
-      "romanized": [
-        "pani dinus",
-        "paani dinus",
-        "pani dinu na",
-        "malai pani chaiyo",
-        "malai paani chahiyo"
-      ]
+      "romanized": ["pani dinus","paani dinus","pani dinu na","malai pani chaiyo","malai paani chahiyo","pani chahiyo","paani chahiyo","pani please","ek glass pani","pani khanu cha"]
     },
     {
       "id": "hungry",
       "category": "food",
       "english": "I am hungry",
       "nepali": "मलाई भोक लाग्यो",
-      "romanized": [
-        "malai bhok lagyo",
-        "malay bhok lagyo",
-        "malai bhukh lagyo"
-      ]
+      "romanized": ["malai bhok lagyo","malay bhok lagyo","malai bhukh lagyo","malai bhok lago","malai bhokai cha","ma bhokai chu","malai bhok layo"]
     },
     {
       "id": "thirsty",
       "category": "food",
       "english": "I am thirsty",
       "nepali": "मलाई तिर्खा लाग्यो",
-      "romanized": [
-        "malai tirkha lagyo",
-        "malai tirka lagyo",
-        "malai trikha lagyo"
-      ]
+      "romanized": ["malai tirkha lagyo","malai tirka lagyo","malai trikha lagyo","malai tirkha lago","malai pyaas lagyo"]
     },
     {
-      "id": "drank_water",
+      "id": "food_delicious",
       "category": "food",
-      "english": "I drank water",
-      "nepali": "मैले पानी खाएँ",
-      "romanized": [
-        "maile pani khaye",
-        "mailay paani khaye",
-        "mailey pani khae",
-        "moiley paani khaye"
-      ]
+      "english": "The food is delicious",
+      "nepali": "खाना मिठो छ",
+      "romanized": ["khana mitho cha","khana mitho xa","khana dherai mitho","khana ramro cha","khana swadilo cha","mitho cha"]
     },
     {
-      "id": "ask_menu",
+      "id": "menu",
       "category": "food",
       "english": "Can I have the menu?",
       "nepali": "मेनु दिनुस् न",
-      "romanized": ["menu dinus", "menu dinu na"]
+      "romanized": ["menu dinus","menu dinu na","menu dekhaunus","menu hernu cha","menu chai cha"]
     },
     {
       "id": "vegetarian",
       "category": "food",
       "english": "I am vegetarian",
       "nepali": "म शाकाहारी हुँ",
-      "romanized": ["ma vegetarian ho", "ma sakahari ho"]
+      "romanized": ["ma vegetarian ho","ma sakahari ho","malai masu khanu hudaina","ma sakahari","vegetarian khana","shakahari khana","no meat please","masu nahalnus","meat nakhanu"]
     },
     {
-      "id": "bill",
+      "id": "no_spicy",
+      "category": "food",
+      "english": "Not too spicy please",
+      "nepali": "धेरै पिरो नगर्नुस् कृपया",
+      "romanized": ["piro nagarnuhos","pirod nagarnus","kam piro","kam pirobanaunu","piro kam garnus","no spicy","not spicy","piro nakhanus","piro nahalnus"]
+    },
+    {
+      "id": "bill_please",
       "category": "food",
       "english": "The bill please",
       "nepali": "बिल दिनुस् न",
-      "romanized": ["bill dinus", "bill dinu na"]
+      "romanized": ["bill dinus","bill dinu na","bill chai cha","bill lyaunus","payment garnu cha","paisa tirnu cha","kati bhayo","kati paryo","bill please"]
     },
+    {
+      "id": "restaurant",
+      "category": "food",
+      "english": "Where is a restaurant?",
+      "nepali": "खाना खाने ठाउँ कहाँ छ?",
+      "romanized": ["restaurant kata cha","restaurant kaha cha","khana khane thaun kata cha","bhojanalaya kata cha","restaurant kaha xa","khana paucha kaha"]
+    },
+    {
+      "id": "tea",
+      "category": "food",
+      "english": "I would like tea",
+      "nepali": "मलाई चिया चाहियो",
+      "romanized": ["malai chiya chahiyo","chiya dinus","ek cup chiya","chiya chaiyo","chai dinus","tea dinus","chiya please"]
+    },
+    {
+      "id": "coffee",
+      "category": "food",
+      "english": "I would like coffee",
+      "nepali": "मलाई कफि चाहियो",
+      "romanized": ["malai coffee chahiyo","coffee dinus","ek cup coffee","coffee chaiyo","kafi dinus"]
+    },
+    {
+      "id": "dal_bhat",
+      "category": "food",
+      "english": "Dal bhat (rice and lentils)",
+      "nepali": "दाल भात",
+      "romanized": ["dal bhat","daal bhaat","dal bhat dinus","daal bhat khanu cha","rice lentils"]
+    },
+    {
+      "id": "bottled_water",
+      "category": "food",
+      "english": "Bottled water please",
+      "nepali": "बोतलको पानी दिनुस्",
+      "romanized": ["bottle ko pani","bottled water","sealed pani","bottle pani dinus","mineral water"]
+    },
+    {
+      "id": "food_safe",
+      "category": "food",
+      "english": "Is this food safe to eat?",
+      "nepali": "यो खाना खान मिल्छ?",
+      "romanized": ["yo khana khana milcha","yo khana safe cha","yo khana khaun huncha","yo khana theek cha"]
+    },
+    {
+      "id": "recommend_food",
+      "category": "food",
+      "english": "What do you recommend?",
+      "nepali": "के खाने राम्रो होला?",
+      "romanized": ["ke khanu ramro hola","ke recommend garnu huncha","what to eat","ke ramro cha yahan","ke mitho cha"]
+    },
+    {
+      "id": "breakfast",
+      "category": "food",
+      "english": "Breakfast",
+      "nepali": "बिहानको खाना",
+      "romanized": ["bihaan ko khana","bihaanako khana","breakfast","bihanako khana","bihana ko nasta"]
+    },
+    {
+      "id": "lunch",
+      "category": "food",
+      "english": "Lunch",
+      "nepali": "दिउँसोको खाना",
+      "romanized": ["diuNso ko khana","lunch","khana khane bela","diuso ko khana"]
+    },
+    {
+      "id": "dinner",
+      "category": "food",
+      "english": "Dinner",
+      "nepali": "बेलुकाको खाना",
+      "romanized": ["beluka ko khana","dinner","saanjha ko khana","raati ko khana"]
+    },
+
     {
       "id": "ask_hotel_location",
       "category": "accommodation",
       "english": "Where is the hotel?",
       "nepali": "होटल कहाँ छ?",
-      "romanized": [
-        "hotel kata cha",
-        "hotel kata xa",
-        "hotel kaha chha"
-      ]
+      "romanized": ["hotel kata cha","hotel kata xa","hotel kaha chha","hotel kaha cha","hotel kahan cha","hotel kaha xa","hotel chha kaha"]
     },
     {
       "id": "ask_homestay_location",
       "category": "accommodation",
       "english": "Where is the homestay?",
       "nepali": "होमस्टे कहाँ छ?",
-      "romanized": [
-        "homestay kata cha",
-        "homestay kata xa",
-        "homestay kaha chha"
-      ]
+      "romanized": ["homestay kata cha","homestay kata xa","homestay kaha chha","homestay kaha cha","homestay kahan cha","home stay kata cha"]
     },
     {
       "id": "ask_room_available",
       "category": "accommodation",
       "english": "Is a room available?",
       "nepali": "कोठा खाली छ?",
-      "romanized": ["kotha khali cha", "kotha khali xa", "room cha"]
+      "romanized": ["kotha khali cha","kotha khali xa","room cha","kotha cha","room available cha","kotha paaincha","room paucha"]
     },
     {
       "id": "ask_room_price",
       "category": "accommodation",
       "english": "How much is the room per night?",
       "nepali": "एक रातको कोठा कति हो?",
-      "romanized": ["kotha kati ho", "room kati ho", "ek raat ko kati ho"]
+      "romanized": ["kotha kati ho","room kati ho","ek raat ko kati ho","ek raat ko room kati","room rate kati","room charge kati","ek rat ko bhaada kati"]
     },
     {
-      "id": "ask_wifi",
+      "id": "ask_room",
+      "category": "accommodation",
+      "english": "Can I see the room?",
+      "nepali": "कोठा हेर्न पाउँछु?",
+      "romanized": ["kotha herna paucha","room herna paucha","kotha dekhaunus","room dekhaunu","kotha hernu cha"]
+    },
+    {
+      "id": "room_expensive",
+      "category": "accommodation",
+      "english": "The room is too expensive",
+      "nepali": "कोठा धेरै महँगो छ",
+      "romanized": ["kotha dherai mahango cha","room dherai mahango cha","room mahango cha","kotha mahango xa","too expensive cha"]
+    },
+    {
+      "id": "breakfast_included",
+      "category": "accommodation",
+      "english": "Is breakfast included?",
+      "nepali": "बिहानको खाना समावेश छ?",
+      "romanized": ["breakfast included cha","bihaan ko khana samabesha cha","khana include cha","breakfast cha","breakfast paucha"]
+    },
+    {
+      "id": "checkout_time",
+      "category": "accommodation",
+      "english": "What time is check-out?",
+      "nepali": "चेक-आउट कति बजे हो?",
+      "romanized": ["checkout kati baje ho","check out time kati","check out kati baje","checkout kati","kati baje jaanu parcha"]
+    },
+    {
+      "id": "need_blanket",
+      "category": "accommodation",
+      "english": "I need a blanket",
+      "nepali": "मलाई कम्बल चाहियो",
+      "romanized": ["malai kambal chahiyo","kambal chahiyo","kambal dinus","blanket chahiyo","blanket dinus","malai ful lo kambal chahiyo"]
+    },
+    {
+      "id": "hot_water",
+      "category": "accommodation",
+      "english": "Hot water please",
+      "nepali": "तातो पानी चाहियो",
+      "romanized": ["taato pani chahiyo","garam pani chahiyo","hot water chahiyo","taato pani dinus","hot water dinus"]
+    },
+    {
+      "id": "wifi",
       "category": "accommodation",
       "english": "Is there Wi-Fi?",
       "nepali": "वाइफाइ छ?",
-      "romanized": ["wifi cha", "wifi xa", "wifi chha"]
+      "romanized": ["wifi cha","wifi xa","wifi chha","internet cha","wifi available cha","wifi ko password","password dinus"]
     },
+    {
+      "id": "charge_phone",
+      "category": "accommodation",
+      "english": "Can I charge my phone?",
+      "nepali": "फोन चार्ज गर्न पाउँछु?",
+      "romanized": ["phone charge garnu cha","mobile charge garnu cha","charge garnu cha","socket cha","bijuli socket cha"]
+    },
+    {
+      "id": "stay_two_nights",
+      "category": "accommodation",
+      "english": "I want to stay for two nights",
+      "nepali": "म दुई रात बस्न चाहन्छु",
+      "romanized": ["dui raat basnu cha","dui raat basna chahanchhu","2 raat basnu cha","dui raat kotha chahiyo","two nights basna chahana"]
+    },
+    {
+      "id": "stay_one_night",
+      "category": "accommodation",
+      "english": "I want to stay for one night",
+      "nepali": "म एक रात बस्न चाहन्छु",
+      "romanized": ["ek raat basnu cha","ek raat basna chahanchhu","1 raat basnu cha","ek raat kotha chahiyo","one night basna"]
+    },
+    {
+      "id": "reservation",
+      "category": "accommodation",
+      "english": "I have a reservation",
+      "nepali": "मैले बुकिंग गरेको छु",
+      "romanized": ["maile booking gareko chhu","booking gareko cha","reservation cha","maile pahile nai booking gareko","advance booking gareko"]
+    },
+
     {
       "id": "ask_bus_stop",
       "category": "transport",
       "english": "Where is the bus stop?",
       "nepali": "बस स्टप कहाँ छ?",
-      "romanized": [
-        "bus stop kata cha",
-        "bus stop kata xa",
-        "bus stop kaha chha"
-      ]
-    },
-    {
-      "id": "ask_ticket_price",
-      "category": "transport",
-      "english": "How much is the ticket?",
-      "nepali": "टिकट कति हो?",
-      "romanized": ["ticket kati ho", "bus ticket kati ho"]
+      "romanized": ["bus stop kata cha","bus stop kata xa","bus stop kaha chha","bus station kata cha","bus kaha cha","bus station kaha cha"]
     },
     {
       "id": "ask_distance",
       "category": "transport",
       "english": "How far is it?",
       "nepali": "कति टाढा छ?",
-      "romanized": ["kati tadha cha", "kati tada xa", "kati far cha"]
+      "romanized": ["kati tadha cha","kati tada xa","kati far cha","kati duri cha","distance kati cha","kati kilometer cha"]
     },
     {
       "id": "ask_time_required",
       "category": "transport",
       "english": "How long does it take?",
       "nepali": "कति समय लाग्छ?",
-      "romanized": [
-        "kati samaya lagcha",
-        "kati time lagcha",
-        "kati time lagxa"
-      ]
+      "romanized": ["kati samaya lagcha","kati time lagcha","kati time lagxa","kati ghanta lagcha","kati bela lagcha","kati der lagcha"]
+    },
+    {
+      "id": "stop_here",
+      "category": "transport",
+      "english": "Please stop here",
+      "nepali": "यहाँ रोकिदिनुस् कृपया",
+      "romanized": ["yaha rokidinus","yahan rokidinus","yaha roknus","yahan roknus","stop here","bus roka yaha","yahi rokidinus"]
+    },
+    {
+      "id": "ask_ticket_price",
+      "category": "transport",
+      "english": "How much is the ticket?",
+      "nepali": "टिकट कति हो?",
+      "romanized": ["ticket kati ho","bus ticket kati ho","ticket price kati","fare kati ho","kati paisa ticket ko","ticket kati parcha"]
+    },
+    {
+      "id": "go_to_pokhara",
+      "category": "transport",
+      "english": "I want to go to Pokhara",
+      "nepali": "म पोखरा जान चाहन्छु",
+      "romanized": ["pokhara jana chahanchhu","pokhara jaanu cha","pokhara jane bus","pokhara ko bus kata cha","pokhara pugna","pokhara kata cha"]
+    },
+    {
+      "id": "go_to_kathmandu",
+      "category": "transport",
+      "english": "I want to go to Kathmandu",
+      "nepali": "म काठमाडौं जान चाहन्छु",
+      "romanized": ["kathmandu jana chahanchhu","kathmandu jaanu cha","kathmandu jane bus","kathmandu ko bus kata cha","kathmandu pugna"]
     },
     {
       "id": "lost",
       "category": "transport",
       "english": "I am lost",
       "nepali": "म हराएँ",
-      "romanized": ["ma haraye", "ma harayen", "ma bato birse"],
-      "urgent": true
+      "romanized": ["ma haraye","ma harayen","ma bato birse","bato thaha chaina","ma hariyo","bato bhulye","malai bato thaha chaina"]
     },
+    {
+      "id": "show_map",
+      "category": "transport",
+      "english": "Can you show me on the map?",
+      "nepali": "नक्सामा देखाइदिनुस् न",
+      "romanized": ["naksama dekhaidinus","map ma dekhaidinus","naksama bataidinus","naksama dekhanu","map ma indicate garnus"]
+    },
+    {
+      "id": "taxi",
+      "category": "transport",
+      "english": "Where is the taxi?",
+      "nepali": "ट्याक्सी कहाँ छ?",
+      "romanized": ["taxi kata cha","taxi kaha cha","taxi paucha kaha","cab kata cha","taxi milcha kaha","taxi service cha kaha"]
+    },
+    {
+      "id": "hire_guide",
+      "category": "transport",
+      "english": "I want to hire a guide",
+      "nepali": "म गाइड राख्न चाहन्छु",
+      "romanized": ["guide chahiyo","malai guide chahiyo","guide rakna chahanchhu","guide hire garnu cha","local guide chahiyo","guide paucha kaha"]
+    },
+    {
+      "id": "bus_time",
+      "category": "transport",
+      "english": "What time is the next bus?",
+      "nepali": "अर्को बस कति बजे छ?",
+      "romanized": ["arko bus kati baje cha","next bus kati baje","bus schedule kati","bus kati baje aaucha","arko bus kati"]
+    },
+    {
+      "id": "share_jeep",
+      "category": "transport",
+      "english": "Is there a shared jeep?",
+      "nepali": "साझा जिप छ?",
+      "romanized": ["share jeep cha","sajha jeep cha","micro bus cha","shared vehicle cha","local transport cha"]
+    },
+
     {
       "id": "turn_left",
       "category": "directions",
       "english": "Turn left",
       "nepali": "बायाँ मोड्नुस्",
-      "romanized": ["baya modnus", "left janu"]
+      "romanized": ["baya modnus","left janu","baayan modnus","left tirfa janus","left ghumu"]
     },
     {
       "id": "turn_right",
       "category": "directions",
       "english": "Turn right",
       "nepali": "दायाँ मोड्नुस्",
-      "romanized": ["daya modnus", "right janu"]
+      "romanized": ["daya modnus","right janu","daayan modnus","right tirfa janus","right ghumu"]
     },
     {
       "id": "go_straight",
       "category": "directions",
       "english": "Go straight",
       "nepali": "सिधा जानुस्",
-      "romanized": ["sidha janus", "sida janu"]
+      "romanized": ["sidha janus","sida janu","seedha janus","straight janus","sidha janu","agadi janus"]
     },
+    {
+      "id": "near",
+      "category": "directions",
+      "english": "Is it near?",
+      "nepali": "नजिक छ?",
+      "romanized": ["najik cha","najik xa","najikai cha","close cha","najikmaa cha","paas cha"]
+    },
+    {
+      "id": "far",
+      "category": "directions",
+      "english": "It is far",
+      "nepali": "टाढा छ",
+      "romanized": ["tadha cha","tada cha","dherai tadha cha","dherai tar cha","far cha","bahut tadha cha"]
+    },
+    {
+      "id": "here",
+      "category": "directions",
+      "english": "Here / Right here",
+      "nepali": "यहाँ",
+      "romanized": ["yaha","yahan","yahee","this place","yo thaun"]
+    },
+    {
+      "id": "there",
+      "category": "directions",
+      "english": "Over there",
+      "nepali": "त्यहाँ",
+      "romanized": ["tyaha","tyahan","that thaun","tyo thaun"]
+    },
+    {
+      "id": "north",
+      "category": "directions",
+      "english": "North",
+      "nepali": "उत्तर",
+      "romanized": ["uttar","north","uttardisakf"]
+    },
+    {
+      "id": "south",
+      "category": "directions",
+      "english": "South",
+      "nepali": "दक्षिण",
+      "romanized": ["dakchin","south","dakshin"]
+    },
+    {
+      "id": "east",
+      "category": "directions",
+      "english": "East",
+      "nepali": "पूर्व",
+      "romanized": ["purba","east","purwa"]
+    },
+    {
+      "id": "west",
+      "category": "directions",
+      "english": "West",
+      "nepali": "पश्चिम",
+      "romanized": ["pashchim","west","pachim"]
+    },
+    {
+      "id": "uphill",
+      "category": "directions",
+      "english": "Go uphill",
+      "nepali": "माथि जानुस्",
+      "romanized": ["mathi janus","mathi tira janus","ukaalo janus","up janus"]
+    },
+    {
+      "id": "downhill",
+      "category": "directions",
+      "english": "Go downhill",
+      "nepali": "तल जानुस्",
+      "romanized": ["tala janus","tala tira janus","orralo janus","down janus"]
+    },
+
+    {
+      "id": "ask_trail",
+      "category": "trekking",
+      "english": "Where is the trail?",
+      "nepali": "ट्रेल कहाँ छ?",
+      "romanized": ["trail kata cha","trek kata cha","bato kata cha","trekking bato kata cha","hiking path kata cha","trail kaha cha"]
+    },
+    {
+      "id": "trail_difficult",
+      "category": "trekking",
+      "english": "Is the trail difficult?",
+      "nepali": "बाटो गाह्रो छ?",
+      "romanized": ["trail garo cha","bato garo cha","trek garo cha","trail kathin cha","bato sajilo cha","trail easy cha"]
+    },
+    {
+      "id": "i_am_tired",
+      "category": "trekking",
+      "english": "I am tired",
+      "nepali": "म थाकेँ",
+      "romanized": ["ma thake","ma thakye","ma thakai cha","thakyo","malai thakayo","ma dherai thake"]
+    },
+    {
+      "id": "rest_here",
+      "category": "trekking",
+      "english": "Can we rest here?",
+      "nepali": "यहाँ आराम गर्न मिल्छ?",
+      "romanized": ["yaha aram garnu milcha","yaha basnu milcha","yaha basa sakcha","rest garnu milcha","aram garnu cha yaha"]
+    },
+    {
+      "id": "hours_to_top",
+      "category": "trekking",
+      "english": "How many hours to the top?",
+      "nepali": "शिखरमा पुग्न कति घण्टा लाग्छ?",
+      "romanized": ["top pugna kati ghanta lagcha","summit kati ghanta lagcha","mathi pugna kati time","shikharmaa pugna kati ghanta","top kati dur cha"]
+    },
+    {
+      "id": "trail_safe",
+      "category": "trekking",
+      "english": "Is the path safe?",
+      "nepali": "बाटो सुरक्षित छ?",
+      "romanized": ["bato surakshit cha","trail safe cha","bato theek cha","trail dangerous cha","bato ko avastha kasto cha"]
+    },
+    {
+      "id": "need_guide",
+      "category": "trekking",
+      "english": "I need a guide",
+      "nepali": "मलाई गाइड चाहियो",
+      "romanized": ["guide chahiyo","malai guide chahiyo","guide hire garnu cha","local guide","trek guide chahiyo"]
+    },
+    {
+      "id": "need_porter",
+      "category": "trekking",
+      "english": "I need a porter",
+      "nepali": "मलाई भरिया चाहियो",
+      "romanized": ["porter chahiyo","bhariya chahiyo","malai porter chahiyo","luggage porter chahiyo","cargo bearer chahiyo"]
+    },
+    {
+      "id": "fill_water",
+      "category": "trekking",
+      "english": "Where can I fill water?",
+      "nepali": "पानी कहाँ भर्न पाइन्छ?",
+      "romanized": ["pani bharna kaha paincha","pani refill kata paincha","pani bharna kaha","khane pani kata paincha","drinking water kaha paucha"]
+    },
+    {
+      "id": "altitude_sickness",
+      "category": "trekking",
+      "english": "I have altitude sickness",
+      "nepali": "मलाई उचाइको रोग भयो",
+      "romanized": ["malai altitude sickness cha","uchai ko rog bhayo","malai uchaimaa biramiparna","altitude bimari","pahad ma unko rog"]
+    },
+    {
+      "id": "nearest_village",
+      "category": "trekking",
+      "english": "Where is the nearest village?",
+      "nepali": "नजिकको गाउँ कहाँ छ?",
+      "romanized": ["najik ko gaun kata cha","najiko gaun kata cha","nearest village kaha cha","najik gaun kaha xa","gaon kata cha"]
+    },
+    {
+      "id": "camp_here",
+      "category": "trekking",
+      "english": "Can I camp here?",
+      "nepali": "यहाँ क्याम्प गर्न मिल्छ?",
+      "romanized": ["yaha camp garnu milcha","camping milcha yaha","tent lagaunu milcha yaha","camping site cha kaha"]
+    },
+    {
+      "id": "beautiful_view",
+      "category": "trekking",
+      "english": "Beautiful view!",
+      "nepali": "सुन्दर दृश्य!",
+      "romanized": ["sundar drishy","sundar view","ramro view cha","dherai ramro view","adbhut drishy","beautiful cha"]
+    },
+    {
+      "id": "trail_length",
+      "category": "trekking",
+      "english": "How long is the trail?",
+      "nepali": "बाटो कति लामो छ?",
+      "romanized": ["bato kati lamo cha","trail kati lamo cha","trek kati km cha","trail length kati","bato ko distance kati cha"]
+    },
+
     {
       "id": "emergency_help",
       "category": "emergency",
       "english": "Help!",
       "nepali": "मद्दत गर्नुस्!",
-      "romanized": [
-        "help",
-        "help chaiyo",
-        "madat garnus",
-        "maddat garnus"
-      ],
+      "romanized": ["help","help chaiyo","madat garnus","maddat garnus","bachaunus","bachau","help me","madat","bachau malaai"],
       "urgent": true
     },
     {
@@ -230,7 +657,7 @@
       "category": "emergency",
       "english": "I need a doctor",
       "nepali": "मलाई डाक्टर चाहियो",
-      "romanized": ["doctor chaiyo", "malai doctor chaiyo"],
+      "romanized": ["doctor chaiyo","malai doctor chaiyo","doctor chahiyo","doctor bolaunus","hospital janu cha","malai doctor"], 
       "urgent": true
     },
     {
@@ -238,7 +665,39 @@
       "category": "emergency",
       "english": "Call the police",
       "nepali": "प्रहरीलाई बोलाउनुस्",
-      "romanized": ["police bolau", "police bolai dinus"],
+      "romanized": ["police bolau","police bolai dinus","prahari bolaunus","police call garnus","police help","prahari chahiyo"],
+      "urgent": true
+    },
+    {
+      "id": "i_am_sick",
+      "category": "emergency",
+      "english": "I am sick",
+      "nepali": "म बिरामी छु",
+      "romanized": ["ma birami chu","malai birami cha","ma biramipare","malai theek chaina","unwell cha","ma biraami cha"],
+      "urgent": true
+    },
+    {
+      "id": "i_am_injured",
+      "category": "emergency",
+      "english": "I am injured",
+      "nepali": "म घाइते भएँ",
+      "romanized": ["ma ghaite baye","malai chot lagyo","malai chot bhayo","malai ghau bhayo","injured cha","accident bhayo"],
+      "urgent": true
+    },
+    {
+      "id": "hospital",
+      "category": "emergency",
+      "english": "Where is the hospital?",
+      "nepali": "अस्पताल कहाँ छ?",
+      "romanized": ["aspatal kata cha","hospital kata cha","hospital kaha cha","clinic kata cha","ausadhi pasal kata cha","health post kata cha"],
+      "urgent": true
+    },
+    {
+      "id": "lost_passport",
+      "category": "emergency",
+      "english": "I lost my passport",
+      "nepali": "मेरो राहदानी हरायो",
+      "romanized": ["mero passport harayo","passport harayo","mero rahadaani harayo","passport chhorai gayo","document harayo"],
       "urgent": true
     },
     {
@@ -246,75 +705,253 @@
       "category": "emergency",
       "english": "I need medicine",
       "nepali": "मलाई औषधि चाहियो",
-      "romanized": ["medicine chaiyo", "malai ausadhi chaiyo"],
+      "romanized": ["medicine chahiyo","ausadhi chahiyo","malai ausadhi chahiyo","medicine chaiyo","dawai chahiyo","tablet chahiyo"],
       "urgent": true
     },
     {
-      "id": "ask_trail_location",
-      "category": "trekking",
-      "english": "Where is the trail?",
-      "nepali": "ट्रेल कहाँ छ?",
-      "romanized": ["trail kata cha", "trek kata cha", "bato kata cha"]
+      "id": "ambulance",
+      "category": "emergency",
+      "english": "Call an ambulance",
+      "nepali": "एम्बुलेन्स बोलाउनुस्",
+      "romanized": ["ambulance bolaunus","ambulance call garnus","ambulance chahiyo","emergency ambulance","ambulance paucha kaha"],
+      "urgent": true
     },
     {
-      "id": "ask_trail_difficulty",
-      "category": "trekking",
-      "english": "Is the trail difficult?",
-      "nepali": "बाटो गाह्रो छ?",
-      "romanized": ["trail garo cha", "bato garo cha"]
+      "id": "fire",
+      "category": "emergency",
+      "english": "Fire!",
+      "nepali": "आगो लाग्यो!",
+      "romanized": ["aago lagyo","fire lagyo","aago lagi","aago","fire cha","aago please"],
+      "urgent": true
     },
     {
-      "id": "need_guide",
-      "category": "trekking",
-      "english": "I need a guide",
-      "nepali": "मलाई गाइड चाहियो",
-      "romanized": ["guide chaiyo", "malai guide chaiyo"]
+      "id": "robbery",
+      "category": "emergency",
+      "english": "I have been robbed",
+      "nepali": "मलाई लुटियो",
+      "romanized": ["malai lutiy","malai lutyo","ma lootiye","chor le lutyo","stolen cha","malai lut garyo"],
+      "urgent": true
     },
     {
-      "id": "need_porter",
-      "category": "trekking",
-      "english": "I need a porter",
-      "nepali": "मलाई भरिया चाहियो",
-      "romanized": ["porter chaiyo", "bhariya chaiyo"]
+      "id": "allergy",
+      "category": "emergency",
+      "english": "I am allergic",
+      "nepali": "मलाई एलर्जी छ",
+      "romanized": ["malai allergy cha","malai allergi cha","allergy cha","reaction aaucha","malai reaction aaucha"],
+      "urgent": true
     },
+    {
+      "id": "headache",
+      "category": "emergency",
+      "english": "I have a headache",
+      "nepali": "मलाई टाउको दुखेको छ",
+      "romanized": ["malai tauko dukheko cha","tauko dukhyo","headache cha","malai headache cha","tauko bhari cha"]
+    },
+    {
+      "id": "stomach_pain",
+      "category": "emergency",
+      "english": "I have stomach pain",
+      "nepali": "मलाई पेट दुखेको छ",
+      "romanized": ["malai pet dukheko cha","pet dukhyo","stomach pain cha","malai stomach pain","pet dukh cha"]
+    },
+    {
+      "id": "diarrhea",
+      "category": "emergency",
+      "english": "I have diarrhea",
+      "nepali": "मलाई पखाला छ",
+      "romanized": ["malai pakhala cha","pakhala lagyo","loose motion cha","malai loose motion cha","diarrhea cha"]
+    },
+
     {
       "id": "ask_price",
       "category": "shopping",
       "english": "How much does this cost?",
       "nepali": "यो कति पर्छ?",
-      "romanized": ["yo kati parcha", "yo kati ho", "kati paisa"]
+      "romanized": ["yo kati parcha","yo kati ho","kati paisa","kati parne","kati ko cha","yo kati hola","price kati ho","rate kati ho"]
     },
     {
-      "id": "ask_discount",
+      "id": "too_expensive",
+      "category": "shopping",
+      "english": "That is too expensive",
+      "nepali": "त्यो धेरै महँगो छ",
+      "romanized": ["dherai mahango cha","bahut mahango cha","too expensive cha","mahango cha","sasto dinus","yo dherai mahango","very expensive"]
+    },
+    {
+      "id": "discount",
       "category": "shopping",
       "english": "Can you give a discount?",
       "nepali": "छुट दिन हुन्छ?",
-      "romanized": ["discount dinus", "chut dinus", "ali sasto huncha"]
+      "romanized": ["discount dinus","chut dinus","ali sasto huncha","thoda sasto garnus","discount milcha","paisa kam garnu huncha","negotiate garnu milcha"]
     },
     {
-      "id": "market_location",
+      "id": "i_will_take_this",
+      "category": "shopping",
+      "english": "I will take this",
+      "nepali": "म यो लिन्छु",
+      "romanized": ["ma yo linchhu","yo linu cha","yo kinaunu cha","yo chahiyo","yo purchase garnu cha","yo nai linchhau"]
+    },
+    {
+      "id": "market",
       "category": "shopping",
       "english": "Where is the market?",
       "nepali": "बजार कहाँ छ?",
-      "romanized": ["bazar kata cha", "market kata cha"]
+      "romanized": ["bazar kata cha","market kata cha","bazaar kaha cha","pasal kata cha","shopping area kata cha"]
     },
     {
-      "id": "ask_photo_permission",
+      "id": "just_looking",
+      "category": "shopping",
+      "english": "I am just looking",
+      "nepali": "म हेर्दैछु मात्र",
+      "romanized": ["ma herdaichu","ma hernu matra","just hernu cha","casually hernu cha","browse garnu cha"]
+    },
+    {
+      "id": "smaller_size",
+      "category": "shopping",
+      "english": "Do you have a smaller size?",
+      "nepali": "साना साइज छ?",
+      "romanized": ["saano size cha","small size cha","sano size xa","choto cha","choto size milcha"]
+    },
+    {
+      "id": "bigger_size",
+      "category": "shopping",
+      "english": "Do you have a bigger size?",
+      "nepali": "ठूलो साइज छ?",
+      "romanized": ["thulo size cha","large size cha","thulo size xa","large cha","thulo milcha"]
+    },
+    {
+      "id": "atm",
+      "category": "shopping",
+      "english": "Where is an ATM?",
+      "nepali": "ATM कहाँ छ?",
+      "romanized": ["atm kata cha","atm kaha cha","bank kata cha","paise nikaalne machine kata","cash machine kata cha"]
+    },
+
+    {
+      "id": "photo_permission",
       "category": "culture",
       "english": "Can I take a photo?",
       "nepali": "फोटो खिच्न पाउँछु?",
-      "romanized": [
-        "photo khichna pauchu",
-        "foto khichna pauchu",
-        "photo lina milcha"
-      ]
+      "romanized": ["photo khichna pauchu","foto khichna pauchu","photo lina milcha","photo khichna milcha","picture lina pauchu","selfie lina milcha"]
     },
     {
-      "id": "ask_temple_entry",
+      "id": "is_this_temple",
+      "category": "culture",
+      "english": "Is this a temple?",
+      "nepali": "यो मन्दिर हो?",
+      "romanized": ["yo mandir ho","yo temple ho","yo mandir xa","yo puja garne thaun ho","yo dharmic thaun ho"]
+    },
+    {
+      "id": "what_festival",
+      "category": "culture",
+      "english": "What festival is this?",
+      "nepali": "यो कुन चाड हो?",
+      "romanized": ["yo kun chaad ho","yo ko festival ho","yo kun parba ho","yo kun tyohar ho","festival ko naam ke ho"]
+    },
+    {
+      "id": "may_i_enter",
       "category": "culture",
       "english": "May I enter?",
       "nepali": "भित्र जान पाउँछु?",
-      "romanized": ["bhitra jana pauchu", "mandir bhitra jana pauchu"]
+      "romanized": ["bhitra jana pauchu","mandir bhitra jana pauchu","andar auna milcha","bhitra pugna milcha","enter garnu milcha"]
+    },
+    {
+      "id": "remove_shoes",
+      "category": "culture",
+      "english": "Please remove shoes",
+      "nepali": "जुत्ता फुकाल्नुस् कृपया",
+      "romanized": ["jutta fukaaalnus","shoes khol","jutta khol","chappal fukaaalnus","shoes remove garnus"]
+    },
+    {
+      "id": "this_is_beautiful",
+      "category": "culture",
+      "english": "This is beautiful",
+      "nepali": "यो सुन्दर छ",
+      "romanized": ["yo sundar cha","yo ramro cha","yo dherai ramro","beautiful cha","yo adbhut cha","ramro cha yaha"]
+    },
+    {
+      "id": "what_is_called",
+      "category": "culture",
+      "english": "What is this called?",
+      "nepali": "यसलाई के भनिन्छ?",
+      "romanized": ["yeslai ke bhanincha","yo ko naam ke ho","yo ke ho","yo ko name ke cha","yo ke bhancha"]
+    },
+    {
+      "id": "learn_culture",
+      "category": "culture",
+      "english": "I want to learn about your culture",
+      "nepali": "म तपाईंको संस्कृति जान्न चाहन्छु",
+      "romanized": ["tapai ko sanskriti jannu chahanchhu","culture siknu cha","local culture bujhnu cha","yahan ko parampara jannu cha"]
+    },
+
+    {
+      "id": "one",
+      "category": "numbers",
+      "english": "One",
+      "nepali": "एक",
+      "romanized": ["ek","1","one"]
+    },
+    {
+      "id": "two",
+      "category": "numbers",
+      "english": "Two",
+      "nepali": "दुई",
+      "romanized": ["dui","2","two"]
+    },
+    {
+      "id": "three",
+      "category": "numbers",
+      "english": "Three",
+      "nepali": "तीन",
+      "romanized": ["teen","3","tin","three"]
+    },
+    {
+      "id": "four",
+      "category": "numbers",
+      "english": "Four",
+      "nepali": "चार",
+      "romanized": ["char","4","four"]
+    },
+    {
+      "id": "five",
+      "category": "numbers",
+      "english": "Five",
+      "nepali": "पाँच",
+      "romanized": ["paanch","5","panch","five"]
+    },
+    {
+      "id": "ten",
+      "category": "numbers",
+      "english": "Ten",
+      "nepali": "दस",
+      "romanized": ["das","10","ten"]
+    },
+    {
+      "id": "twenty",
+      "category": "numbers",
+      "english": "Twenty",
+      "nepali": "बीस",
+      "romanized": ["bees","20","twenty","bis"]
+    },
+    {
+      "id": "fifty",
+      "category": "numbers",
+      "english": "Fifty",
+      "nepali": "पचास",
+      "romanized": ["pachaas","50","fifty","pachis"]
+    },
+    {
+      "id": "hundred",
+      "category": "numbers",
+      "english": "One hundred",
+      "nepali": "एक सय",
+      "romanized": ["ek saya","100","hundred","ek say","saya"]
+    },
+    {
+      "id": "thousand",
+      "category": "numbers",
+      "english": "One thousand",
+      "nepali": "एक हजार",
+      "romanized": ["ek hajar","1000","thousand","hajar"]
     }
   ]
 }

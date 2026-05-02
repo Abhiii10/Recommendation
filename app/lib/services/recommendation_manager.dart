@@ -169,7 +169,7 @@ class RecommendationManager {
     String season,
     String vibe,
   ) {
-    final raw = 'ai_cache_${activity}_${budget}_${season}_${vibe}';
+    final raw = 'ai_cache_${activity}_${budget}_${season}_$vibe';
     return raw.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_');
   }
 

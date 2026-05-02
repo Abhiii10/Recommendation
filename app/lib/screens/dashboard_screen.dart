@@ -6,7 +6,6 @@ import '../models/destination.dart';
 import '../services/local_data_service.dart';
 import '../services/offline_storage.dart';
 import '../services/recommender_service.dart';
-import '../theme/app_theme.dart';
 import 'chatbot_screen.dart';
 import 'home_tab.dart' as home;
 import 'map_screen.dart';

@@ -8,8 +8,6 @@ import '../models/destination.dart';
 import '../services/chatbot_service.dart';
 import '../services/llm_chat_api_service.dart';
 import '../services/translation_service.dart';
-import '../translation/roman_nepali_normalizer.dart';
-import '../translation/translation_intent_model.dart';
 class ChatbotScreen extends StatefulWidget {
   final List<Destination> destinations;
 

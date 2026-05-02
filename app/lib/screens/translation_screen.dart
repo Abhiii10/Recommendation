@@ -6,7 +6,6 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../services/translation_service.dart';
 import '../translation/roman_nepali_normalizer.dart';
 import '../translation/translation_intent_model.dart';
-import '../translation/translation_models.dart';
 
 class TranslationScreen extends StatefulWidget {
   const TranslationScreen({super.key});

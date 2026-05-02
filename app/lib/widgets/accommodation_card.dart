@@ -48,7 +48,7 @@ class AccommodationCard extends StatelessWidget {
                       accommodation.priceRange!,
                       style: TextStyle(color: budgetColor),
                     ),
-                    backgroundColor: budgetColor.withOpacity(0.12),
+                    backgroundColor: budgetColor.withValues(alpha: 0.12),
                   ),
               ],
             ),

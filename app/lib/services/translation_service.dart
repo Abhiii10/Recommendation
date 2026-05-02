@@ -163,7 +163,6 @@ class TranslationService {
 
       if (entry.english.toLowerCase().trim() == inputLower) return 1.0;
       if (englishNorm == inputNorm) return 0.98;
-      if (inputTokens.length <= 1) return 0.0;
 
       final englishTokens = RomanNepaliNormalizer.tokenize(englishNorm).toSet();
 
@@ -188,8 +187,6 @@ class TranslationService {
 
       if (aliasNorm == inputNorm) return 0.98;
     }
-
-    if (inputTokens.length <= 1) return 0.0;
 
     var best = 0.0;
 

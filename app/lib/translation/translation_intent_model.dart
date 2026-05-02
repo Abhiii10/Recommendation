@@ -90,7 +90,9 @@ class TranslationIntentModel {
 
     final inputTokens = _tokenize(normalizedInput);
 
-    if (inputTokens.length <= 1) return null;
+    // Allow single-token fuzzy matching so words like "hungry", "water",
+    // "help" can still be scored against intent patterns.
+    if (inputTokens.isEmpty) return null;
 
     final inputVector = _vectorize(inputTokens);
 

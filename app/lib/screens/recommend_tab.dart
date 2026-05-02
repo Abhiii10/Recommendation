@@ -141,14 +141,14 @@ class _RecommendTabState extends State<RecommendTab>
   List<String> _badges(UnifiedRecommendationResult r, int idx) {
     final b = <String>[];
     final c = r.components;
-    if (idx == 0 || r.score >= 0.82)     b.add('Best Match');
-    if (c.budgetMatch >= 0.9)            b.add('Budget Friendly');
-    if (c.seasonMatch >= 0.9)            b.add('Seasonal Pick');
-    if (c.familyFit >= 0.9 && r.destination.familyFriendly == true)
-                                         b.add('Family Friendly');
-    if (c.accommodationFit >= 0.75)      b.add('Has Accommodation');
-    if (c.semantic >= 0.7 && c.collaborative < 0.1)
-                                         b.add('Hidden Gem');
+    if (idx == 0 || r.score >= 0.82) { b.add('Best Match'); }
+    if (c.budgetMatch >= 0.9) { b.add('Budget Friendly'); }
+    if (c.seasonMatch >= 0.9) { b.add('Seasonal Pick'); }
+    if (c.familyFit >= 0.9 && r.destination.familyFriendly == true) {
+      b.add('Family Friendly');
+    }
+    if (c.accommodationFit >= 0.75) { b.add('Has Accommodation'); }
+    if (c.semantic >= 0.7 && c.collaborative < 0.1) { b.add('Hidden Gem'); }
     return b.take(4).toList();
   }
 
@@ -447,8 +447,6 @@ class _RecommendTabState extends State<RecommendTab>
 
   Widget _buildResultCard(UnifiedRecommendationResult result, int idx) {
     final saved = widget.isSaved(result.destination);
-    final cs    = Theme.of(context).colorScheme;
-    final color = _actColor();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),

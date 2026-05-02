@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m compileall backend)",
+      "Bash(flutter analyze)"
+    ]
+  }
+}

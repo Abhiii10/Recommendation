@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     destinations_file:    Path = data_dir / "destinations.json"
     accommodations_file:  Path = data_dir / "accommodations.json"
     interactions_file:    Path = data_dir / "interactions.json"
+    app_db_file:          Path = data_dir / "app.sqlite3"
+    interaction_storage_backend: str = "sqlite"
 
     # ── ML ranker settings ────────────────────────────────────────────────────
     # users_file stores synthetic users generated for ML training

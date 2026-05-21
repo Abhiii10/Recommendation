@@ -1,11 +1,13 @@
 from backend.domain.entities.interaction import Interaction
-from backend.infrastructure.repositories.json_interaction_repository import JsonInteractionRepository
+from backend.infrastructure.repositories.interaction_repository_factory import (
+    build_interaction_repository,
+)
 from backend.application.dto.requests import InteractionRequestDto
 
 
 class InteractionLoggingService:
     def __init__(self):
-        self._repo = JsonInteractionRepository()
+        self._repo = build_interaction_repository()
 
     def log(self, request: InteractionRequestDto) -> None:
         self._repo.add(Interaction(

@@ -21,7 +21,9 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 
 from backend.core.config import settings
 from backend.infrastructure.repositories.json_destination_repository import JsonDestinationRepository
-from backend.infrastructure.repositories.json_interaction_repository import JsonInteractionRepository
+from backend.infrastructure.repositories.interaction_repository_factory import (
+    build_interaction_repository,
+)
 from backend.infrastructure.repositories.json_user_repository import JsonUserRepository
 from backend.infrastructure.ml.feature_builder import build_ranking_features
 
@@ -114,7 +116,7 @@ class RankingModel:
         """
 
         user_repo = JsonUserRepository()
-        interaction_repo = JsonInteractionRepository()
+        interaction_repo = build_interaction_repository()
         dest_repo = JsonDestinationRepository()
 
         users = {user.id: user for user in user_repo.get_all()}

@@ -24,7 +24,7 @@ class SavedTab extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: AppTheme.snowWhite,
+      backgroundColor: cs.surface,
       appBar: AppBar(
         title: Row(
           children: [
@@ -83,7 +83,7 @@ class SavedTab extends StatelessWidget {
                       DestinationCard(
                         destination: destination,
                         reasons: const ['Saved to your shortlist'],
-                        scoreLabel: '♥',
+                        scoreLabel: 'Saved',
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(

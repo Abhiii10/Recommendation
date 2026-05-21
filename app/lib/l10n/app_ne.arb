@@ -1,0 +1,14 @@
+{
+  "@@locale": "ne",
+  "appTitle": "गण्डकी पर्यटन गाइड",
+  "homeTitle": "ग्रामीण नेपाल खोज्नुहोस्",
+  "homeSubtitle": "लुकेका गाउँहरू · पवित्र पदमार्गहरू · मौलिक संस्कृति",
+  "recommendationsTitle": "सिफारिसहरू",
+  "mapTitle": "गन्तव्य नक्सा",
+  "savedTitle": "सुरक्षित स्थानहरू",
+  "translationTitle": "पर्यटन अनुवादक",
+  "chatTitle": "पर्यटन सहायक",
+  "offlineMap": "अफलाइन नक्सा",
+  "onlineMap": "अनलाइन नक्सा",
+  "preparingMap": "नक्सा तयार हुँदै"
+}

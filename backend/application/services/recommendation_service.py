@@ -31,8 +31,8 @@ from backend.infrastructure.repositories.json_accommodation_repository import (
 from backend.infrastructure.repositories.json_destination_repository import (
     JsonDestinationRepository,
 )
-from backend.infrastructure.repositories.json_interaction_repository import (
-    JsonInteractionRepository,
+from backend.infrastructure.repositories.interaction_repository_factory import (
+    build_interaction_repository,
 )
 
 
@@ -56,7 +56,7 @@ class RecommendationService:
         destination_repo = JsonDestinationRepository()
         accommodation_repo = JsonAccommodationRepository()
 
-        self._interaction_repo = JsonInteractionRepository()
+        self._interaction_repo = build_interaction_repository()
 
         self._destinations = destination_repo.get_all()
         self._accommodations = accommodation_repo.get_all()

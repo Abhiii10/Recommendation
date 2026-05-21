@@ -310,9 +310,38 @@ class ChatbotService {
           max(scores['recommendation_help'] ?? 0.0, 0.62);
     }
 
+    if (_containsAny(input, const [
+      'best time',
+      'season',
+      'weather',
+      'when',
+      'month',
+      'spring',
+      'autumn',
+      'winter',
+      'monsoon',
+      'rainy',
+      'visit during',
+    ])) {
+      scores['best_time_to_visit'] =
+          max(scores['best_time_to_visit'] ?? 0.0, 0.64);
+    }
+
+    if (_containsAny(input, const [
+      'stay',
+      'homestay',
+      'homestays',
+      'hotel',
+      'room',
+      'sleep',
+      'accommodation',
+      'lodging',
+    ])) {
+      scores['homestay'] = max(scores['homestay'] ?? 0.0, 0.63);
+    }
+
     if (destination != null) {
-      scores['destination_info'] =
-          max(scores['destination_info'] ?? 0.0, 0.50);
+      scores['destination_info'] = max(scores['destination_info'] ?? 0.0, 0.50);
 
       if (_containsAny(input, const [
         'best time',
@@ -364,6 +393,8 @@ class ChatbotService {
       ])) {
         scores['budget'] = max(scores['budget'] ?? 0.0, 0.60);
       }
+    } else if (scores.containsKey('destination_info')) {
+      scores['destination_info'] = min(scores['destination_info'] ?? 0.0, 0.45);
     }
 
     final sorted = scores.entries.toList()
@@ -402,7 +433,8 @@ class ChatbotService {
       if (termTokens.isEmpty) continue;
 
       if (_containsPhrase(input, normalizedTerm)) {
-        rawScore += termTokens.length > 1 ? 3.0 + termTokens.length * 0.25 : 1.2;
+        rawScore +=
+            termTokens.length > 1 ? 3.0 + termTokens.length * 0.25 : 1.2;
         continue;
       }
 
@@ -622,7 +654,8 @@ class ChatbotService {
     }
 
     buffer.writeln('💰 Budget level: ${destination.budgetLevel ?? "medium"}');
-    buffer.writeln('🚶 Accessibility: ${destination.accessibility ?? "moderate"}');
+    buffer.writeln(
+        '🚶 Accessibility: ${destination.accessibility ?? "moderate"}');
 
     if (destination.familyFriendly != null) {
       buffer.writeln(
@@ -719,7 +752,8 @@ class ChatbotService {
   }
 
   String _destinationTrekkingAnswer(Destination destination) {
-    final activities = destination.activities.map((e) => e.toLowerCase()).toList();
+    final activities =
+        destination.activities.map((e) => e.toLowerCase()).toList();
     final hasTrekking = activities.any(
       (activity) => activity.contains('trek') || activity.contains('hike'),
     );
@@ -870,7 +904,8 @@ class ChatbotService {
     buffer.writeln();
 
     for (final destination in topDestinations) {
-      buffer.writeln('📍 ${destination.name} — ${destination.shortDescription}');
+      buffer
+          .writeln('📍 ${destination.name} — ${destination.shortDescription}');
     }
 
     buffer.writeln();
@@ -964,15 +999,18 @@ class ChatbotService {
       return 'spring';
     }
 
-    if (_containsAny(input, const ['autumn', 'fall', 'september', 'october', 'november'])) {
+    if (_containsAny(
+        input, const ['autumn', 'fall', 'september', 'october', 'november'])) {
       return 'autumn';
     }
 
-    if (_containsAny(input, const ['monsoon', 'rainy', 'rain', 'june', 'july', 'august'])) {
+    if (_containsAny(
+        input, const ['monsoon', 'rainy', 'rain', 'june', 'july', 'august'])) {
       return 'monsoon';
     }
 
-    if (_containsAny(input, const ['winter', 'december', 'january', 'february', 'cold'])) {
+    if (_containsAny(
+        input, const ['winter', 'december', 'january', 'february', 'cold'])) {
       return 'winter';
     }
 
@@ -984,19 +1022,23 @@ class ChatbotService {
   }
 
   String? _extractActivity(String input) {
-    if (_containsAny(input, const ['trek', 'trekking', 'hike', 'hiking', 'trail'])) {
+    if (_containsAny(
+        input, const ['trek', 'trekking', 'hike', 'hiking', 'trail'])) {
       return 'trekking';
     }
 
-    if (_containsAny(input, const ['culture', 'cultural', 'temple', 'monastery', 'tradition'])) {
+    if (_containsAny(input,
+        const ['culture', 'cultural', 'temple', 'monastery', 'tradition'])) {
       return 'culture';
     }
 
-    if (_containsAny(input, const ['relax', 'relaxation', 'peace', 'peaceful', 'quiet'])) {
+    if (_containsAny(
+        input, const ['relax', 'relaxation', 'peace', 'peaceful', 'quiet'])) {
       return 'relaxation';
     }
 
-    if (_containsAny(input, const ['photo', 'photography', 'view', 'sunrise', 'scenic'])) {
+    if (_containsAny(
+        input, const ['photo', 'photography', 'view', 'sunrise', 'scenic'])) {
       return 'photography';
     }
 
@@ -1065,6 +1107,7 @@ class ChatbotService {
   bool _isSafetyQuestion(String input) {
     return _containsAny(input, const [
       'is it safe',
+      'safe',
       'safe to',
       'safety',
       'danger',
@@ -1076,7 +1119,6 @@ class ChatbotService {
       'woman traveller',
       'landslide',
       'altitude sickness',
-      'during monsoon',
     ]);
   }
 
@@ -1257,7 +1299,8 @@ class ChatbotService {
   }
 
   String _seasonMatchNote(String askedSeason, List<String> bestSeasons) {
-    final normalizedBest = bestSeasons.map((season) => season.toLowerCase()).toList();
+    final normalizedBest =
+        bestSeasons.map((season) => season.toLowerCase()).toList();
 
     if (normalizedBest.contains(askedSeason.toLowerCase())) {
       return '✅ $askedSeason is listed as one of the best seasons for this destination.';

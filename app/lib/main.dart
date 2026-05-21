@@ -1,8 +1,15 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/observability/app_telemetry.dart';
 import 'data/datasources/user_profile_local_datasource.dart';
+import 'data/repositories/shared_preferences_user_profile_repository.dart';
 import 'data/repositories/user_profile_repository_impl.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/dashboard_screen.dart';
 import 'services/local_data_service.dart';
 import 'services/user_profile_service.dart';
@@ -11,22 +18,58 @@ import 'theme/app_theme.dart';
 late final UserProfileService userProfileService;
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  await runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (_) {}
+      try {
+        await dotenv.load(fileName: '.env');
+      } catch (_) {}
 
-  await LocalDataService.instance.init();
+      await AppTelemetry.instance.initialize();
 
-  final db = LocalDataService.instance.database;
-  final datasource = UserProfileLocalDatasource(db);
-  final repo = UserProfileRepositoryImpl(datasource);
-  userProfileService = UserProfileService(repo);
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+        unawaited(
+          AppTelemetry.instance.captureException(
+            details.exception,
+            details.stack ?? StackTrace.current,
+            context: {'library': details.library},
+          ),
+        );
+      };
 
-  await userProfileService.initOnLaunch();
+      if (kIsWeb) {
+        userProfileService = UserProfileService(
+          const SharedPreferencesUserProfileRepository(),
+        );
+      } else {
+        await LocalDataService.instance.init();
 
-  runApp(const RuralTourismApp());
+        final db = LocalDataService.instance.database;
+        final datasource = UserProfileLocalDatasource(db);
+        final repo = UserProfileRepositoryImpl(datasource);
+        userProfileService = UserProfileService(repo);
+      }
+
+      await userProfileService.initOnLaunch();
+
+      runApp(
+        const ProviderScope(
+          child: RuralTourismApp(),
+        ),
+      );
+    },
+    (error, stackTrace) {
+      unawaited(
+        AppTelemetry.instance.captureException(
+          error,
+          stackTrace,
+          context: {'source': 'runZonedGuarded'},
+        ),
+      );
+    },
+  );
 }
 
 class RuralTourismApp extends StatelessWidget {
@@ -35,9 +78,13 @@ class RuralTourismApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gandaki Tourism Guide',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const DashboardScreen(),
     );
   }

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/utils/backend_config.dart';
@@ -8,11 +6,11 @@ import '../models/api_recommendation_item.dart';
 import '../models/destination.dart';
 import '../models/unified_recommendation.dart';
 import '../models/user_preferences.dart';
+import 'local_data_service.dart';
 import 'recommendation_api_service.dart';
 import 'recommender_service.dart';
 
 const Duration _cacheTtl = Duration(hours: 24);
-const String _cacheTimestampSuffix = '_ts';
 
 class RecommendationManager {
   final RecommendationApiService _apiService;
@@ -56,7 +54,15 @@ class RecommendationManager {
     String? userId,
   }) async {
     final effectiveUserId = userId ?? await _stableUserId();
-    final cacheKey = _cacheKey(activity, budget, season, vibe);
+    final cacheKey = _cacheKey(
+      activity,
+      budget,
+      season,
+      vibe,
+      familyFriendly: familyFriendly,
+      adventureLevel: adventureLevel,
+      topK: topK,
+    );
 
     try {
       final apiResults = await _apiService.recommend(
@@ -167,9 +173,21 @@ class RecommendationManager {
     String activity,
     String budget,
     String season,
-    String vibe,
-  ) {
-    final raw = 'ai_cache_${activity}_${budget}_${season}_$vibe';
+    String vibe, {
+    required bool familyFriendly,
+    required int adventureLevel,
+    required int topK,
+  }) {
+    final raw = [
+      'ai_cache',
+      activity,
+      budget,
+      season,
+      vibe,
+      familyFriendly ? 'family' : 'mixed',
+      'adv_$adventureLevel',
+      'top_$topK',
+    ].join('_');
     return raw.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_');
   }
 
@@ -178,17 +196,9 @@ class RecommendationManager {
     List<ApiRecommendationItem> items,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final encoded = jsonEncode(
+      await LocalDataService.instance.cacheJsonPayload(
+        key,
         items.map((item) => item.toJson()).toList(),
-      );
-
-      await prefs.setString(key, encoded);
-
-      await prefs.setString(
-        '$key$_cacheTimestampSuffix',
-        DateTime.now().toIso8601String(),
       );
     } catch (_) {
       // Cache writing is best-effort.
@@ -197,27 +207,12 @@ class RecommendationManager {
 
   Future<List<ApiRecommendationItem>?> _loadCache(String key) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final decoded = await LocalDataService.instance.getCachedJsonList(
+        key,
+        maxAge: _cacheTtl,
+      );
 
-      final timestampText = prefs.getString('$key$_cacheTimestampSuffix');
-
-      if (timestampText == null) {
-        return null;
-      }
-
-      final timestamp = DateTime.tryParse(timestampText);
-
-      if (timestamp == null || DateTime.now().difference(timestamp) > _cacheTtl) {
-        return null;
-      }
-
-      final encoded = prefs.getString(key);
-
-      if (encoded == null || encoded.isEmpty) {
-        return null;
-      }
-
-      final decoded = jsonDecode(encoded) as List<dynamic>;
+      if (decoded == null || decoded.isEmpty) return null;
 
       return decoded
           .map(

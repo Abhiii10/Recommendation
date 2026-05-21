@@ -283,7 +283,11 @@ class _HomeTabState extends State<HomeTab> {
             background: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset('assets/images/pokhara.png', fit: BoxFit.cover),
+                Image.asset(
+                  'assets/images/pokhara_hero.webp',
+                  fit: BoxFit.cover,
+                  cacheWidth: 1600,
+                ),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -337,7 +341,6 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
         ),
-
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -354,17 +357,14 @@ class _HomeTabState extends State<HomeTab> {
                       onClear: _clearSearch,
                     ),
                     const SizedBox(height: 14),
-
                     _CategoryStrip(
                       categories: _allCategories,
                       active: _activeCategory,
                       onTap: (cat) => setState(() {
-                        _activeCategory =
-                            _activeCategory == cat ? null : cat;
+                        _activeCategory = _activeCategory == cat ? null : cat;
                       }),
                     ),
                     const SizedBox(height: 20),
-
                     if (_query.isEmpty && _recentSearches.isNotEmpty) ...[
                       _SectionLabel(text: 'Recent searches'),
                       const SizedBox(height: 10),
@@ -385,7 +385,6 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       const SizedBox(height: 22),
                     ],
-
                     if (!hasFilter) ...[
                       _SectionLabel(text: 'Explore the app'),
                       const SizedBox(height: 12),
@@ -396,7 +395,6 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       const SizedBox(height: 28),
                     ],
-
                     if (!hasFilter) ...[
                       _SectionLabel(text: 'Featured Destinations'),
                       const SizedBox(height: 12),
@@ -411,7 +409,8 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       const SizedBox(height: 28),
                       _SectionLabel(
-                        text: 'All Destinations (${widget.destinations.length})',
+                        text:
+                            'All Destinations (${widget.destinations.length})',
                       ),
                       const SizedBox(height: 12),
                       ...widget.destinations.map((d) {
@@ -423,8 +422,7 @@ class _HomeTabState extends State<HomeTab> {
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    DetailsScreen(destination: d),
+                                builder: (_) => DetailsScreen(destination: d),
                               ),
                             ),
                             onMap: widget.onOpenMap,
@@ -623,9 +621,7 @@ class _CategoryStrip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: isActive
-                          ? Colors.white
-                          : const Color(0xFF3A4040),
+                      color: isActive ? Colors.white : const Color(0xFF3A4040),
                     ),
                   ),
                 ],
@@ -991,16 +987,14 @@ class _CompactDestinationCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    final cat = destination.category.isNotEmpty
-        ? destination.category.first
-        : 'scenic';
+    final cat =
+        destination.category.isNotEmpty ? destination.category.first : 'scenic';
 
     final color = AppTheme.categoryColour(cat);
     final icon = _iconFor(cat);
 
     final locationParts = [
-      if ((destination.district ?? '').trim().isNotEmpty)
-        destination.district!,
+      if ((destination.district ?? '').trim().isNotEmpty) destination.district!,
       if ((destination.municipality ?? '').trim().isNotEmpty)
         destination.municipality!,
     ];

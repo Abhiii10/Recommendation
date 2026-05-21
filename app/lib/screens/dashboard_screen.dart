@@ -26,9 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _loading = true;
   String? _error;
 
-  List<Destination>   _destinations    = [];
-  List<Accommodation> _accommodations  = [];
-  List<Destination>   _savedDestinations = [];
+  List<Destination> _destinations = [];
+  List<Accommodation> _accommodations = [];
+  List<Destination> _savedDestinations = [];
 
   RecommenderService? _service;
 
@@ -42,24 +42,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       await LocalDataService.instance.init();
 
-      final destinations   = await OfflineStorage.loadDestinations();
-      final accommodations = await OfflineStorage.loadAccommodations();
-      final similarPlaces  = await OfflineStorage.loadSimilarPlaces();
-      final saved          = await LocalDataService.instance.getSavedDestinations();
+      final loaded = await Future.wait<Object>([
+        OfflineStorage.loadDestinations(),
+        OfflineStorage.loadAccommodations(),
+        OfflineStorage.loadSimilarPlaces(),
+        LocalDataService.instance.getSavedDestinations(),
+      ]);
+
+      final destinations = loaded[0] as List<Destination>;
+      final accommodations = loaded[1] as List<Accommodation>;
+      final similarPlaces =
+          loaded[2] as Map<String, List<Map<String, dynamic>>>;
+      final saved = loaded[3] as List<Destination>;
 
       if (!mounted) return;
 
       setState(() {
-        _destinations     = destinations;
-        _accommodations   = accommodations;
-        _service = RecommenderService(similarPlaces, userProfileService: userProfileService);
+        _destinations = destinations;
+        _accommodations = accommodations;
+        _service = RecommenderService(
+          similarPlaces,
+          userProfileService: userProfileService,
+        );
         _savedDestinations = saved;
         _loading = false;
-        _error   = null;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -96,25 +110,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 72, height: 72,
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.errorContainer,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.error_outline_rounded,
-                      size: 36, color: Theme.of(context).colorScheme.error),
+                        size: 36, color: Theme.of(context).colorScheme.error),
                   ),
                   const SizedBox(height: 20),
                   Text('Could not load app data',
-                    style: Theme.of(context).textTheme.titleLarge,
-                    textAlign: TextAlign.center),
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 10),
                   Text(_error ?? 'Unknown error',
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center, maxLines: 4),
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                      maxLines: 4),
                   const SizedBox(height: 24),
                   FilledButton.icon(
-                    onPressed: () { setState(() { _loading = true; }); _loadApp(); },
+                    onPressed: () {
+                      setState(() {
+                        _loading = true;
+                      });
+                      _loadApp();
+                    },
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Retry'),
                   ),
@@ -181,19 +202,23 @@ class _SplashScreen extends StatelessWidget {
           children: [
             // Logo mark
             Container(
-              width: 88, height: 88,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: const Icon(Icons.landscape_rounded, color: Colors.white, size: 44),
+              child: const Icon(Icons.landscape_rounded,
+                  color: Colors.white, size: 44),
             ),
             const SizedBox(height: 24),
             Text(
               'Nepal Tourism Guide',
               style: const TextStyle(
-                color: Colors.white, fontSize: 24,
-                fontWeight: FontWeight.w800, fontFamily: 'Georgia',
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'Georgia',
                 letterSpacing: -0.5,
               ),
             ),
@@ -202,12 +227,15 @@ class _SplashScreen extends StatelessWidget {
               'Discover Rural Gandaki',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.70),
-                fontSize: 13, fontWeight: FontWeight.w500, letterSpacing: 0.5,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
               ),
             ),
             const SizedBox(height: 48),
             SizedBox(
-              width: 28, height: 28,
+              width: 28,
+              height: 28,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
                 color: Colors.white.withValues(alpha: 0.7),
@@ -218,7 +246,8 @@ class _SplashScreen extends StatelessWidget {
               'Loading destinations…',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.55),
-                fontSize: 12, fontWeight: FontWeight.w500,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -245,27 +274,54 @@ class _AppNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
+    final barColor = cs.surface;
+    final dividerColor = cs.outlineVariant.withValues(
+      alpha: brightness == Brightness.dark ? 0.55 : 1,
+    );
+    final inactiveColor = cs.onSurfaceVariant;
 
     final items = <_NavItem>[
-      const _NavItem(icon: Icons.home_outlined,    activeIcon: Icons.home_rounded,             label: 'Home'),
-      const _NavItem(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome_rounded,label: 'Discover'),
-      const _NavItem(icon: Icons.map_outlined,     activeIcon: Icons.map_rounded,              label: 'Map'),
+      const _NavItem(
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
+          label: 'Home'),
+      const _NavItem(
+          icon: Icons.auto_awesome_outlined,
+          activeIcon: Icons.auto_awesome_rounded,
+          label: 'Discover'),
+      const _NavItem(
+          icon: Icons.map_outlined,
+          activeIcon: Icons.map_rounded,
+          label: 'Map'),
       _NavItem(
         icon: Icons.bookmark_border_rounded,
         activeIcon: Icons.bookmark_rounded,
         label: 'Saved',
         badge: savedCount > 0 ? '$savedCount' : null,
       ),
-      const _NavItem(icon: Icons.translate_outlined,   activeIcon: Icons.translate_rounded,    label: 'Translate'),
-      const _NavItem(icon: Icons.chat_bubble_outline_rounded, activeIcon: Icons.chat_bubble_rounded, label: 'Chat'),
+      const _NavItem(
+          icon: Icons.translate_outlined,
+          activeIcon: Icons.translate_rounded,
+          label: 'Translate'),
+      const _NavItem(
+          icon: Icons.chat_bubble_outline_rounded,
+          activeIcon: Icons.chat_bubble_rounded,
+          label: 'Chat'),
     ];
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: const Color(0xFFE4EAE7), width: 1)),
+        color: barColor,
+        border: Border(top: BorderSide(color: dividerColor, width: 1)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -4)),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: brightness == Brightness.dark ? 0.24 : 0.05,
+            ),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
         ],
       ),
       child: SafeArea(
@@ -274,60 +330,83 @@ class _AppNavBar extends StatelessWidget {
           height: 68,
           child: Row(
             children: items.asMap().entries.map((entry) {
-              final idx     = entry.key;
-              final item    = entry.value;
+              final idx = entry.key;
+              final item = entry.value;
               final isActive = idx == currentIndex;
-              final color   = isActive ? cs.primary : const Color(0xFF8E9E9A);
+              final color = isActive ? cs.primary : inactiveColor;
 
               return Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onTap(idx),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isActive ? cs.primaryContainer : Colors.transparent,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Icon(
-                              isActive ? item.activeIcon : item.icon,
-                              color: color, size: 22,
-                            ),
-                          ),
-                          if (item.badge != null)
-                            Positioned(
-                              top: -2, right: -2,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: cs.error,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(item.badge!,
-                                  style: const TextStyle(
-                                    color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800,
-                                  )),
+                child: Semantics(
+                  button: true,
+                  selected: isActive,
+                  label: item.label,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onTap(idx),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? cs.primaryContainer
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(
+                                isActive ? item.activeIcon : item.icon,
+                                color: color,
+                                size: 22,
                               ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                          color: color,
+                            if (item.badge != null)
+                              Positioned(
+                                top: -2,
+                                right: -2,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: cs.error,
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    item.badge!,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight:
+                                isActive ? FontWeight.w700 : FontWeight.w500,
+                            color: color,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -344,5 +423,9 @@ class _NavItem {
   final IconData activeIcon;
   final String label;
   final String? badge;
-  const _NavItem({required this.icon, required this.activeIcon, required this.label, this.badge});
+  const _NavItem(
+      {required this.icon,
+      required this.activeIcon,
+      required this.label,
+      this.badge});
 }

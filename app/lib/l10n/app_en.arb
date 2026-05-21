@@ -1,0 +1,14 @@
+{
+  "@@locale": "en",
+  "appTitle": "Gandaki Tourism Guide",
+  "homeTitle": "Discover Rural Nepal",
+  "homeSubtitle": "Hidden villages · Sacred trails · Authentic culture",
+  "recommendationsTitle": "Recommendations",
+  "mapTitle": "Destination Map",
+  "savedTitle": "Saved Places",
+  "translationTitle": "Tourism Translator",
+  "chatTitle": "Tourism Assistant",
+  "offlineMap": "Offline map",
+  "onlineMap": "Online map",
+  "preparingMap": "Preparing map"
+}

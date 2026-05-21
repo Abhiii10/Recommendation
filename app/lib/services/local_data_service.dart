@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../core/storage/database_factory_config.dart';
 import '../core/utils/app_constants.dart';
 import '../data/datasources/user_profile_local_datasource.dart';
 import '../domain/entities/recommendation_result.dart';
@@ -13,11 +16,19 @@ class LocalDataService {
   LocalDataService._();
 
   static final LocalDataService instance = LocalDataService._();
+  static const String _webSavedDestinationsKey = 'web_saved_destinations';
+  static const String _webEventsKey = 'web_app_events';
+  static const String _webCachePrefix = 'web_recommendation_cache_';
+  static const String _webCacheTimestampSuffix = '_generated_at';
 
   Database? _db;
+  bool _ffiInitialized = false;
 
   Future<void> init() async {
+    if (kIsWeb) return;
     if (_db != null) return;
+
+    _initDesktopDatabaseFactory();
 
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, AppConstants.dbName);
@@ -63,6 +74,13 @@ class LocalDataService {
     );
   }
 
+  void _initDesktopDatabaseFactory() {
+    if (_ffiInitialized) return;
+
+    configureDatabaseFactoryForPlatform();
+    _ffiInitialized = true;
+  }
+
   Database get _database {
     final db = _db;
     if (db == null) {
@@ -89,6 +107,11 @@ class LocalDataService {
   Future<void> saveDestination(Destination destination) async {
     await init();
 
+    if (kIsWeb) {
+      await _saveDestinationForWeb(destination);
+      return;
+    }
+
     await _database.insert(
       'saved_destinations',
       {
@@ -108,6 +131,11 @@ class LocalDataService {
   Future<void> removeSavedDestination(String destinationId) async {
     await init();
 
+    if (kIsWeb) {
+      await _removeSavedDestinationForWeb(destinationId);
+      return;
+    }
+
     await _database.delete(
       'saved_destinations',
       where: 'id = ?',
@@ -121,6 +149,10 @@ class LocalDataService {
 
   Future<List<Destination>> getSavedDestinations() async {
     await init();
+
+    if (kIsWeb) {
+      return _getSavedDestinationsForWeb();
+    }
 
     final rows = await _database.query(
       'saved_destinations',
@@ -136,6 +168,11 @@ class LocalDataService {
 
   Future<bool> isSaved(String destinationId) async {
     await init();
+
+    if (kIsWeb) {
+      final saved = await _getSavedDestinationsForWeb();
+      return saved.any((destination) => destination.id == destinationId);
+    }
 
     final rows = await _database.query(
       'saved_destinations',
@@ -161,6 +198,11 @@ class LocalDataService {
             })
         .toList();
 
+    if (kIsWeb) {
+      await cacheJsonPayload(cacheKey, payload);
+      return;
+    }
+
     await _database.insert(
       'recommendation_cache',
       {
@@ -177,6 +219,12 @@ class LocalDataService {
   ) async {
     await init();
 
+    if (kIsWeb) {
+      final payload = await getCachedJsonList(cacheKey);
+      if (payload == null) return [];
+      return _decodeRecommendationResults(payload);
+    }
+
     final rows = await _database.query(
       'recommendation_cache',
       where: 'cache_key = ?',
@@ -188,6 +236,10 @@ class LocalDataService {
 
     final payload = jsonDecode(rows.first['payload'] as String) as List;
 
+    return _decodeRecommendationResults(payload);
+  }
+
+  List<RecommendationResult> _decodeRecommendationResults(List payload) {
     return payload.map((entry) {
       final map = Map<String, dynamic>.from(entry as Map);
       return RecommendationResult(
@@ -200,8 +252,163 @@ class LocalDataService {
     }).toList();
   }
 
+  Future<void> cacheJsonPayload(String cacheKey, Object payload) async {
+    await init();
+
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('$_webCachePrefix$cacheKey', jsonEncode(payload));
+      await prefs.setInt(
+        '$_webCachePrefix$cacheKey$_webCacheTimestampSuffix',
+        DateTime.now().millisecondsSinceEpoch,
+      );
+      return;
+    }
+
+    await _database.insert(
+      'recommendation_cache',
+      {
+        'cache_key': cacheKey,
+        'payload': jsonEncode(payload),
+        'generated_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<dynamic>?> getCachedJsonList(
+    String cacheKey, {
+    Duration? maxAge,
+  }) async {
+    await init();
+
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      final generatedAt =
+          prefs.getInt('$_webCachePrefix$cacheKey$_webCacheTimestampSuffix');
+
+      if (maxAge != null && generatedAt == null) return null;
+
+      if (maxAge != null && generatedAt != null) {
+        final age = DateTime.now().millisecondsSinceEpoch - generatedAt;
+        if (age > maxAge.inMilliseconds) {
+          await prefs.remove('$_webCachePrefix$cacheKey');
+          await prefs.remove(
+            '$_webCachePrefix$cacheKey$_webCacheTimestampSuffix',
+          );
+          return null;
+        }
+      }
+
+      final raw = prefs.getString('$_webCachePrefix$cacheKey');
+      if (raw == null || raw.isEmpty) return null;
+
+      final decoded = jsonDecode(raw);
+      return decoded is List ? decoded : null;
+    }
+
+    final rows = await _database.query(
+      'recommendation_cache',
+      where: 'cache_key = ?',
+      whereArgs: [cacheKey],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) return null;
+
+    if (maxAge != null) {
+      final generatedAt = rows.first['generated_at'] as int;
+      final age = DateTime.now().millisecondsSinceEpoch - generatedAt;
+      if (age > maxAge.inMilliseconds) {
+        await _database.delete(
+          'recommendation_cache',
+          where: 'cache_key = ?',
+          whereArgs: [cacheKey],
+        );
+        return null;
+      }
+    }
+
+    final decoded = jsonDecode(rows.first['payload'] as String);
+    return decoded is List ? decoded : null;
+  }
+
+  Future<void> _saveDestinationForWeb(Destination destination) async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = await _getSavedDestinationsForWeb();
+
+    saved.removeWhere((item) => item.id == destination.id);
+    saved.insert(0, destination);
+
+    await prefs.setString(
+      _webSavedDestinationsKey,
+      jsonEncode(saved.map((item) => item.toJson()).toList()),
+    );
+
+    await logEvent('saved_destination_added', {
+      'destination_id': destination.id,
+      'destination_name': destination.name,
+    });
+  }
+
+  Future<void> _removeSavedDestinationForWeb(String destinationId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = await _getSavedDestinationsForWeb();
+
+    saved.removeWhere((item) => item.id == destinationId);
+
+    await prefs.setString(
+      _webSavedDestinationsKey,
+      jsonEncode(saved.map((item) => item.toJson()).toList()),
+    );
+
+    await logEvent('saved_destination_removed', {
+      'destination_id': destinationId,
+    });
+  }
+
+  Future<List<Destination>> _getSavedDestinationsForWeb() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_webSavedDestinationsKey);
+
+    if (raw == null || raw.isEmpty) return [];
+
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map(
+            (entry) => Destination.fromJson(
+              Map<String, dynamic>.from(entry as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<void> logEvent(String eventType, Map<String, dynamic> payload) async {
     await init();
+
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_webEventsKey);
+      final events = raw == null || raw.isEmpty
+          ? <dynamic>[]
+          : (jsonDecode(raw) as List<dynamic>);
+
+      events.add({
+        'event_type': eventType,
+        'payload': payload,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+      });
+
+      final limited =
+          events.length > 200 ? events.sublist(events.length - 200) : events;
+
+      await prefs.setString(_webEventsKey, jsonEncode(limited));
+      return;
+    }
 
     await _database.insert(
       'app_events',

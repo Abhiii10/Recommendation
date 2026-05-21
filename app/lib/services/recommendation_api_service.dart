@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -15,13 +16,24 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode): $message';
 }
 
+class NetworkException implements Exception {
+  final String message;
+
+  const NetworkException(this.message);
+
+  @override
+  String toString() => 'NetworkException: $message';
+}
+
 class RecommendationApiService {
   final String baseUrl;
   final Duration timeout;
+  final Duration healthTimeout;
 
   RecommendationApiService({
     required this.baseUrl,
     this.timeout = const Duration(seconds: 20),
+    this.healthTimeout = const Duration(seconds: 3),
   });
 
   Map<String, String> get _headers => const {
@@ -40,34 +52,82 @@ class RecommendationApiService {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await http
-        .post(
-          _uri(path),
-          headers: _headers,
-          body: jsonEncode(body),
-        )
-        .timeout(timeout);
+    final response = await _sendWithRetry(
+      () => http.post(
+        _uri(path),
+        headers: _headers,
+        body: jsonEncode(body),
+      ),
+    );
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(response.statusCode, response.body);
-    }
-
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    return _decodeObject(response);
   }
 
-  Future<Map<String, dynamic>> _get(String path) async {
-    final response = await http
-        .get(
-          _uri(path),
-          headers: _headers,
-        )
-        .timeout(timeout);
+  Future<Map<String, dynamic>> _get(
+    String path, {
+    Duration? requestTimeout,
+  }) async {
+    final response = await _sendWithRetry(
+      () => http.get(
+        _uri(path),
+        headers: _headers,
+      ),
+      requestTimeout: requestTimeout,
+    );
 
+    return _decodeObject(response);
+  }
+
+  Future<http.Response> _sendWithRetry(
+    Future<http.Response> Function() request, {
+    Duration? requestTimeout,
+  }) async {
+    final effectiveTimeout = requestTimeout ?? timeout;
+    Object? lastError;
+
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final response = await request().timeout(effectiveTimeout);
+
+        if (response.statusCode >= 500 && attempt == 0) {
+          await Future<void>.delayed(const Duration(milliseconds: 250));
+          continue;
+        }
+
+        return response;
+      } on TimeoutException catch (error) {
+        lastError = error;
+      } catch (error) {
+        lastError = error;
+      }
+
+      if (attempt == 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+    }
+
+    throw NetworkException('Backend request failed: $lastError');
+  }
+
+  Map<String, dynamic> _decodeObject(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException(response.statusCode, response.body);
     }
 
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    final decoded = jsonDecode(response.body);
+
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+
+    if (decoded is Map) {
+      return Map<String, dynamic>.from(decoded);
+    }
+
+    throw ApiException(
+      response.statusCode,
+      'Expected a JSON object from backend.',
+    );
   }
 
   Future<List<ApiRecommendationItem>> recommend({
@@ -142,7 +202,7 @@ class RecommendationApiService {
   }
 
   Future<bool> isHealthy() async {
-    final data = await _get('/health');
+    final data = await _get('/health', requestTimeout: healthTimeout);
     return data['status'] == 'healthy';
   }
 }

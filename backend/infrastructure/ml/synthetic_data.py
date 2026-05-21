@@ -25,7 +25,9 @@ from backend.domain.entities.destination import Destination
 from backend.domain.entities.interaction import Interaction
 from backend.domain.entities.user import User
 from backend.infrastructure.repositories.json_destination_repository import JsonDestinationRepository
-from backend.infrastructure.repositories.json_interaction_repository import JsonInteractionRepository
+from backend.infrastructure.repositories.interaction_repository_factory import (
+    build_interaction_repository,
+)
 from backend.infrastructure.repositories.json_user_repository import JsonUserRepository
 from backend.infrastructure.ml.feature_builder import build_ranking_features
 
@@ -116,7 +118,7 @@ def generate_synthetic_interactions(
     API response.
     """
     dest_repo        = JsonDestinationRepository()
-    interaction_repo = JsonInteractionRepository()
+    interaction_repo = build_interaction_repository()
     user_repo        = JsonUserRepository()
 
     destinations = dest_repo.get_all()

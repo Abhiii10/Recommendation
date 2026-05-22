@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 /// Chat message model for the tourism chatbot.
 enum MessageSender { user, bot }
 
+enum ChatResponseMode { onlineLlm, offlineFallback }
+
 class ChatMessage {
   final String text;
   final MessageSender sender;
@@ -14,12 +16,15 @@ class ChatMessage {
   /// Optional: confidence score [0,1]
   final double? confidence;
 
+  final ChatResponseMode? responseMode;
+
   const ChatMessage({
     required this.text,
     required this.sender,
     required this.timestamp,
     this.detectedIntent,
     this.confidence,
+    this.responseMode,
   });
 
   bool get isUser => sender == MessageSender.user;
@@ -35,6 +40,7 @@ class ChatMessage {
     String text, {
     String? detectedIntent,
     double? confidence,
+    ChatResponseMode? responseMode,
   }) =>
       ChatMessage(
         text: text,
@@ -42,6 +48,7 @@ class ChatMessage {
         timestamp: DateTime.now(),
         detectedIntent: detectedIntent,
         confidence: confidence,
+        responseMode: responseMode,
       );
 }
 

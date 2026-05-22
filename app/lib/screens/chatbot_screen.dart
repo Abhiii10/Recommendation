@@ -39,6 +39,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _loading = true;
   bool _botTyping = false;
   bool _ttsPlaying = false;
+  bool? _llmOnline;
+  DateTime? _lastLlmHealthCheck;
   String? _ttsSpeaking;
 
   @override
@@ -47,6 +49,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _service = ChatbotService(destinations: widget.destinations);
     unawaited(_initTts());
     unawaited(_init());
+    unawaited(_refreshLlmStatus());
   }
 
   @override
@@ -139,16 +142,36 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     ChatMessage response = localResponse;
 
-    try {
-      final geminiAnswer = await _llmService.ask(trimmed);
+    final shouldTryOnlineLlm = await _shouldTryOnlineLlm();
+    if (!mounted) return;
 
+    if (shouldTryOnlineLlm) {
+      try {
+        final llmAnswer = await _llmService.ask(trimmed);
+
+        response = ChatMessage.fromBot(
+          llmAnswer,
+          detectedIntent: localResponse.detectedIntent,
+          confidence: localResponse.confidence,
+          responseMode: ChatResponseMode.onlineLlm,
+        );
+        _setLlmOnline(true);
+      } catch (_) {
+        _setLlmOnline(false);
+        response = ChatMessage.fromBot(
+          localResponse.text,
+          detectedIntent: localResponse.detectedIntent,
+          confidence: localResponse.confidence,
+          responseMode: ChatResponseMode.offlineFallback,
+        );
+      }
+    } else {
       response = ChatMessage.fromBot(
-        geminiAnswer,
+        localResponse.text,
         detectedIntent: localResponse.detectedIntent,
         confidence: localResponse.confidence,
+        responseMode: ChatResponseMode.offlineFallback,
       );
-    } catch (_) {
-      response = localResponse;
     }
 
     if (!mounted) return;
@@ -162,6 +185,32 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
 
     _scrollToBottom();
+  }
+
+  Future<void> _refreshLlmStatus() async {
+    final online = await _llmService.isHealthy();
+    if (!mounted) return;
+    _setLlmOnline(online);
+  }
+
+  Future<bool> _shouldTryOnlineLlm() async {
+    final lastCheck = _lastLlmHealthCheck;
+    if (lastCheck != null &&
+        DateTime.now().difference(lastCheck) < const Duration(seconds: 30)) {
+      return _llmOnline != false;
+    }
+
+    final online = await _llmService.isHealthy();
+    _setLlmOnline(online);
+    return online;
+  }
+
+  void _setLlmOnline(bool online) {
+    if (!mounted) return;
+    setState(() {
+      _llmOnline = online;
+      _lastLlmHealthCheck = DateTime.now();
+    });
   }
 
   void _scrollToBottom() {
@@ -397,7 +446,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ),
                 ),
                 Text(
-                  'Gemini Flash · Offline fallback',
+                  _llmOnline == true
+                      ? 'Online LLM ready'
+                      : _llmOnline == false
+                          ? 'Offline fallback active'
+                          : 'Checking LLM status',
                   style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.onSurfaceVariant,
@@ -416,7 +469,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ],
       ),
       body: DecoratedBox(
-        decoration: AppTheme.scaffoldDecoration,
+        decoration: AppTheme.scaffoldDecorationFor(context),
         child: Column(
           children: [
             Expanded(
@@ -607,6 +660,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (message.responseMode != null) ...[
+                          _ResponseModeBadge(mode: message.responseMode!),
+                          const SizedBox(width: 6),
+                        ],
                         _ActionButton(
                           icon: Icons.translate_rounded,
                           label: 'Nepali',
@@ -699,6 +756,46 @@ class _QuickSuggestionsState extends State<_QuickSuggestions>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ResponseModeBadge extends StatelessWidget {
+  final ChatResponseMode mode;
+
+  const _ResponseModeBadge({required this.mode});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isOnline = mode == ChatResponseMode.onlineLlm;
+    final color = isOnline ? colorScheme.primary : colorScheme.tertiary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isOnline ? Icons.cloud_done_rounded : Icons.offline_bolt_rounded,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isOnline ? 'Online LLM' : 'Offline fallback',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

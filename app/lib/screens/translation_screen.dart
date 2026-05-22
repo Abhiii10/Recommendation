@@ -120,11 +120,7 @@ class _TranslationScreenState extends State<TranslationScreen>
       _currentResult = null;
     });
 
-    final result = await _service.translate(
-      input: text,
-      mode: _mode,
-      allowOnline: true,
-    );
+    final result = await _translateSafely(text);
 
     if (!mounted) return;
 
@@ -151,11 +147,7 @@ class _TranslationScreenState extends State<TranslationScreen>
       _conversationController.clear();
     });
 
-    final result = await _service.translate(
-      input: text,
-      mode: _mode,
-      allowOnline: true,
-    );
+    final result = await _translateSafely(text);
 
     if (!mounted) return;
 
@@ -174,6 +166,24 @@ class _TranslationScreenState extends State<TranslationScreen>
 
     _refreshHistory();
     _scrollConversationToBottom();
+  }
+
+  Future<TranslationResult> _translateSafely(String text) async {
+    try {
+      return await _service.translate(
+        input: text,
+        mode: _mode,
+        allowOnline: true,
+      );
+    } catch (_) {
+      return const TranslationResult(
+        translatedText: '',
+        strategy: TranslationStrategy.noResult,
+        confidence: 0,
+        errorMessage:
+            'Translation failed. Try again or use the offline phrasebook.',
+      );
+    }
   }
 
   Future<void> _listenInto(TextEditingController controller) async {
@@ -432,10 +442,7 @@ class _TranslationScreenState extends State<TranslationScreen>
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    result.strategyLabel,
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
+                  child: _TranslationSourceChip(result: result),
                 ),
                 Chip(
                   label: Text(result.confidencePercent),
@@ -675,7 +682,7 @@ class _TranslationScreenState extends State<TranslationScreen>
                   Text(entry.outputText),
                   const SizedBox(height: 4),
                   Text(
-                    '${entry.mode.label} · ${entry.strategy.name}',
+                    '${entry.mode.label} · ${_strategyLabel(entry.strategy)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -695,6 +702,19 @@ class _TranslationScreenState extends State<TranslationScreen>
       },
     );
   }
+
+  String _strategyLabel(TranslationStrategy strategy) {
+    switch (strategy) {
+      case TranslationStrategy.phrasebookMatch:
+        return 'Offline phrasebook';
+      case TranslationStrategy.intentModel:
+        return 'Offline model';
+      case TranslationStrategy.onlineFallback:
+        return 'Online translation';
+      case TranslationStrategy.noResult:
+        return 'No match';
+    }
+  }
 }
 
 class _ConversationMessage {
@@ -707,4 +727,41 @@ class _ConversationMessage {
     required this.isUser,
     this.result,
   });
+}
+
+class _TranslationSourceChip extends StatelessWidget {
+  final TranslationResult result;
+
+  const _TranslationSourceChip({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isNoMatch = result.strategy == TranslationStrategy.noResult;
+    final color = isNoMatch
+        ? colorScheme.error
+        : result.isOffline
+            ? colorScheme.tertiary
+            : colorScheme.primary;
+    final icon = isNoMatch
+        ? Icons.error_outline_rounded
+        : result.isOffline
+            ? Icons.offline_bolt_rounded
+            : Icons.cloud_done_rounded;
+    final label = isNoMatch
+        ? 'No match'
+        : result.isOffline
+            ? result.strategyLabel
+            : 'Online translation';
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Chip(
+        avatar: Icon(icon, size: 16, color: color),
+        label: Text(label),
+        visualDensity: VisualDensity.compact,
+        side: BorderSide(color: color.withValues(alpha: 0.24)),
+      ),
+    );
+  }
 }

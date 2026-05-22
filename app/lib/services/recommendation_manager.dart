@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../core/utils/backend_config.dart';
 import '../models/accommodation.dart';
@@ -233,7 +234,7 @@ class RecommendationManager {
       var id = prefs.getString('stable_user_id');
 
       if (id == null || id.isEmpty) {
-        id = 'user_${DateTime.now().millisecondsSinceEpoch}';
+        id = const Uuid().v4();
         await prefs.setString('stable_user_id', id);
       }
 

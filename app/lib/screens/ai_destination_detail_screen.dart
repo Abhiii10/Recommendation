@@ -125,6 +125,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: NestedScrollView(
@@ -133,7 +134,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
             SliverAppBar(
               pinned: true,
               expandedHeight: 300,
-              backgroundColor: const Color(0xFF1B5E20),
+              backgroundColor: cs.primary,
               actions: [
                 IconButton(
                   tooltip: 'Share destination',
@@ -227,7 +228,10 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
       children: _similar.map((item) {
         return Card(
           child: ListTile(
-            leading: const Icon(Icons.explore, color: Color(0xFF2E7D32)),
+            leading: Icon(
+              Icons.explore,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             title: Text(item.name),
             subtitle: Text(
               item.location.isEmpty
@@ -302,13 +306,16 @@ class _OverviewTab extends StatelessWidget {
           ),
         const SizedBox(height: 16),
         Card(
-          color: const Color(0xFFE8F5E9),
+          color: Theme.of(context).colorScheme.tertiaryContainer,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Icon(Icons.auto_awesome,
-                    color: Color(0xFF2E7D32), size: 30),
+                Icon(
+                  Icons.auto_awesome,
+                  color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  size: 30,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -326,10 +333,10 @@ class _OverviewTab extends StatelessWidget {
                 ),
                 Text(
                   '${(item.score * 100).toStringAsFixed(0)}%',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2E7D32),
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
                   ),
                 ),
               ],
@@ -345,9 +352,9 @@ class _OverviewTab extends StatelessWidget {
             (reason) => ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(
+              leading: Icon(
                 Icons.check_circle_outline,
-                color: Color(0xFF2E7D32),
+                color: Theme.of(context).colorScheme.tertiary,
               ),
               title: Text(reason),
             ),
@@ -375,7 +382,11 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade700),
+          Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
         ],

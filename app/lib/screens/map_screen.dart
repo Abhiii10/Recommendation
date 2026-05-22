@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/maps/offline_tile_provider.dart';
 import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../theme/app_theme.dart';
+import '../utils/accommodation_matcher.dart';
 import 'details_screen.dart';
 
 const _kCategoryIcons = <String, IconData>{
@@ -83,10 +85,34 @@ class _MapScreenState extends State<MapScreen> {
       MaterialPageRoute(
         builder: (_) => DetailsScreen(
           destination: destination,
-          nearbyAccommodations: widget.accommodations,
+          nearbyAccommodations:
+              accommodationsForDestination(destination, widget.accommodations),
         ),
       ),
     );
+  }
+
+  Future<void> _openExternalMap(Destination destination) async {
+    final lat = destination.latitude;
+    final lng = destination.longitude;
+
+    if (lat == null || lng == null) return;
+
+    final uri = Uri.https(
+      'www.google.com',
+      '/maps/search/',
+      {
+        'api': '1',
+        'query': '$lat,$lng',
+      },
+    );
+
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open maps.')),
+      );
+    }
   }
 
   void _zoomBy(double delta) {
@@ -226,6 +252,8 @@ class _MapScreenState extends State<MapScreen> {
                                 setState(() => _selectedDestination = null),
                             onOpen: () =>
                                 _openDestination(_selectedDestination!),
+                            onNavigate: () =>
+                                _openExternalMap(_selectedDestination!),
                           ),
                   ),
                 ),
@@ -269,7 +297,8 @@ class _DestinationPinState extends State<_DestinationPin>
 
   @override
   Widget build(BuildContext context) {
-    final color = AppTheme.categoryColour(widget.category);
+    final color = AppTheme.categoryColourFor(context, widget.category);
+    final foreground = AppTheme.foregroundFor(color);
     final icon =
         _kCategoryIcons[widget.category.toLowerCase()] ?? Icons.place_rounded;
 
@@ -297,7 +326,7 @@ class _DestinationPinState extends State<_DestinationPin>
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 18),
+            child: Icon(icon, color: foreground, size: 18),
           ),
           CustomPaint(
             size: const Size(12, 7),
@@ -438,12 +467,14 @@ class _DestinationPreview extends StatelessWidget {
   final Destination destination;
   final VoidCallback onClose;
   final VoidCallback onOpen;
+  final VoidCallback onNavigate;
 
   const _DestinationPreview({
     super.key,
     required this.destination,
     required this.onClose,
     required this.onOpen,
+    required this.onNavigate,
   });
 
   @override
@@ -452,7 +483,7 @@ class _DestinationPreview extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final category =
         destination.category.isNotEmpty ? destination.category.first : 'scenic';
-    final color = AppTheme.categoryColour(category);
+    final color = AppTheme.categoryColourFor(context, category);
 
     final location = [
       if ((destination.district ?? '').trim().isNotEmpty) destination.district!,
@@ -512,10 +543,21 @@ class _DestinationPreview extends StatelessWidget {
                     style: textTheme.bodySmall,
                   ),
                   const SizedBox(height: 10),
-                  FilledButton.tonalIcon(
-                    onPressed: onOpen,
-                    icon: const Icon(Icons.chevron_right_rounded, size: 18),
-                    label: const Text('View details'),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: onOpen,
+                        icon: const Icon(Icons.chevron_right_rounded, size: 18),
+                        label: const Text('View details'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: onNavigate,
+                        icon: const Icon(Icons.near_me_rounded, size: 18),
+                        label: const Text('Navigate'),
+                      ),
+                    ],
                   ),
                 ],
               ),

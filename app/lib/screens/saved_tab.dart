@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../theme/app_theme.dart';
+import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_card.dart';
 import 'details_screen.dart';
 
@@ -78,7 +79,7 @@ class SavedTab extends StatelessWidget {
                 final cat = destination.category.isNotEmpty
                     ? destination.category.first
                     : 'scenic';
-                final color = AppTheme.categoryColour(cat);
+                final color = AppTheme.categoryColourFor(context, cat);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14),
@@ -93,7 +94,11 @@ class SavedTab extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => DetailsScreen(
                               destination: destination,
-                              nearbyAccommodations: accommodations,
+                              nearbyAccommodations:
+                                  accommodationsForDestination(
+                                destination,
+                                accommodations,
+                              ),
                             ),
                           ),
                         ),

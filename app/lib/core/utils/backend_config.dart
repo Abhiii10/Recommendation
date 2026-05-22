@@ -1,14 +1,15 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class BackendConfig {
   const BackendConfig._();
 
   static String get anthropicApiKey {
-    const key = String.fromEnvironment('ANTHROPIC_API_KEY', defaultValue: '');
+    final key = dotenv.maybeGet('ANTHROPIC_API_KEY')?.trim() ?? '';
     assert(
       key.isNotEmpty,
       '\n\nWARNING: ANTHROPIC_API_KEY is not set.\n'
-      'Run with: flutter run --dart-define=ANTHROPIC_API_KEY=your_key_here\n',
+      'Add ANTHROPIC_API_KEY=your_key to your .env file\n',
     );
     return key;
   }
@@ -22,8 +23,7 @@ class BackendConfig {
 }
 
 String get backendBaseUrl {
-  const url = String.fromEnvironment('AI_BACKEND_BASE_URL', defaultValue: '');
-  final configured = url.trim();
+  final configured = dotenv.maybeGet('AI_BACKEND_BASE_URL')?.trim() ?? '';
 
   if (configured.isNotEmpty) {
     return configured;
@@ -34,7 +34,7 @@ String get backendBaseUrl {
   }
 
   if (defaultTargetPlatform == TargetPlatform.android) {
-    return 'http://Abhi-Zenbook:8000';
+    return 'http://192.168.18.132:8000'; // fallback if .env missing
   }
 
   return 'http://127.0.0.1:8000';

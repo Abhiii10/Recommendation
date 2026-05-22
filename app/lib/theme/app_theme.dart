@@ -27,7 +27,27 @@ class AppTheme {
     color: charcoal,
   );
 
-  static BoxDecoration get scaffoldDecoration => BoxDecoration(
+  static BoxDecoration get scaffoldDecoration => _lightScaffoldDecoration;
+
+  static BoxDecoration scaffoldDecorationFor(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0B1110),
+            Color(0xFF101817),
+            Color(0xFF141F1D),
+          ],
+        ),
+      );
+    }
+
+    return _lightScaffoldDecoration;
+  }
+
+  static BoxDecoration get _lightScaffoldDecoration => BoxDecoration(
         gradient: RadialGradient(
           center: const Alignment(-0.8, -0.8),
           radius: 1.4,
@@ -57,8 +77,37 @@ class AppTheme {
     'scenic': Color(0xFF2E7D32),
   };
 
+  static const Map<String, Color> darkCategoryColours = {
+    'trekking': Color(0xFF8FD694),
+    'cultural': Color(0xFFD6A8FF),
+    'culture': Color(0xFFD6A8FF),
+    'village': Color(0xFFB9D98A),
+    'nature': Color(0xFF7DDBCC),
+    'adventure': Color(0xFFFFB067),
+    'relaxation': Color(0xFF8DCEFF),
+    'pilgrimage': Color(0xFFD7B8A8),
+    'wildlife': Color(0xFFC7A99F),
+    'boating': Color(0xFF9BC7FF),
+    'photography': Color(0xFF86DDE4),
+    'spiritual': Color(0xFFDCA7FF),
+    'scenic': Color(0xFF8FD694),
+  };
+
   static Color categoryColour(String cat) =>
       categoryColours[cat.toLowerCase()] ?? mountainTeal;
+
+  static Color categoryColourFor(BuildContext context, String cat) {
+    final key = cat.toLowerCase();
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return darkCategoryColours[key] ?? const Color(0xFF8CD8E6);
+    }
+
+    return categoryColours[key] ?? mountainTeal;
+  }
+
+  static Color foregroundFor(Color background) {
+    return background.computeLuminance() > 0.45 ? charcoal : Colors.white;
+  }
 
   // ── Light theme ────────────────────────────────────────────────────────────
   static ThemeData get theme {
@@ -69,6 +118,24 @@ class AppTheme {
       brightness: Brightness.light,
       secondary: earthOchre,
       tertiary: highlandSage,
+    ).copyWith(
+      primary: const Color(0xFF0F5360),
+      onPrimary: Colors.white,
+      primaryContainer: const Color(0xFFD7F1F5),
+      onPrimaryContainer: const Color(0xFF092F36),
+      secondary: const Color(0xFF7A4319),
+      onSecondary: Colors.white,
+      secondaryContainer: const Color(0xFFFFDFC5),
+      onSecondaryContainer: const Color(0xFF3D1F08),
+      tertiary: const Color(0xFF2F6843),
+      onTertiary: Colors.white,
+      tertiaryContainer: const Color(0xFFD6EEDB),
+      onTertiaryContainer: const Color(0xFF12351D),
+      surface: Colors.white,
+      onSurface: charcoal,
+      onSurfaceVariant: const Color(0xFF3F4A47),
+      outline: const Color(0xFF71807A),
+      outlineVariant: const Color(0xFFC6D1CD),
     );
 
     return ThemeData(
@@ -154,17 +221,17 @@ class AppTheme {
         bodyLarge: TextStyle(
           fontSize: 16,
           height: 1.55,
-          color: charcoal.withValues(alpha: 0.85),
+          color: charcoal.withValues(alpha: 0.92),
         ),
         bodyMedium: TextStyle(
           fontSize: 14,
           height: 1.55,
-          color: charcoal.withValues(alpha: 0.80),
+          color: charcoal.withValues(alpha: 0.88),
         ),
         bodySmall: TextStyle(
           fontSize: 12,
           height: 1.5,
-          color: charcoal.withValues(alpha: 0.65),
+          color: charcoal.withValues(alpha: 0.76),
         ),
         // Label
         labelLarge: const TextStyle(
@@ -191,7 +258,11 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: mistGray,
         selectedColor: cs.primaryContainer,
-        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        labelStyle: TextStyle(
+          color: cs.onSurface,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         shape: const StadiumBorder(),
         side: BorderSide.none,
@@ -204,7 +275,7 @@ class AppTheme {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         hintStyle: TextStyle(
-          color: charcoal.withValues(alpha: 0.40),
+          color: charcoal.withValues(alpha: 0.62),
           fontWeight: FontWeight.w400,
         ),
         border: OutlineInputBorder(
@@ -285,8 +356,8 @@ class AppTheme {
   static ThemeData get darkTheme {
     const seed = mountainTeal;
     const surface = Color(0xFF101817);
-    const elevatedSurface = Color(0xFF172321);
-    const outline = Color(0xFF31413E);
+    const elevatedSurface = Color(0xFF1A2624);
+    const outline = Color(0xFF4A5D58);
 
     final cs = ColorScheme.fromSeed(
       seedColor: seed,
@@ -294,9 +365,24 @@ class AppTheme {
       secondary: earthOchre,
       tertiary: highlandSage,
     ).copyWith(
+      primary: const Color(0xFF8CD8E6),
+      onPrimary: const Color(0xFF00363F),
+      primaryContainer: const Color(0xFF0D4C57),
+      onPrimaryContainer: const Color(0xFFD8F7FC),
+      secondary: const Color(0xFFFFB77A),
+      onSecondary: const Color(0xFF432306),
+      secondaryContainer: const Color(0xFF60340F),
+      onSecondaryContainer: const Color(0xFFFFE2CB),
+      tertiary: const Color(0xFFA8D7B6),
+      onTertiary: const Color(0xFF133821),
+      tertiaryContainer: const Color(0xFF275234),
+      onTertiaryContainer: const Color(0xFFD7F1DD),
       surface: surface,
+      onSurface: const Color(0xFFF2F7F5),
+      onSurfaceVariant: const Color(0xFFC9D4CF),
+      outline: outline,
       surfaceContainerHighest: elevatedSurface,
-      outlineVariant: outline,
+      outlineVariant: const Color(0xFF40524D),
     );
 
     final baseText = ThemeData.dark(useMaterial3: true).textTheme;
@@ -331,7 +417,7 @@ class AppTheme {
           ),
           bodyMedium: baseText.bodyMedium?.copyWith(
             height: 1.55,
-            color: cs.onSurface.withValues(alpha: 0.82),
+            color: cs.onSurface.withValues(alpha: 0.90),
           ),
           bodySmall: baseText.bodySmall?.copyWith(
             height: 1.5,

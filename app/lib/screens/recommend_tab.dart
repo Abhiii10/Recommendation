@@ -9,6 +9,7 @@ import '../models/unified_recommendation.dart';
 import '../services/recommendation_manager.dart';
 import '../services/recommender_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_card.dart';
 import '../widgets/score_breakdown_widget.dart';
 import '../widgets/skeleton_card.dart';
@@ -129,8 +130,7 @@ class _RecommendTabState extends State<RecommendTab> {
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
-  Color _actColor() =>
-      _kActivityColours[activity] ?? Theme.of(context).colorScheme.primary;
+  Color _actColor() => AppTheme.categoryColourFor(context, activity);
 
   String _cap(String v) =>
       v.isEmpty ? v : '${v[0].toUpperCase()}${v.substring(1)}';
@@ -317,7 +317,10 @@ class _RecommendTabState extends State<RecommendTab> {
             runSpacing: 8,
             children: options.map((opt) {
               final sel = opt == selected;
-              final color = colours?[opt] ?? cs.primary;
+              final color = colours != null
+                  ? AppTheme.categoryColourFor(context, opt)
+                  : cs.primary;
+              final foreground = AppTheme.foregroundFor(color);
               final icon = icons?[opt];
               return GestureDetector(
                 onTap: () {
@@ -349,12 +352,12 @@ class _RecommendTabState extends State<RecommendTab> {
                     if (icon != null) ...[
                       Icon(icon,
                           size: 15,
-                          color: sel ? Colors.white : cs.onSurfaceVariant),
+                          color: sel ? foreground : cs.onSurfaceVariant),
                       const SizedBox(width: 6),
                     ],
                     Text(_cap(opt),
                         style: TextStyle(
-                          color: sel ? Colors.white : cs.onSurface,
+                          color: sel ? foreground : cs.onSurface,
                           fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
                           fontSize: 13,
                         )),
@@ -609,7 +612,10 @@ class _RecommendTabState extends State<RecommendTab> {
               MaterialPageRoute(
                 builder: (_) => DetailsScreen(
                   destination: result.destination,
-                  nearbyAccommodations: widget.accommodations,
+                  nearbyAccommodations: accommodationsForDestination(
+                    result.destination,
+                    widget.accommodations,
+                  ),
                   isSaved: saved,
                   onToggleSaved: () => _toggleAndRefresh(result.destination),
                 ),
@@ -787,7 +793,7 @@ class _RecommendTabState extends State<RecommendTab> {
         ],
       ),
       body: DecoratedBox(
-        decoration: AppTheme.scaffoldDecoration,
+        decoration: AppTheme.scaffoldDecorationFor(context),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [

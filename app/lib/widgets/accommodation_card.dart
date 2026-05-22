@@ -12,11 +12,13 @@ class AccommodationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final budgetColor = switch (accommodation.priceRange) {
-      'budget' => Colors.green,
-      'medium' => Colors.orange,
-      'premium' => Colors.deepPurple,
-      _ => Colors.grey,
+      'budget' => isDark ? const Color(0xFF8FD694) : Colors.green.shade800,
+      'medium' => isDark ? const Color(0xFFFFB067) : Colors.orange.shade900,
+      'premium' => isDark ? const Color(0xFFD6A8FF) : Colors.deepPurple,
+      _ => cs.onSurfaceVariant,
     };
 
     return Card(
@@ -28,17 +30,18 @@ class AccommodationCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.hotel,
-                  color: Color(0xFF2E7D32),
+                  color: cs.primary,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     accommodation.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
+                      color: cs.onSurface,
                     ),
                   ),
                 ),
@@ -56,14 +59,14 @@ class AccommodationCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 accommodation.accommodationType!,
-                style: TextStyle(color: Colors.grey.shade700),
+                style: TextStyle(color: cs.onSurfaceVariant),
               ),
             ],
             if ((accommodation.locationNote ?? '').isNotEmpty) ...[
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  Icon(Icons.location_on, size: 16, color: cs.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Expanded(child: Text(accommodation.locationNote!)),
                 ],
@@ -81,14 +84,14 @@ class AccommodationCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
+                      color: cs.tertiaryContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       item,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF2E7D32),
+                        color: cs.onTertiaryContainer,
                       ),
                     ),
                   );

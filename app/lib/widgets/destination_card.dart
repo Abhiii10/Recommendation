@@ -58,7 +58,7 @@ class DestinationCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final cat =
         destination.category.isNotEmpty ? destination.category.first : 'scenic';
-    final catColor = AppTheme.categoryColour(cat);
+    final catColor = AppTheme.categoryColourFor(context, cat);
     final catIcon = _iconFor(cat);
     final locationText = destination.locationText.trim().isEmpty
         ? 'Location details unavailable'

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -31,6 +32,10 @@ const _kCategoryIcons = <String, IconData>{
   'social': Icons.people_rounded,
 };
 
+const _recentSearchesKey = 'recent_searches';
+const _recentSearchTimestampsKey = 'recent_search_timestamps';
+const _recentSearchMaxAge = Duration(days: 30);
+
 IconData _iconFor(String cat) =>
     _kCategoryIcons[cat.toLowerCase()] ?? Icons.place_rounded;
 
@@ -62,6 +67,7 @@ class _HomeTabState extends State<HomeTab> {
   String _debouncedQuery = '';
   String? _activeCategory;
   List<String> _recentSearches = [];
+  Map<String, int> _recentSearchTimestamps = {};
   SharedPreferences? _prefs;
 
   @override
@@ -79,10 +85,43 @@ class _HomeTabState extends State<HomeTab> {
 
   Future<void> _loadRecentSearches() async {
     final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final searches = prefs.getStringList(_recentSearchesKey) ?? [];
+    final timestamps = _loadRecentSearchTimestamps(prefs);
+    final activeSearches = <String>[];
+    final activeTimestamps = <String, int>{};
+
+    for (final search in searches) {
+      final normalized = search.trim();
+      if (normalized.isEmpty) continue;
+
+      final key = _recentSearchKey(normalized);
+      final timestamp = timestamps[key] ?? now.millisecondsSinceEpoch;
+      final savedAt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+      if (now.difference(savedAt) > _recentSearchMaxAge) {
+        continue;
+      }
+
+      activeSearches.add(normalized);
+      activeTimestamps[key] = timestamp;
+    }
+
+    unawaited(
+      Future.wait([
+        prefs.setStringList(_recentSearchesKey, activeSearches),
+        prefs.setString(
+          _recentSearchTimestampsKey,
+          jsonEncode(activeTimestamps),
+        ),
+      ]),
+    );
+
     if (!mounted) return;
     setState(() {
       _prefs = prefs;
-      _recentSearches = prefs.getStringList('recent_searches') ?? [];
+      _recentSearches = activeSearches;
+      _recentSearchTimestamps = activeTimestamps;
     });
   }
 
@@ -111,9 +150,46 @@ class _HomeTabState extends State<HomeTab> {
     if (n.isEmpty) return;
     _recentSearches.removeWhere((e) => e.toLowerCase() == n.toLowerCase());
     _recentSearches.insert(0, n);
-    if (_recentSearches.length > 5) _recentSearches.removeLast();
-    unawaited(_prefs?.setStringList('recent_searches', _recentSearches));
+    _recentSearchTimestamps[_recentSearchKey(n)] =
+        DateTime.now().millisecondsSinceEpoch;
+    if (_recentSearches.length > 5) {
+      final removed = _recentSearches.removeLast();
+      _recentSearchTimestamps.remove(_recentSearchKey(removed));
+    }
+    _persistRecentSearches();
   }
+
+  Map<String, int> _loadRecentSearchTimestamps(SharedPreferences prefs) {
+    final raw = prefs.getString(_recentSearchTimestampsKey);
+    if (raw == null || raw.isEmpty) return {};
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map((key, value) {
+        final timestamp = value is int ? value : int.tryParse('$value') ?? 0;
+        return MapEntry(key, timestamp);
+      });
+    } catch (_) {
+      return {};
+    }
+  }
+
+  void _persistRecentSearches() {
+    final prefs = _prefs;
+    if (prefs == null) return;
+
+    unawaited(
+      Future.wait([
+        prefs.setStringList(_recentSearchesKey, _recentSearches),
+        prefs.setString(
+          _recentSearchTimestampsKey,
+          jsonEncode(_recentSearchTimestamps),
+        ),
+      ]),
+    );
+  }
+
+  String _recentSearchKey(String value) => value.trim().toLowerCase();
 
   void _applySuggestion(String value) {
     _controller.text = value;
@@ -270,7 +346,7 @@ class _HomeTabState extends State<HomeTab> {
     final hasFilter = _debouncedQuery.isNotEmpty || _activeCategory != null;
 
     return DecoratedBox(
-      decoration: AppTheme.scaffoldDecoration,
+      decoration: AppTheme.scaffoldDecorationFor(context),
       child: CustomScrollView(
         slivers: [
           SliverAppBar.large(
@@ -544,6 +620,7 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
@@ -551,10 +628,10 @@ class _SearchBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.70),
+            color: cs.surface.withValues(alpha: isDark ? 0.92 : 0.82),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: cs.outlineVariant,
               width: 1,
             ),
             boxShadow: [
@@ -568,7 +645,7 @@ class _SearchBar extends StatelessWidget {
           child: TextField(
             controller: controller,
             onChanged: onChanged,
-            style: const TextStyle(fontSize: 15),
+            style: TextStyle(fontSize: 15, color: cs.onSurface),
             decoration: InputDecoration(
               hintText: 'Search destination, district, activity...',
               hintStyle: TextStyle(
@@ -608,7 +685,7 @@ class _SearchBar extends StatelessWidget {
                 borderSide: BorderSide(color: cs.primary, width: 1.8),
               ),
               filled: true,
-              fillColor: cs.surface.withValues(alpha: 0.58),
+              fillColor: cs.surface.withValues(alpha: isDark ? 0.98 : 0.72),
             ),
           ),
         ),
@@ -658,6 +735,8 @@ class _CategoryStripState extends State<_CategoryStrip> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 42,
       child: NotificationListener<ScrollNotification>(
@@ -676,7 +755,8 @@ class _CategoryStripState extends State<_CategoryStrip> {
           itemBuilder: (context, i) {
             final cat = widget.categories[i];
             final isActive = cat == widget.active;
-            final color = AppTheme.categoryColour(cat);
+            final color = AppTheme.categoryColourFor(context, cat);
+            final foreground = AppTheme.foregroundFor(color);
 
             return AnimatedScale(
               scale: isActive ? 1.05 : 1.0,
@@ -692,10 +772,10 @@ class _CategoryStripState extends State<_CategoryStrip> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isActive ? color : Colors.white,
+                    color: isActive ? color : cs.surface,
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: isActive ? color : const Color(0xFFD8DDD9),
+                      color: isActive ? color : cs.outlineVariant,
                       width: isActive ? 0 : 1,
                     ),
                     boxShadow: isActive
@@ -714,7 +794,7 @@ class _CategoryStripState extends State<_CategoryStrip> {
                       Icon(
                         _iconFor(cat),
                         size: 14,
-                        color: isActive ? Colors.white : color,
+                        color: isActive ? foreground : color,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -722,8 +802,7 @@ class _CategoryStripState extends State<_CategoryStrip> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color:
-                              isActive ? Colors.white : const Color(0xFF3A4040),
+                          color: isActive ? foreground : cs.onSurface,
                         ),
                       ),
                     ],
@@ -862,6 +941,9 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final iconForeground = AppTheme.foregroundFor(color);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -885,7 +967,7 @@ class _ActionTile extends StatelessWidget {
                 color: color,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: Colors.white, size: 20),
+              child: Icon(icon, color: iconForeground, size: 20),
             ),
             const SizedBox(height: 10),
             Text(
@@ -901,9 +983,9 @@ class _ActionTile extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: Color(0xFF6B7676),
+                color: cs.onSurfaceVariant,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -976,7 +1058,7 @@ class _FeaturedHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cat =
         destination.category.isNotEmpty ? destination.category.first : 'scenic';
-    final color = AppTheme.categoryColour(cat);
+    final color = AppTheme.categoryColourFor(context, cat);
 
     return GestureDetector(
       onTap: () {
@@ -1186,7 +1268,7 @@ class _CompactDestinationCard extends StatelessWidget {
     final cat =
         destination.category.isNotEmpty ? destination.category.first : 'scenic';
 
-    final color = AppTheme.categoryColour(cat);
+    final color = AppTheme.categoryColourFor(context, cat);
     final locationParts = [
       if ((destination.district ?? '').trim().isNotEmpty) destination.district!,
       if ((destination.municipality ?? '').trim().isNotEmpty)
@@ -1199,7 +1281,7 @@ class _CompactDestinationCard extends StatelessWidget {
     }.where((e) => e.trim().isNotEmpty).take(3).toList();
 
     return Material(
-      color: Colors.white,
+      color: cs.surface,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -1208,7 +1290,7 @@ class _CompactDestinationCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: const Color(0xFFE0E6E2),
+              color: cs.outlineVariant,
               width: 1,
             ),
           ),

@@ -6,9 +6,11 @@ import '../core/utils/backend_config.dart';
 
 class LlmChatApiService {
   final Duration timeout;
+  final Duration healthTimeout;
 
   const LlmChatApiService({
-    this.timeout = const Duration(seconds: 45),
+    this.timeout = const Duration(seconds: 15),
+    this.healthTimeout = const Duration(seconds: 3),
   });
 
   Uri _uri(String path) {
@@ -36,7 +38,7 @@ class LlmChatApiService {
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
-        'Gemini chat failed: ${response.statusCode} ${response.body}',
+        'LLM chat failed: ${response.statusCode} ${response.body}',
       );
     }
 
@@ -44,9 +46,18 @@ class LlmChatApiService {
     final answer = data['answer']?.toString().trim();
 
     if (answer == null || answer.isEmpty) {
-      throw Exception('Gemini returned empty answer');
+      throw Exception('LLM chat failed: empty answer');
     }
 
     return answer;
+  }
+
+  Future<bool> isHealthy() async {
+    try {
+      final response = await http.get(_uri('/health')).timeout(healthTimeout);
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (_) {
+      return false;
+    }
   }
 }

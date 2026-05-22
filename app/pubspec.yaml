@@ -25,16 +25,23 @@ dependencies:
   shared_preferences: ^2.2.3
   flutter_map_mbtiles: ^1.0.4
   flutter_riverpod: ^3.3.1
-  sentry_flutter: ^8.14.2
+  sentry_flutter: ^9.0.0
   posthog_flutter: ^5.24.2
   intl: ^0.20.2
   path_provider: ^2.1.5
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  lottie: ^3.3.3
+  connectivity_plus: ^7.1.1
+  share_plus: ^12.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  golden_toolkit: ^0.15.0
 
 flutter:
   generate: true
@@ -42,6 +49,22 @@ flutter:
 
   assets:
     - assets/data/
-    - assets/images/
+    - assets/images/pokhara.png
+    - assets/images/pokhara_hero.webp
+    - assets/images/cat_trekking.jpg
+    - assets/images/cat_cultural.jpg
+    - assets/images/cat_nature.jpg
+    - assets/images/cat_village.jpg
+    - assets/images/cat_wildlife.jpg
+    - assets/images/cat_boating.jpg
+    - assets/images/cat_spiritual.jpg
+    - assets/images/cat_relaxation.jpg
     - assets/maps/
     - .env
+
+  fonts:
+    - family: Outfit
+      fonts:
+        - asset: fonts/Outfit-VariableFont_wght.ttf
+          weight: 100
+          style: normal

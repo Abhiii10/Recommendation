@@ -1,13 +1,18 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/chat_message.dart';
 import '../models/destination.dart';
 import '../services/chatbot_service.dart';
 import '../services/llm_chat_api_service.dart';
 import '../services/translation_service.dart';
+import '../theme/app_theme.dart';
+
 class ChatbotScreen extends StatefulWidget {
   final List<Destination> destinations;
 
@@ -90,8 +95,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     if (!mounted) return;
 
+    final l10n = AppLocalizations.of(context);
+
     setState(() {
-      _messages.add(_service.greetingMessage());
+      _messages.add(
+        ChatMessage.fromBot(
+          l10n.chatGreeting,
+          detectedIntent: 'greeting',
+          confidence: 1.0,
+        ),
+      );
       _suggestions = _service.initialSuggestions();
       _loading = false;
     });
@@ -100,6 +113,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   Future<void> _send(String text) async {
+    HapticFeedback.lightImpact();
     final trimmed = text.trim();
 
     if (trimmed.isEmpty || _botTyping || _loading) {
@@ -277,10 +291,17 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   void _clearChat() {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _messages
         ..clear()
-        ..add(_service.greetingMessage());
+        ..add(
+          ChatMessage.fromBot(
+            l10n.chatGreeting,
+            detectedIntent: 'greeting',
+            confidence: 1.0,
+          ),
+        );
       _suggestions = _service.initialSuggestions();
       _botTyping = false;
     });
@@ -288,10 +309,64 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _scrollToBottom();
   }
 
+  Future<void> _showBotMessageMenu(
+    ChatMessage message,
+    Offset globalPosition,
+  ) async {
+    HapticFeedback.selectionClick();
+    final selected = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        globalPosition.dx,
+        globalPosition.dy,
+        globalPosition.dx,
+        globalPosition.dy,
+      ),
+      items: const [
+        PopupMenuItem(
+          value: 'read',
+          child: Row(
+            children: [
+              Icon(Icons.volume_up_rounded, size: 18),
+              SizedBox(width: 8),
+              Text('Read aloud'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'copy',
+          child: Row(
+            children: [
+              Icon(Icons.copy_rounded, size: 18),
+              SizedBox(width: 8),
+              Text('Copy'),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (!mounted || selected == null) return;
+
+    switch (selected) {
+      case 'read':
+        await _speak(message.text);
+        break;
+      case 'copy':
+        await Clipboard.setData(ClipboardData(text: message.text));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Copied response')),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -314,8 +389,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tourism Assistant',
+                Text(
+                  l10n.chatTitle,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -340,75 +415,49 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
-                    itemCount: _messages.length + (_botTyping ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (_botTyping && index == _messages.length) {
-                        return _TypingIndicator(colorScheme: colorScheme);
-                      }
+      body: DecoratedBox(
+        decoration: AppTheme.scaffoldDecoration,
+        child: Column(
+          children: [
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                      itemCount: _messages.length + (_botTyping ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (_botTyping && index == _messages.length) {
+                          return const _TypingIndicator();
+                        }
 
-                      return _buildBubble(
-                        message: _messages[index],
-                        colorScheme: colorScheme,
-                        theme: theme,
-                      );
-                    },
-                  ),
-          ),
-          if (_suggestions.isNotEmpty && !_botTyping) ...[
-            _buildSuggestions(colorScheme),
+                        return _buildBubble(
+                          message: _messages[index],
+                          colorScheme: colorScheme,
+                          theme: theme,
+                        );
+                      },
+                    ),
+            ),
+            if (_suggestions.isNotEmpty && !_botTyping) ...[
+              _buildSuggestions(colorScheme),
+            ],
+            _buildInputBar(colorScheme),
           ],
-          _buildInputBar(colorScheme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSuggestions(ColorScheme colorScheme) {
-    return Container(
-      width: double.infinity,
-      color: colorScheme.surface,
-      padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _suggestions.map((suggestion) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ActionChip(
-                label: Text(
-                  suggestion.label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                backgroundColor:
-                    colorScheme.primaryContainer.withValues(alpha: 0.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                  side: BorderSide(
-                    color: colorScheme.primary.withValues(alpha: 0.25),
-                  ),
-                ),
-                onPressed: () => _send(suggestion.message),
-              ),
-            );
-          }).toList(),
         ),
       ),
     );
   }
 
+  Widget _buildSuggestions(ColorScheme colorScheme) {
+    return _QuickSuggestions(
+      suggestions: _suggestions,
+      onSelected: (suggestion) => _send(suggestion.message),
+    );
+  }
+
   Widget _buildInputBar(ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -436,7 +485,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               onSubmitted: _send,
               enabled: !_loading && !_botTyping,
               decoration: InputDecoration(
-                hintText: 'Ask about destinations, trekking, food…',
+                hintText: l10n.chatPlaceholder,
                 hintStyle: TextStyle(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -456,15 +505,20 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(12),
-              backgroundColor: colorScheme.primary,
+          Semantics(
+            label: 'Send message',
+            button: true,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(12),
+                backgroundColor: colorScheme.primary,
+              ),
+              onPressed: (_loading || _botTyping)
+                  ? null
+                  : () => _send(_controller.text),
+              child: const Icon(Icons.send_rounded, size: 20),
             ),
-            onPressed:
-                (_loading || _botTyping) ? null : () => _send(_controller.text),
-            child: const Icon(Icons.send_rounded, size: 20),
           ),
         ],
       ),
@@ -506,29 +560,44 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               crossAxisAlignment:
                   isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isUser
-                        ? colorScheme.primary
-                        : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(18),
-                      topRight: const Radius.circular(18),
-                      bottomLeft: Radius.circular(isUser ? 18 : 4),
-                      bottomRight: Radius.circular(isUser ? 4 : 18),
+                GestureDetector(
+                  onLongPressStart: isUser
+                      ? null
+                      : (details) => _showBotMessageMenu(
+                            message,
+                            details.globalPosition,
+                          ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
-                  ),
-                  child: Text(
-                    message.text,
-                    style: TextStyle(
-                      color:
-                          isUser ? colorScheme.onPrimary : colorScheme.onSurface,
-                      fontSize: 14,
-                      height: 1.5,
+                    decoration: BoxDecoration(
+                      color: isUser ? colorScheme.primary : null,
+                      gradient: isUser
+                          ? null
+                          : const LinearGradient(
+                              colors: [
+                                AppTheme.mountainTeal,
+                                AppTheme.highlandSage,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(isUser ? 18 : 4),
+                        topRight: const Radius.circular(20),
+                        bottomLeft: const Radius.circular(20),
+                        bottomRight: Radius.circular(isUser ? 4 : 20),
+                      ),
+                    ),
+                    child: Text(
+                      message.text,
+                      style: TextStyle(
+                        color: isUser ? colorScheme.onPrimary : Colors.white,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -538,17 +607,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _ActionButton(
-                          icon: (_ttsPlaying && _ttsSpeaking == message.text)
-                              ? Icons.stop_rounded
-                              : Icons.volume_up_rounded,
-                          label: (_ttsPlaying && _ttsSpeaking == message.text)
-                              ? 'Stop'
-                              : 'Listen',
-                          color: colorScheme.primary,
-                          onTap: () => _speak(message.text),
-                        ),
-                        const SizedBox(width: 6),
                         _ActionButton(
                           icon: Icons.translate_rounded,
                           label: 'Nepali',
@@ -563,6 +621,84 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           ),
           if (isUser) const SizedBox(width: 8),
         ],
+      ),
+    );
+  }
+}
+
+class _QuickSuggestions extends StatefulWidget {
+  final List<QuickSuggestion> suggestions;
+  final ValueChanged<QuickSuggestion> onSelected;
+
+  const _QuickSuggestions({
+    required this.suggestions,
+    required this.onSelected,
+  });
+
+  @override
+  State<_QuickSuggestions> createState() => _QuickSuggestionsState();
+}
+
+class _QuickSuggestionsState extends State<_QuickSuggestions>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 360),
+    )..forward();
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0.08, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: Container(
+          width: double.infinity,
+          color: cs.surface.withValues(alpha: 0.86),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: widget.suggestions.map((suggestion) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ActionChip(
+                    avatar: Icon(suggestion.icon, size: 14),
+                    label: Text(suggestion.text),
+                    onPressed: () => widget.onSelected(suggestion),
+                    backgroundColor: cs.primaryContainer.withValues(alpha: 0.7),
+                    side: BorderSide.none,
+                    labelStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -615,11 +751,7 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _TypingIndicator extends StatefulWidget {
-  final ColorScheme colorScheme;
-
-  const _TypingIndicator({
-    required this.colorScheme,
-  });
+  const _TypingIndicator();
 
   @override
   State<_TypingIndicator> createState() => _TypingIndicatorState();
@@ -632,10 +764,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 600),
     )..repeat();
   }
 
@@ -645,15 +776,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
     super.dispose();
   }
 
-  double _dotOpacity(int index) {
-    final phase = (_controller.value - index * 0.15).clamp(0.0, 1.0);
-    final wave = phase < 0.5 ? 2 * phase : 2 * (1 - phase);
-    return 0.3 + 0.7 * (0.5 + 0.5 * wave);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = widget.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -675,43 +800,57 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(4),
-                bottomRight: Radius.circular(18),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppTheme.mountainTeal, AppTheme.highlandSage],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: List.generate(3, (index) {
-                return AnimatedBuilder(
-                  animation: _controller,
-                  builder: (_, __) {
-                    return Container(
-                      margin: EdgeInsets.only(right: index < 2 ? 4 : 0),
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colorScheme.primary.withValues(
-                          alpha: _dotOpacity(index),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }),
+              children: [
+                _TypingDot(controller: _controller, offset: 0.0),
+                const SizedBox(width: 5),
+                _TypingDot(controller: _controller, offset: 0.33),
+                const SizedBox(width: 5),
+                _TypingDot(controller: _controller, offset: 0.66),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TypingDot extends StatelessWidget {
+  final AnimationController controller;
+  final double offset;
+
+  const _TypingDot({
+    required this.controller,
+    required this.offset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (_, __) {
+        final value = sin((controller.value + offset) * pi).clamp(0.0, 1.0);
+        return Transform.translate(
+          offset: Offset(0, -4 * value),
+          child: const CircleAvatar(radius: 4, backgroundColor: Colors.white70),
+        );
+      },
     );
   }
 }

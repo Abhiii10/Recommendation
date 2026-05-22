@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/utils/backend_config.dart';
 import 'core/observability/app_telemetry.dart';
 import 'data/datasources/user_profile_local_datasource.dart';
 import 'data/repositories/shared_preferences_user_profile_repository.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
       } catch (_) {}
 
       await AppTelemetry.instance.initialize();
+      BackendConfig.debugAssertAnthropicApiKeyConfigured();
 
       FlutterError.onError = (details) {
         FlutterError.presentError(details);
@@ -72,20 +74,39 @@ Future<void> main() async {
   );
 }
 
-class RuralTourismApp extends StatelessWidget {
+class RuralTourismApp extends StatefulWidget {
   const RuralTourismApp({super.key});
 
   @override
+  State<RuralTourismApp> createState() => _RuralTourismAppState();
+}
+
+class _RuralTourismAppState extends State<RuralTourismApp> {
+  final ValueNotifier<ThemeMode> _themeMode =
+      ValueNotifier<ThemeMode>(ThemeMode.system);
+
+  @override
+  void dispose() {
+    _themeMode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: const DashboardScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: _themeMode,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.theme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DashboardScreen(themeMode: _themeMode),
+        );
+      },
     );
   }
 }

@@ -146,6 +146,96 @@ abstract class AppLocalizations {
   /// **'Tourism Assistant'**
   String get chatTitle;
 
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-driven guide for rural tourism in Nepal.'**
+  String get aboutSubtitle;
+
+  /// No description provided for @projectPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'This app helps travelers discover rural destinations around Pokhara through recommendations, map exploration, destination details, saved places, translation, and offline-friendly guidance.'**
+  String get projectPurpose;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get darkMode;
+
+  /// No description provided for @featureRecommendations.
+  ///
+  /// In en, this message translates to:
+  /// **'Preference-based destination recommendations'**
+  String get featureRecommendations;
+
+  /// No description provided for @featureMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map-based destination exploration'**
+  String get featureMap;
+
+  /// No description provided for @featureDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination details with location actions'**
+  String get featureDetails;
+
+  /// No description provided for @featureSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved destinations with local persistence'**
+  String get featureSaved;
+
+  /// No description provided for @featureTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline-friendly phrase translation'**
+  String get featureTranslation;
+
+  /// No description provided for @savedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved places yet'**
+  String get savedEmpty;
+
+  /// No description provided for @savedEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse destinations on the Home tab or get AI recommendations and bookmark the places you want to revisit.'**
+  String get savedEmptySubtitle;
+
+  /// No description provided for @chatPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about destinations, trekking, food...'**
+  String get chatPlaceholder;
+
+  /// No description provided for @chatGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Namaste! Ask me about destinations, trekking, homestays, safety, transport, food, or culture.'**
+  String get chatGreeting;
+
+  /// No description provided for @noInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet - some features unavailable'**
+  String get noInternet;
+
+  /// No description provided for @backOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Back online'**
+  String get backOnline;
+
   /// No description provided for @offlineMap.
   ///
   /// In en, this message translates to:

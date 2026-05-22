@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Chat message model for the tourism chatbot.
 enum MessageSender { user, bot }
 
@@ -21,7 +23,7 @@ class ChatMessage {
   });
 
   bool get isUser => sender == MessageSender.user;
-  bool get isBot  => sender == MessageSender.bot;
+  bool get isBot => sender == MessageSender.bot;
 
   static ChatMessage fromUser(String text) => ChatMessage(
         text: text,
@@ -45,7 +47,15 @@ class ChatMessage {
 
 /// Suggested quick-reply chip shown below the input bar
 class QuickSuggestion {
-  final String label;
+  final String text;
   final String message;
-  const QuickSuggestion({required this.label, required this.message});
+  final IconData icon;
+
+  const QuickSuggestion(
+    this.text, {
+    required this.icon,
+    String? message,
+  }) : message = message ?? text;
+
+  String get label => text;
 }

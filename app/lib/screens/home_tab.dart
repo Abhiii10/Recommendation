@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/destination.dart';
 import '../theme/app_theme.dart';
+import '../widgets/destination_image.dart';
 import 'details_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,13 +61,29 @@ class _HomeTabState extends State<HomeTab> {
   String _query = '';
   String _debouncedQuery = '';
   String? _activeCategory;
-  final List<String> _recentSearches = [];
+  List<String> _recentSearches = [];
+  SharedPreferences? _prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadRecentSearches());
+  }
 
   @override
   void dispose() {
     _debounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _prefs = prefs;
+      _recentSearches = prefs.getStringList('recent_searches') ?? [];
+    });
   }
 
   void _onSearchChanged(String value) {
@@ -77,6 +97,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   void _clearSearch() {
+    HapticFeedback.lightImpact();
     _debounce?.cancel();
     _controller.clear();
     setState(() {
@@ -91,6 +112,7 @@ class _HomeTabState extends State<HomeTab> {
     _recentSearches.removeWhere((e) => e.toLowerCase() == n.toLowerCase());
     _recentSearches.insert(0, n);
     if (_recentSearches.length > 5) _recentSearches.removeLast();
+    unawaited(_prefs?.setStringList('recent_searches', _recentSearches));
   }
 
   void _applySuggestion(String value) {
@@ -247,240 +269,243 @@ class _HomeTabState extends State<HomeTab> {
     final rankedResults = _rankedResults;
     final hasFilter = _debouncedQuery.isNotEmpty || _activeCategory != null;
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar.large(
-          pinned: true,
-          expandedHeight: 300,
-          backgroundColor: cs.surface,
-          title: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: cs.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.landscape_rounded,
-                  color: cs.onPrimary,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text(
-                  'Nepal Tourism Guide',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          flexibleSpace: FlexibleSpaceBar(
-            collapseMode: CollapseMode.parallax,
-            background: Stack(
-              fit: StackFit.expand,
+    return DecoratedBox(
+      decoration: AppTheme.scaffoldDecoration,
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            pinned: true,
+            expandedHeight: 300,
+            backgroundColor: cs.surface,
+            title: Row(
               children: [
-                Image.asset(
-                  'assets/images/pokhara_hero.webp',
-                  fit: BoxFit.cover,
-                  cacheWidth: 1600,
-                ),
-                DecoratedBox(
+                Container(
+                  width: 30,
+                  height: 30,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.45, 1.0],
-                      colors: [
-                        Colors.black.withValues(alpha: 0.08),
-                        Colors.black.withValues(alpha: 0.30),
-                        Colors.black.withValues(alpha: 0.72),
-                      ],
-                    ),
+                    color: cs.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.landscape_rounded,
+                    color: cs.onPrimary,
+                    size: 18,
                   ),
                 ),
-                const Positioned(
-                  left: 20,
-                  right: 20,
-                  bottom: 28,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Discover Rural Nepal',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          fontFamily: 'Georgia',
-                          height: 1.15,
-                          letterSpacing: -0.5,
-                          shadows: [
-                            Shadow(color: Colors.black38, blurRadius: 12),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Hidden villages · Sacred trails · Authentic culture',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Nepal Tourism Guide',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.parallax,
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/images/pokhara_hero.webp',
+                    fit: BoxFit.cover,
+                    cacheWidth: 1600,
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.45, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.08),
+                          Colors.black.withValues(alpha: 0.30),
+                          Colors.black.withValues(alpha: 0.72),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 28,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Discover Rural Nepal',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: 'Outfit',
+                            height: 1.15,
+                            letterSpacing: 0,
+                            shadows: [
+                              Shadow(color: Colors.black38, blurRadius: 12),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Hidden villages · Sacred trails · Authentic culture',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SearchBar(
-                      controller: _controller,
-                      query: _query,
-                      onChanged: _onSearchChanged,
-                      onClear: _clearSearch,
-                    ),
-                    const SizedBox(height: 14),
-                    _CategoryStrip(
-                      categories: _allCategories,
-                      active: _activeCategory,
-                      onTap: (cat) => setState(() {
-                        _activeCategory = _activeCategory == cat ? null : cat;
-                      }),
-                    ),
-                    const SizedBox(height: 20),
-                    if (_query.isEmpty && _recentSearches.isNotEmpty) ...[
-                      _SectionLabel(text: 'Recent searches'),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _recentSearches.map((item) {
-                          return ActionChip(
-                            avatar: Icon(
-                              Icons.history_rounded,
-                              size: 16,
-                              color: cs.onSurfaceVariant,
-                            ),
-                            label: Text(item),
-                            onPressed: () => _applySuggestion(item),
-                          );
-                        }).toList(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SearchBar(
+                        controller: _controller,
+                        query: _query,
+                        onChanged: _onSearchChanged,
+                        onClear: _clearSearch,
                       ),
-                      const SizedBox(height: 22),
-                    ],
-                    if (!hasFilter) ...[
-                      _SectionLabel(text: 'Explore the app'),
-                      const SizedBox(height: 12),
-                      _QuickActionRow(
-                        onRecommend: widget.onOpenRecommend,
-                        onMap: widget.onOpenMap,
-                        onSaved: widget.onOpenSaved,
+                      const SizedBox(height: 14),
+                      _CategoryStrip(
+                        categories: _allCategories,
+                        active: _activeCategory,
+                        onTap: (cat) => setState(() {
+                          _activeCategory = _activeCategory == cat ? null : cat;
+                        }),
                       ),
-                      const SizedBox(height: 28),
-                    ],
-                    if (!hasFilter) ...[
-                      _SectionLabel(text: 'Featured Destinations'),
-                      const SizedBox(height: 12),
-                      _FeaturedCarousel(
-                        destinations: featured,
-                        onTap: (d) => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DetailsScreen(destination: d),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      _SectionLabel(
-                        text:
-                            'All Destinations (${widget.destinations.length})',
-                      ),
-                      const SizedBox(height: 12),
-                      ...widget.destinations.map((d) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _CompactDestinationCard(
-                            destination: d,
-                            reason: 'Browse all destinations',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => DetailsScreen(destination: d),
+                      const SizedBox(height: 20),
+                      if (_query.isEmpty && _recentSearches.isNotEmpty) ...[
+                        _SectionLabel(text: 'Recent searches'),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _recentSearches.map((item) {
+                            return ActionChip(
+                              avatar: Icon(
+                                Icons.history_rounded,
+                                size: 16,
+                                color: cs.onSurfaceVariant,
                               ),
+                              label: Text(item),
+                              onPressed: () => _applySuggestion(item),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 22),
+                      ],
+                      if (!hasFilter) ...[
+                        _SectionLabel(text: 'Explore the app'),
+                        const SizedBox(height: 12),
+                        _QuickActionRow(
+                          onRecommend: widget.onOpenRecommend,
+                          onMap: widget.onOpenMap,
+                          onSaved: widget.onOpenSaved,
+                        ),
+                        const SizedBox(height: 28),
+                      ],
+                      if (!hasFilter) ...[
+                        _SectionLabel(text: 'Featured Destinations'),
+                        const SizedBox(height: 12),
+                        _FeaturedCarousel(
+                          destinations: featured,
+                          onTap: (d) => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailsScreen(destination: d),
                             ),
-                            onMap: widget.onOpenMap,
-                          ),
-                        );
-                      }),
-                    ] else if (rankedResults.isEmpty) ...[
-                      _EmptyResult(
-                        query: _debouncedQuery,
-                        category: _activeCategory,
-                        featured: featured,
-                        onTap: (d) => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DetailsScreen(destination: d),
                           ),
                         ),
-                        onMap: widget.onOpenMap,
-                      ),
-                    ] else ...[
-                      _SectionLabel(
-                        text: 'Results (${rankedResults.length})',
-                        sub: _activeCategory != null
-                            ? 'Filtered by $_activeCategory'
-                            : null,
-                      ),
-                      const SizedBox(height: 12),
-                      ...rankedResults.take(14).map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _CompactDestinationCard(
-                            destination: item.destination,
-                            reason: _debouncedQuery.isNotEmpty
-                                ? _matchReason(
-                                    item.destination,
-                                    _debouncedQuery,
-                                  )
-                                : 'Filtered by $_activeCategory',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => DetailsScreen(
-                                  destination: item.destination,
+                        const SizedBox(height: 28),
+                        _SectionLabel(
+                          text:
+                              'All Destinations (${widget.destinations.length})',
+                        ),
+                        const SizedBox(height: 12),
+                        ...widget.destinations.map((d) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _CompactDestinationCard(
+                              destination: d,
+                              reason: 'Browse all destinations',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => DetailsScreen(destination: d),
                                 ),
                               ),
+                              onMap: widget.onOpenMap,
                             ),
-                            onMap: widget.onOpenMap,
+                          );
+                        }),
+                      ] else if (rankedResults.isEmpty) ...[
+                        _EmptyResult(
+                          query: _debouncedQuery,
+                          category: _activeCategory,
+                          featured: featured,
+                          onTap: (d) => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailsScreen(destination: d),
+                            ),
                           ),
-                        );
-                      }),
+                          onMap: widget.onOpenMap,
+                        ),
+                      ] else ...[
+                        _SectionLabel(
+                          text: 'Results (${rankedResults.length})',
+                          sub: _activeCategory != null
+                              ? 'Filtered by $_activeCategory'
+                              : null,
+                        ),
+                        const SizedBox(height: 12),
+                        ...rankedResults.take(14).map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _CompactDestinationCard(
+                              destination: item.destination,
+                              reason: _debouncedQuery.isNotEmpty
+                                  ? _matchReason(
+                                      item.destination,
+                                      _debouncedQuery,
+                                    )
+                                  : 'Filtered by $_activeCategory',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => DetailsScreen(
+                                    destination: item.destination,
+                                  ),
+                                ),
+                              ),
+                              onMap: widget.onOpenMap,
+                            ),
+                          );
+                        }),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -505,63 +530,81 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        style: const TextStyle(fontSize: 15),
-        decoration: InputDecoration(
-          hintText: 'Search destination, district, activity…',
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: cs.primary,
-            size: 22,
-          ),
-          suffixIcon: query.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.cancel_rounded,
-                    color: cs.onSurfaceVariant,
-                    size: 20,
-                  ),
-                  onPressed: onClear,
-                )
-              : null,
-          border: OutlineInputBorder(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.70),
             borderRadius: BorderRadius.circular(18),
-            borderSide: BorderSide.none,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.5),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.07),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide: BorderSide.none,
+          child: TextField(
+            controller: controller,
+            onChanged: onChanged,
+            style: const TextStyle(fontSize: 15),
+            decoration: InputDecoration(
+              hintText: 'Search destination, district, activity...',
+              hintStyle: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.58),
+                fontWeight: FontWeight.w600,
+              ),
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: cs.primary,
+                size: 22,
+              ),
+              suffixIcon: query.isNotEmpty
+                  ? Semantics(
+                      label: 'Clear search',
+                      button: true,
+                      child: IconButton(
+                        tooltip: 'Clear search',
+                        icon: Icon(
+                          Icons.cancel_rounded,
+                          color: cs.onSurfaceVariant,
+                          size: 20,
+                        ),
+                        onPressed: onClear,
+                      ),
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide(color: cs.primary, width: 1.8),
+              ),
+              filled: true,
+              fillColor: cs.surface.withValues(alpha: 0.58),
+            ),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide: BorderSide(color: cs.primary, width: 1.8),
-          ),
-          filled: true,
-          fillColor: Colors.white,
         ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Category filter strip
 // ─────────────────────────────────────────────────────────────────────────────
-class _CategoryStrip extends StatelessWidget {
+class _CategoryStrip extends StatefulWidget {
   final List<String> categories;
   final String? active;
   final ValueChanged<String> onTap;
@@ -573,68 +616,113 @@ class _CategoryStrip extends StatelessWidget {
   });
 
   @override
+  State<_CategoryStrip> createState() => _CategoryStripState();
+}
+
+class _CategoryStripState extends State<_CategoryStrip> {
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _snapToNearestChip() {
+    if (!_controller.hasClients) return;
+    const chipWidth = 110.0;
+    final max = _controller.position.maxScrollExtent;
+    final nearest =
+        ((_controller.offset / chipWidth).round() * chipWidth).clamp(0.0, max);
+    _controller.animateTo(
+      nearest,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.elasticOut,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 38,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final cat = categories[i];
-          final isActive = cat == active;
-          final color = AppTheme.categoryColour(cat);
-
-          return GestureDetector(
-            onTap: () => onTap(cat),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isActive ? color : Colors.white,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: isActive ? color : const Color(0xFFD8DDD9),
-                  width: isActive ? 0 : 1,
-                ),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: color.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _iconFor(cat),
-                    size: 14,
-                    color: isActive ? Colors.white : color,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${cat[0].toUpperCase()}${cat.substring(1)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: isActive ? Colors.white : const Color(0xFF3A4040),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+      height: 42,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollEndNotification) {
+            _snapToNearestChip();
+          }
+          return false;
         },
+        child: ListView.separated(
+          controller: _controller,
+          physics: const BouncingScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: widget.categories.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, i) {
+            final cat = widget.categories[i];
+            final isActive = cat == widget.active;
+            final color = AppTheme.categoryColour(cat);
+
+            return AnimatedScale(
+              scale: isActive ? 1.05 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutBack,
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  widget.onTap(cat);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isActive ? color : Colors.white,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: isActive ? color : const Color(0xFFD8DDD9),
+                      width: isActive ? 0 : 1,
+                    ),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: color.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _iconFor(cat),
+                        size: 14,
+                        color: isActive ? Colors.white : color,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${cat[0].toUpperCase()}${cat.substring(1)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color:
+                              isActive ? Colors.white : const Color(0xFF3A4040),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Section label
 // ─────────────────────────────────────────────────────────────────────────────
 class _SectionLabel extends StatelessWidget {
@@ -826,147 +914,240 @@ class _FeaturedCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.zero,
-        itemCount: destinations.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, i) {
-          final d = destinations[i];
-          final cat = d.category.isNotEmpty ? d.category.first : 'scenic';
-          final color = AppTheme.categoryColour(cat);
-          final icon = _iconFor(cat);
+    if (destinations.isEmpty) return const SizedBox.shrink();
 
-          return GestureDetector(
-            onTap: () => onTap(d),
-            child: Container(
-              width: 200,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    color.withValues(alpha: 0.85),
-                    color.withValues(alpha: 0.55),
-                    color.withValues(alpha: 0.75),
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.28),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
+    final hero = destinations.first;
+    final rest = destinations.skip(1).take(4).toList();
+
+    return Column(
+      children: [
+        _FeaturedHeroCard(destination: hero, onTap: () => onTap(hero)),
+        if (rest.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: rest.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.86,
+            ),
+            itemBuilder: (context, index) {
+              final destination = rest[index];
+              return _FeaturedMiniCard(
+                destination: destination,
+                onTap: () => onTap(destination),
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FeaturedHeroCard extends StatelessWidget {
+  final Destination destination;
+  final VoidCallback onTap;
+
+  const _FeaturedHeroCard({
+    required this.destination,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cat =
+        destination.category.isNotEmpty ? destination.category.first : 'scenic';
+    final color = AppTheme.categoryColour(cat);
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Container(
+        width: double.infinity,
+        height: 260,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(22),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 200,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Positioned(
-                    top: -30,
-                    right: -30,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.10),
+                  _FeaturedImage(destination: destination, height: 200),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.52),
+                        ],
                       ),
                     ),
                   ),
                   Positioned(
-                    bottom: -20,
-                    left: -20,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.07),
+                    left: 16,
+                    right: 16,
+                    bottom: 14,
+                    child: Text(
+                      destination.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        height: 1.08,
+                        shadows: [
+                          Shadow(color: Colors.black38, blurRadius: 10)
+                        ],
                       ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.22),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, color: Colors.white, size: 22),
-                        ),
-                        const Spacer(),
-                        Text(
-                          d.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            fontFamily: 'Georgia',
-                            shadows: [
-                              Shadow(color: Colors.black26, blurRadius: 6),
-                            ],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          d.district ??
-                              (d.category.isNotEmpty ? d.category.first : ''),
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.80),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.20),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            d.bestSeasonText.isNotEmpty
-                                ? d.bestSeasonText
-                                : 'Year round',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+              child: _FeaturedCategoryChip(category: cat, color: color),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+class _FeaturedMiniCard extends StatelessWidget {
+  final Destination destination;
+  final VoidCallback onTap;
+
+  const _FeaturedMiniCard({
+    required this.destination,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 120,
+              width: double.infinity,
+              child: _FeaturedImage(destination: destination, height: 120),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                destination.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeaturedImage extends StatelessWidget {
+  final Destination destination;
+  final double height;
+
+  const _FeaturedImage({
+    required this.destination,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Hero(
+      tag: 'dest-image-${destination.id}',
+      child: DestinationImage(
+        destination: destination,
+        height: height,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+}
+
+class _FeaturedCategoryChip extends StatelessWidget {
+  final String category;
+  final Color color;
+
+  const _FeaturedCategoryChip({
+    required this.category,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_iconFor(category), size: 13, color: color),
+          const SizedBox(width: 6),
+          Text(
+            '${category[0].toUpperCase()}${category.substring(1)}',
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // Compact destination card
 // ─────────────────────────────────────────────────────────────────────────────
 class _CompactDestinationCard extends StatelessWidget {

@@ -18,6 +18,7 @@ class Destination {
 
   final String shortDescription;
   final String fullDescription;
+  final String? imageUrl;
 
   final double? latitude;
   final double? longitude;
@@ -43,12 +44,29 @@ class Destination {
     this.natureLevel,
     required this.shortDescription,
     required this.fullDescription,
+    this.imageUrl,
     this.latitude,
     this.longitude,
     required this.tags,
     required this.source,
     required this.confidence,
   });
+
+  static const _categoryAssets = {
+    'trekking': 'assets/images/cat_trekking.jpg',
+    'cultural': 'assets/images/cat_cultural.jpg',
+    'culture': 'assets/images/cat_cultural.jpg',
+    'nature': 'assets/images/cat_nature.jpg',
+    'scenic': 'assets/images/cat_nature.jpg',
+    'village': 'assets/images/cat_village.jpg',
+    'wildlife': 'assets/images/cat_wildlife.jpg',
+    'boating': 'assets/images/cat_boating.jpg',
+    'pilgrimage': 'assets/images/cat_spiritual.jpg',
+    'spiritual': 'assets/images/cat_spiritual.jpg',
+    'relaxation': 'assets/images/cat_relaxation.jpg',
+    'adventure': 'assets/images/cat_trekking.jpg',
+    'photography': 'assets/images/cat_nature.jpg',
+  };
 
   factory Destination.fromJson(Map<String, dynamic> json) {
     double? toDouble(dynamic value) {
@@ -91,13 +109,15 @@ class Destination {
       bestSeason: toStringList(json['best_season']),
       budgetLevel: json['budget_level']?.toString(),
       accessibility: json['accessibility']?.toString(),
-      familyFriendly:
-          json['family_friendly'] is bool ? json['family_friendly'] as bool : null,
+      familyFriendly: json['family_friendly'] is bool
+          ? json['family_friendly'] as bool
+          : null,
       adventureLevel: toInt(json['adventure_level']),
       cultureLevel: toInt(json['culture_level']),
       natureLevel: toInt(json['nature_level']),
       shortDescription: (json['short_description'] ?? '').toString(),
       fullDescription: (json['full_description'] ?? '').toString(),
+      imageUrl: json['imageUrl']?.toString(),
       latitude: toDouble(json['latitude']),
       longitude: toDouble(json['longitude']),
       tags: toStringList(json['tags']),
@@ -124,6 +144,7 @@ class Destination {
       'nature_level': natureLevel,
       'short_description': shortDescription,
       'full_description': fullDescription,
+      'imageUrl': imageUrl,
       'latitude': latitude,
       'longitude': longitude,
       'tags': tags,
@@ -145,6 +166,12 @@ class Destination {
   String get primaryCategory =>
       category.isNotEmpty ? category.first : 'destination';
 
+  /// Returns the resolved network URL if cached, otherwise the local asset path.
+  String localFallbackAsset() {
+    final cat = category.isNotEmpty ? category.first.toLowerCase().trim() : '';
+    return _categoryAssets[cat] ?? 'assets/images/cat_nature.jpg';
+  }
+
   String get bestSeasonText =>
       bestSeason.isNotEmpty ? bestSeason.join(', ') : 'All year';
 
@@ -161,4 +188,54 @@ class Destination {
   double? get lon => longitude;
   List<String> get amenityList => activities;
   List<String> get culturalTagList => tags;
+
+  Destination copyWith({
+    String? id,
+    String? name,
+    String? province,
+    String? district,
+    String? municipality,
+    List<String>? category,
+    List<String>? activities,
+    List<String>? bestSeason,
+    String? budgetLevel,
+    String? accessibility,
+    bool? familyFriendly,
+    int? adventureLevel,
+    int? cultureLevel,
+    int? natureLevel,
+    String? shortDescription,
+    String? fullDescription,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
+    List<String>? tags,
+    String? source,
+    String? confidence,
+  }) {
+    return Destination(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      province: province ?? this.province,
+      district: district ?? this.district,
+      municipality: municipality ?? this.municipality,
+      category: category ?? this.category,
+      activities: activities ?? this.activities,
+      bestSeason: bestSeason ?? this.bestSeason,
+      budgetLevel: budgetLevel ?? this.budgetLevel,
+      accessibility: accessibility ?? this.accessibility,
+      familyFriendly: familyFriendly ?? this.familyFriendly,
+      adventureLevel: adventureLevel ?? this.adventureLevel,
+      cultureLevel: cultureLevel ?? this.cultureLevel,
+      natureLevel: natureLevel ?? this.natureLevel,
+      shortDescription: shortDescription ?? this.shortDescription,
+      fullDescription: fullDescription ?? this.fullDescription,
+      imageUrl: imageUrl ?? this.imageUrl,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      tags: tags ?? this.tags,
+      source: source ?? this.source,
+      confidence: confidence ?? this.confidence,
+    );
+  }
 }

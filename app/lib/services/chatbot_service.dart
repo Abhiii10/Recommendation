@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/utils/haversine.dart';
@@ -115,27 +116,33 @@ class ChatbotService {
   List<QuickSuggestion> initialSuggestions() {
     return const [
       QuickSuggestion(
-        label: '🗓️ Best season',
+        'Best season',
+        icon: Icons.calendar_month_rounded,
         message: 'When is the best time to visit rural Nepal?',
       ),
       QuickSuggestion(
-        label: '🥾 Trekking',
+        'Trekking',
+        icon: Icons.hiking_rounded,
         message: 'What should I know before trekking?',
       ),
       QuickSuggestion(
-        label: '🏠 Homestays',
+        'Homestays',
+        icon: Icons.hotel_rounded,
         message: 'Tell me about homestays in rural villages',
       ),
       QuickSuggestion(
-        label: '💰 Budget',
+        'Budget',
+        icon: Icons.payments_rounded,
         message: 'How much budget do I need per day?',
       ),
       QuickSuggestion(
-        label: '🙏 Culture',
+        'Culture',
+        icon: Icons.account_balance_rounded,
         message: 'What cultural etiquette should I follow?',
       ),
       QuickSuggestion(
-        label: '🚗 Transport',
+        'Transport',
+        icon: Icons.directions_bus_rounded,
         message: 'How do I travel from Pokhara to nearby villages?',
       ),
     ];
@@ -146,15 +153,18 @@ class ChatbotService {
       case 'best_time_to_visit':
         return const [
           QuickSuggestion(
-            label: 'Spring',
+            'Spring',
+            icon: Icons.hiking_rounded,
             message: 'Is spring a good season for trekking?',
           ),
           QuickSuggestion(
-            label: 'Monsoon',
+            'Monsoon',
+            icon: Icons.calendar_month_rounded,
             message: 'Is it safe to travel during monsoon?',
           ),
           QuickSuggestion(
-            label: 'Autumn',
+            'Autumn',
+            icon: Icons.calendar_month_rounded,
             message: 'Why is autumn good for rural tourism?',
           ),
         ];
@@ -162,15 +172,18 @@ class ChatbotService {
       case 'transport':
         return const [
           QuickSuggestion(
-            label: 'From Pokhara',
+            'From Pokhara',
+            icon: Icons.directions_bus_rounded,
             message: 'How do I travel from Pokhara to rural villages?',
           ),
           QuickSuggestion(
-            label: 'Local bus',
+            'Local bus',
+            icon: Icons.directions_bus_rounded,
             message: 'Can I use local buses to reach villages?',
           ),
           QuickSuggestion(
-            label: 'Jeep',
+            'Jeep',
+            icon: Icons.directions_bus_rounded,
             message: 'Is jeep travel better than bus?',
           ),
         ];
@@ -178,15 +191,18 @@ class ChatbotService {
       case 'homestay':
         return const [
           QuickSuggestion(
-            label: 'Price',
+            'Price',
+            icon: Icons.hotel_rounded,
             message: 'How much does a homestay usually cost?',
           ),
           QuickSuggestion(
-            label: 'Family stay',
+            'Family stay',
+            icon: Icons.hotel_rounded,
             message: 'Are homestays good for families?',
           ),
           QuickSuggestion(
-            label: 'Food',
+            'Food',
+            icon: Icons.hotel_rounded,
             message: 'What food is available in homestays?',
           ),
         ];
@@ -195,15 +211,18 @@ class ChatbotService {
       case 'emergency_help':
         return const [
           QuickSuggestion(
-            label: 'Emergency',
+            'Emergency',
+            icon: Icons.health_and_safety_rounded,
             message: 'What should I do in an emergency?',
           ),
           QuickSuggestion(
-            label: 'Solo travel',
+            'Solo travel',
+            icon: Icons.health_and_safety_rounded,
             message: 'Is it safe to travel alone?',
           ),
           QuickSuggestion(
-            label: 'Monsoon safety',
+            'Monsoon safety',
+            icon: Icons.hiking_rounded,
             message: 'Is trekking safe during monsoon?',
           ),
         ];
@@ -211,15 +230,18 @@ class ChatbotService {
       case 'budget':
         return const [
           QuickSuggestion(
-            label: 'Daily cost',
+            'Daily cost',
+            icon: Icons.payments_rounded,
             message: 'What is the daily cost for rural tourism?',
           ),
           QuickSuggestion(
-            label: 'Budget places',
+            'Budget places',
+            icon: Icons.payments_rounded,
             message: 'Recommend budget friendly destinations',
           ),
           QuickSuggestion(
-            label: 'Cash',
+            'Cash',
+            icon: Icons.payments_rounded,
             message: 'Do I need cash in rural villages?',
           ),
         ];
@@ -227,15 +249,18 @@ class ChatbotService {
       case 'trekking':
         return const [
           QuickSuggestion(
-            label: 'Packing',
+            'Packing',
+            icon: Icons.hiking_rounded,
             message: 'What should I pack for trekking?',
           ),
           QuickSuggestion(
-            label: 'Permits',
+            'Permits',
+            icon: Icons.hiking_rounded,
             message: 'What permits do I need for trekking?',
           ),
           QuickSuggestion(
-            label: 'Beginner trek',
+            'Beginner trek',
+            icon: Icons.hiking_rounded,
             message: 'Which trekking routes are good for beginners?',
           ),
         ];
@@ -243,23 +268,28 @@ class ChatbotService {
       case 'fallback':
         return const [
           QuickSuggestion(
-            label: 'Best season',
+            'Best season',
+            icon: Icons.calendar_month_rounded,
             message: 'What is the best season to visit Ghandruk?',
           ),
           QuickSuggestion(
-            label: 'Safety',
+            'Safety',
+            icon: Icons.hiking_rounded,
             message: 'Is trekking safe during monsoon?',
           ),
           QuickSuggestion(
-            label: 'Transport',
+            'Transport',
+            icon: Icons.directions_bus_rounded,
             message: 'How do I reach Sikles from Pokhara?',
           ),
           QuickSuggestion(
-            label: 'Homestay',
+            'Homestay',
+            icon: Icons.hotel_rounded,
             message: 'Where can I stay in a rural village?',
           ),
           QuickSuggestion(
-            label: 'Recommend',
+            'Recommend',
+            icon: Icons.auto_awesome_rounded,
             message: 'Recommend me a peaceful village',
           ),
         ];
@@ -267,15 +297,18 @@ class ChatbotService {
       default:
         return const [
           QuickSuggestion(
-            label: 'Nearby',
+            'Nearby',
+            icon: Icons.map_rounded,
             message: 'What places are nearby?',
           ),
           QuickSuggestion(
-            label: 'Recommend',
+            'Recommend',
+            icon: Icons.auto_awesome_rounded,
             message: 'Recommend me a place to visit',
           ),
           QuickSuggestion(
-            label: 'Offline help',
+            'Offline help',
+            icon: Icons.offline_bolt_rounded,
             message: 'Can I use this app without internet?',
           ),
         ];

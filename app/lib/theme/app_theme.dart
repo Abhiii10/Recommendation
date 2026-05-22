@@ -19,6 +19,27 @@ class AppTheme {
   static const Color mistGray = Color(0xFFEAEDEB);
   static const Color charcoal = Color(0xFF1A1F1E);
 
+  static const TextStyle displayHero = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 72,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0,
+    color: charcoal,
+  );
+
+  static BoxDecoration get scaffoldDecoration => BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(-0.8, -0.8),
+          radius: 1.4,
+          colors: [
+            mountainTeal.withValues(alpha: 0.06),
+            earthOchre.withValues(alpha: 0.04),
+            snowWhite,
+          ],
+          stops: const [0.0, 0.45, 1.0],
+        ),
+      );
+
   // Per-category accent colours — referenced in home & destination card
   static const Map<String, Color> categoryColours = {
     'trekking': Color(0xFF2E7D32),
@@ -52,6 +73,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Outfit',
       colorScheme: cs,
       scaffoldBackgroundColor: snowWhite,
 
@@ -64,11 +86,11 @@ class AppTheme {
         surfaceTintColor: cs.surfaceTint,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: cs.onSurface,
-          letterSpacing: -0.3,
+          letterSpacing: 0,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
@@ -77,35 +99,35 @@ class AppTheme {
       textTheme: TextTheme(
         // Display
         displayLarge: const TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 57,
           fontWeight: FontWeight.w400,
-          letterSpacing: -0.25,
+          letterSpacing: 0,
           color: charcoal,
         ),
         displayMedium: const TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 45,
           fontWeight: FontWeight.w400,
           color: charcoal,
         ),
         // Headline
         headlineLarge: const TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 32,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0,
           color: charcoal,
         ),
         headlineMedium: const TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 28,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0,
           color: charcoal,
         ),
         headlineSmall: const TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 24,
           fontWeight: FontWeight.w700,
           color: charcoal,
@@ -114,13 +136,13 @@ class AppTheme {
         titleLarge: TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
+          letterSpacing: 0,
           color: charcoal,
         ),
         titleMedium: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.1,
+          letterSpacing: 0,
           color: charcoal,
         ),
         titleSmall: TextStyle(
@@ -285,17 +307,17 @@ class AppTheme {
         )
         .copyWith(
           headlineLarge: baseText.headlineLarge?.copyWith(
-            fontFamily: 'Georgia',
+            fontFamily: 'Outfit',
             fontWeight: FontWeight.w800,
             color: cs.onSurface,
           ),
           headlineMedium: baseText.headlineMedium?.copyWith(
-            fontFamily: 'Georgia',
+            fontFamily: 'Outfit',
             fontWeight: FontWeight.w800,
             color: cs.onSurface,
           ),
           headlineSmall: baseText.headlineSmall?.copyWith(
-            fontFamily: 'Georgia',
+            fontFamily: 'Outfit',
             fontWeight: FontWeight.w800,
             color: cs.onSurface,
           ),
@@ -319,6 +341,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Outfit',
       colorScheme: cs,
       scaffoldBackgroundColor: surface,
       textTheme: textTheme,
@@ -330,7 +353,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontFamily: 'Georgia',
+          fontFamily: 'Outfit',
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: cs.onSurface,

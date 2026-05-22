@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../core/utils/backend_config.dart';
 import '../models/accommodation_model.dart';
@@ -77,7 +78,8 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
 
   Future<void> _loadSimilar() async {
     try {
-      final similar = await _api.similar(destinationId: widget.item.id, topK: 5);
+      final similar =
+          await _api.similar(destinationId: widget.item.id, topK: 5);
       if (!mounted) {
         return;
       }
@@ -110,7 +112,9 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _saved ? '${widget.item.name} saved to AI history.' : 'Removed saved flag.',
+          _saved
+              ? '${widget.item.name} saved to AI history.'
+              : 'Removed saved flag.',
         ),
       ),
     );
@@ -130,6 +134,24 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
               backgroundColor: const Color(0xFF1B5E20),
               actions: [
                 IconButton(
+                  tooltip: 'Share destination',
+                  icon: const Icon(
+                    Icons.ios_share_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    SharePlus.instance.share(
+                      ShareParams(
+                        text: 'Check out ${item.name} in Nepal!\n'
+                            '${item.reasons.isNotEmpty ? item.reasons.first : item.location}\n\n'
+                            'Discover it on Rural Tourism Guide.',
+                        subject: item.name,
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  tooltip: _saved ? 'Remove from saved' : 'Save destination',
                   onPressed: _toggleSave,
                   icon: Icon(
                     _saved ? Icons.bookmark : Icons.bookmark_border,
@@ -139,22 +161,25 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
               ],
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(item.name),
-                background: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF1B5E20),
-                        Color(0xFF4CAF50),
-                      ],
+                background: Hero(
+                  tag: 'dest-image-${item.id}',
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF1B5E20),
+                          Color(0xFF4CAF50),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.landscape,
-                      size: 84,
-                      color: Colors.white24,
+                    child: const Center(
+                      child: Icon(
+                        Icons.landscape,
+                        size: 84,
+                        color: Colors.white24,
+                      ),
                     ),
                   ),
                 ),
@@ -196,7 +221,8 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
     return ListView(
       padding: const EdgeInsets.only(top: 10, bottom: 20),
       children: _accommodations
-          .map((accommodation) => AccommodationCard(accommodation: accommodation))
+          .map((accommodation) =>
+              AccommodationCard(accommodation: accommodation))
           .toList(),
     );
   }
@@ -220,7 +246,9 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
             leading: const Icon(Icons.explore, color: Color(0xFF2E7D32)),
             title: Text(item.name),
             subtitle: Text(
-              item.location.isEmpty ? 'AI recommended destination' : item.location,
+              item.location.isEmpty
+                  ? 'AI recommended destination'
+                  : item.location,
             ),
             trailing: Text('${(item.score * 100).toStringAsFixed(0)}%'),
             onTap: () {
@@ -249,9 +277,12 @@ class _OverviewTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (item.location.isNotEmpty) _InfoRow(icon: Icons.location_on, text: item.location),
+        if (item.location.isNotEmpty)
+          _InfoRow(icon: Icons.location_on, text: item.location),
         if (item.budgetLevel.isNotEmpty)
-          _InfoRow(icon: Icons.payments_outlined, text: 'Budget: ${item.budgetLevel}'),
+          _InfoRow(
+              icon: Icons.payments_outlined,
+              text: 'Budget: ${item.budgetLevel}'),
         if (item.accessibility.isNotEmpty)
           _InfoRow(
             icon: Icons.accessibility_new,
@@ -264,7 +295,8 @@ class _OverviewTab extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Icon(Icons.auto_awesome, color: Color(0xFF2E7D32), size: 30),
+                const Icon(Icons.auto_awesome,
+                    color: Color(0xFF2E7D32), size: 30),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -294,7 +326,8 @@ class _OverviewTab extends StatelessWidget {
         ),
         if (item.reasons.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text('Why this was recommended', style: Theme.of(context).textTheme.titleMedium),
+          Text('Why this was recommended',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           ...item.reasons.map(
             (reason) => ListTile(

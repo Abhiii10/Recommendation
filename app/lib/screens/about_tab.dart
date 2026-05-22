@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 class AboutTab extends StatelessWidget {
-  const AboutTab({super.key});
+  final ValueNotifier<ThemeMode> themeMode;
+
+  const AboutTab({
+    super.key,
+    required this.themeMode,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About'),
+        title: Text(l10n.aboutTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -28,7 +37,9 @@ class AboutTab extends StatelessWidget {
                             height: 84,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(24),
-                              color: Theme.of(context).colorScheme.primaryContainer,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
                             ),
                             child: const Icon(
                               Icons.travel_explore,
@@ -38,14 +49,15 @@ class AboutTab extends StatelessWidget {
                           const SizedBox(height: 16),
                           Text(
                             'Rural Tourism Guide',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w800),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'AI-driven mobile prototype for promoting rural tourism in Nepal.',
+                            l10n.aboutSubtitle,
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
@@ -54,6 +66,23 @@ class AboutTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  ValueListenableBuilder<ThemeMode>(
+                    valueListenable: themeMode,
+                    builder: (context, mode, _) {
+                      return Card(
+                        child: SwitchListTile(
+                          title: Text(l10n.darkMode),
+                          secondary: const Icon(Icons.dark_mode_rounded),
+                          value: mode == ThemeMode.dark,
+                          onChanged: (value) {
+                            themeMode.value =
+                                value ? ThemeMode.dark : ThemeMode.light;
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(18),
@@ -61,14 +90,11 @@ class AboutTab extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Project purpose',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'This prototype helps users discover rural destinations around Pokhara through recommendations, map exploration, destination details, and saved shortlists.',
+                            l10n.projectPurpose,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(height: 1.55),
                           ),
                         ],
                       ),
@@ -81,73 +107,26 @@ class AboutTab extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Implemented features',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 12),
-                          const _FeatureRow(
+                          _FeatureRow(
                             icon: Icons.explore_outlined,
-                            text: 'Preference-based destination recommendations',
+                            text: l10n.featureRecommendations,
                           ),
-                          const _FeatureRow(
+                          _FeatureRow(
                             icon: Icons.map_outlined,
-                            text: 'Map-based destination exploration',
+                            text: l10n.featureMap,
                           ),
-                          const _FeatureRow(
+                          _FeatureRow(
                             icon: Icons.info_outline,
-                            text: 'Destination details with location actions',
+                            text: l10n.featureDetails,
                           ),
-                          const _FeatureRow(
+                          _FeatureRow(
                             icon: Icons.bookmark_outline,
-                            text: 'Saved destinations with local persistence',
+                            text: l10n.featureSaved,
                           ),
-                          const _FeatureRow(
-                            icon: Icons.phone_android_outlined,
-                            text: 'Android mobile deployment and testing',
+                          _FeatureRow(
+                            icon: Icons.translate_outlined,
+                            text: l10n.featureTranslation,
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Prototype notes',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'The current version uses local destination data and recommendation logic within a Flutter mobile prototype. Interactive maps are integrated for exploration, while some advanced planned components remain future work.',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Version',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text('Prototype milestone: March 2026 integration build'),
                         ],
                       ),
                     ),
@@ -180,9 +159,7 @@ class _FeatureRow extends StatelessWidget {
         children: [
           Icon(icon, size: 20),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(text),
-          ),
+          Expanded(child: Text(text)),
         ],
       ),
     );

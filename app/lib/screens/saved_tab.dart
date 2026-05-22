@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../theme/app_theme.dart';
@@ -22,6 +25,7 @@ class SavedTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -46,8 +50,8 @@ class SavedTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Saved Places',
+                  Text(
+                    l10n.savedTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -65,7 +69,7 @@ class SavedTab extends StatelessWidget {
         ),
       ),
       body: savedDestinations.isEmpty
-          ? _EmptyState()
+          ? const _EmptyState()
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
               itemCount: savedDestinations.length,
@@ -97,26 +101,33 @@ class SavedTab extends StatelessWidget {
                       Positioned(
                         top: 14,
                         right: 14,
-                        child: GestureDetector(
-                          onTap: () async => onToggleSaved(destination),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: color.withValues(alpha: 0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.bookmark_rounded,
-                              color: Colors.white,
-                              size: 18,
+                        child: Semantics(
+                          label: 'Remove from saved',
+                          button: true,
+                          child: GestureDetector(
+                            onTap: () async {
+                              HapticFeedback.lightImpact();
+                              await onToggleSaved(destination);
+                            },
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withValues(alpha: 0.35),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.bookmark_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ),
@@ -131,10 +142,13 @@ class SavedTab extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -142,35 +156,34 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.earthOchre.withValues(alpha: 0.18),
-                    AppTheme.earthOchre.withValues(alpha: 0.06),
-                  ],
+            Lottie.network(
+              'https://assets9.lottiefiles.com/packages/lf20_jcikwtux.json',
+              width: 160,
+              height: 160,
+              repeat: true,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppTheme.earthOchre.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
                 ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.bookmark_border_rounded,
-                size: 44,
-                color: AppTheme.earthOchre,
+                child: Icon(
+                  Icons.bookmark_border_rounded,
+                  size: 44,
+                  color: AppTheme.earthOchre,
+                ),
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              'No saved places yet',
+              l10n.savedEmpty,
               style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
             Text(
-              'Browse destinations on the Home tab or get\nAI recommendations and bookmark the ones\nyou want to revisit.',
+              l10n.savedEmptySubtitle,
               style: tt.bodyMedium?.copyWith(
                 color: cs.onSurfaceVariant,
                 height: 1.6,

@@ -1,11 +1,19 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../main.dart' show userProfileService;
 import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../services/local_data_service.dart';
+import '../services/image_cache_service.dart';
 import '../services/offline_storage.dart';
 import '../services/recommender_service.dart';
+import '../widgets/offline_banner.dart';
+import '../widgets/skeleton_card.dart';
+import 'about_tab.dart';
 import 'chatbot_screen.dart';
 import 'home_tab.dart' as home;
 import 'map_screen.dart';
@@ -14,7 +22,12 @@ import 'saved_tab.dart';
 import 'translation_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final ValueNotifier<ThemeMode> themeMode;
+
+  const DashboardScreen({
+    super.key,
+    required this.themeMode,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -68,6 +81,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loading = false;
         _error = null;
       });
+
+      unawaited(ImageCacheService.instance.prefetchAll(destinations));
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -172,10 +187,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       const TranslationScreen(),
       ChatbotScreen(destinations: _destinations),
+      AboutTab(themeMode: widget.themeMode),
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: pages),
+      body: OfflineBanner(
+        child: IndexedStack(index: _currentIndex, children: pages),
+      ),
       bottomNavigationBar: _AppNavBar(
         currentIndex: _currentIndex,
         savedCount: _savedDestinations.length,
@@ -193,61 +211,57 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: cs.primary,
-      body: Center(
+      body: SafeArea(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // Logo mark
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: const Icon(Icons.landscape_rounded,
-                  color: Colors.white, size: 44),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Nepal Tourism Guide',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                fontFamily: 'Georgia',
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Discover Rural Gandaki',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.70),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 48),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: Colors.white.withValues(alpha: 0.7),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Icons.landscape_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Nepal Tourism Guide',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                        Text(
+                          'Loading destinations...',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Loading destinations…',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.55),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 14),
+                  child: SkeletonCard(),
+                ),
               ),
             ),
           ],
@@ -257,7 +271,6 @@ class _SplashScreen extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Custom nav bar
 // ─────────────────────────────────────────────────────────────────────────────
 class _AppNavBar extends StatelessWidget {
@@ -308,109 +321,125 @@ class _AppNavBar extends StatelessWidget {
           icon: Icons.chat_bubble_outline_rounded,
           activeIcon: Icons.chat_bubble_rounded,
           label: 'Chat'),
+      const _NavItem(
+          icon: Icons.info_outline_rounded,
+          activeIcon: Icons.info_rounded,
+          label: 'About'),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: barColor,
-        border: Border(top: BorderSide(color: dividerColor, width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: brightness == Brightness.dark ? 0.24 : 0.05,
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: barColor.withValues(
+              alpha: brightness == Brightness.dark ? 0.84 : 0.75,
             ),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            border: Border(top: BorderSide(color: dividerColor, width: 1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: brightness == Brightness.dark ? 0.24 : 0.05,
+                ),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 68,
-          child: Row(
-            children: items.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final item = entry.value;
-              final isActive = idx == currentIndex;
-              final color = isActive ? cs.primary : inactiveColor;
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 68,
+              child: Row(
+                children: items.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final item = entry.value;
+                  final isActive = idx == currentIndex;
+                  final color = isActive ? cs.primary : inactiveColor;
 
-              return Expanded(
-                child: Semantics(
-                  button: true,
-                  selected: isActive,
-                  label: item.label,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onTap(idx),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Stack(
-                          clipBehavior: Clip.none,
+                  return Expanded(
+                    child: Semantics(
+                      button: true,
+                      selected: isActive,
+                      label: item.label,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          onTap(idx);
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeOutCubic,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? cs.primaryContainer
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(
-                                isActive ? item.activeIcon : item.icon,
-                                color: color,
-                                size: 22,
-                              ),
-                            ),
-                            if (item.badge != null)
-                              Positioned(
-                                top: -2,
-                                right: -2,
-                                child: Container(
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeOutCubic,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 2,
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: cs.error,
-                                    borderRadius: BorderRadius.circular(999),
+                                    color: isActive
+                                        ? cs.primaryContainer
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: Text(
-                                    item.badge!,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                                  child: Icon(
+                                    isActive ? item.activeIcon : item.icon,
+                                    color: color,
+                                    size: 22,
                                   ),
                                 ),
+                                if (item.badge != null)
+                                  Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: cs.error,
+                                        borderRadius:
+                                            BorderRadius.circular(999),
+                                      ),
+                                      child: Text(
+                                        item.badge!,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: color,
                               ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          item.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight:
-                                isActive ? FontWeight.w700 : FontWeight.w500,
-                            color: color,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ),
       ),

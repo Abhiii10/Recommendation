@@ -83,6 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
 
       unawaited(ImageCacheService.instance.prefetchAll(destinations));
+      unawaited(ImageCacheService.instance.prefetchGalleries(destinations));
     } catch (e) {
       if (!mounted) return;
       setState(() {

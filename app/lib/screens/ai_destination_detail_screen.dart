@@ -4,8 +4,10 @@ import 'package:share_plus/share_plus.dart';
 import '../core/utils/backend_config.dart';
 import '../models/accommodation_model.dart';
 import '../models/api_recommendation_item.dart';
+import '../models/destination.dart';
 import '../services/recommendation_api_service.dart';
 import '../widgets/accommodation_card.dart';
+import '../widgets/destination_gallery.dart';
 import '../widgets/score_breakdown_widget.dart';
 
 class AiDestinationDetailScreen extends StatefulWidget {
@@ -130,7 +132,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
           return [
             SliverAppBar(
               pinned: true,
-              expandedHeight: 220,
+              expandedHeight: 300,
               backgroundColor: const Color(0xFF1B5E20),
               actions: [
                 IconButton(
@@ -161,27 +163,9 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
               ],
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(item.name),
-                background: Hero(
-                  tag: 'dest-image-${item.id}',
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF1B5E20),
-                          Color(0xFF4CAF50),
-                        ],
-                      ),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.landscape,
-                        size: 84,
-                        color: Colors.white24,
-                      ),
-                    ),
-                  ),
+                background: DestinationGallery(
+                  destination: item.destination,
+                  height: 300,
                 ),
               ),
               bottom: TabBar(
@@ -261,6 +245,34 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+extension _ApiRecommendationDestination on ApiRecommendationItem {
+  Destination get destination {
+    final category = metadata['category'] ?? metadata['type'] ?? 'scenic';
+    final description = reasons.isNotEmpty
+        ? reasons.first
+        : location.isNotEmpty
+            ? location
+            : 'AI recommended rural tourism destination.';
+
+    return Destination(
+      id: id,
+      name: name,
+      province: province ?? '',
+      district: district,
+      category: [category],
+      activities: const [],
+      bestSeason: const [],
+      budgetLevel: budgetLevel.isEmpty ? null : budgetLevel,
+      accessibility: accessibility.isEmpty ? null : accessibility,
+      shortDescription: description,
+      fullDescription: description,
+      tags: const [],
+      source: 'ai',
+      confidence: 'medium',
     );
   }
 }

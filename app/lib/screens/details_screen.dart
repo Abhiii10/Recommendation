@@ -1,10 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/accommodation.dart';
 import '../models/destination.dart';
-import '../theme/app_theme.dart';
+import '../widgets/destination_gallery.dart';
 
 class DetailsScreen extends StatelessWidget {
   final Destination destination;
@@ -22,10 +21,6 @@ class DetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat =
-        destination.category.isNotEmpty ? destination.category.first : 'scenic';
-    final color = AppTheme.categoryColour(cat);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(destination.name),
@@ -57,10 +52,9 @@ class DetailsScreen extends StatelessWidget {
         children: [
           Hero(
             tag: 'dest-image-${destination.id}',
-            child: SizedBox(
-              height: 260,
-              width: double.infinity,
-              child: _HeaderImage(destination: destination, color: color),
+            child: DestinationGallery(
+              destination: destination,
+              height: 300,
             ),
           ),
           Padding(
@@ -123,35 +117,6 @@ class DetailsScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HeaderImage extends StatelessWidget {
-  final Destination destination;
-  final Color color;
-
-  const _HeaderImage({
-    required this.destination,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final imageUrl = destination.imageUrl?.trim();
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Container(color: color.withValues(alpha: 0.20));
-    }
-
-    return CachedNetworkImage(
-      imageUrl: imageUrl,
-      fit: BoxFit.cover,
-      placeholder: (_, __) => Container(color: color.withValues(alpha: 0.20)),
-      errorWidget: (_, __, ___) => Container(
-        color: color.withValues(alpha: 0.20),
-        alignment: Alignment.center,
-        child: Icon(Icons.landscape_rounded, color: color, size: 56),
       ),
     );
   }

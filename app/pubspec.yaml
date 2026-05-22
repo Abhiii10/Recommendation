@@ -59,6 +59,7 @@ flutter:
     - assets/images/cat_boating.jpg
     - assets/images/cat_spiritual.jpg
     - assets/images/cat_relaxation.jpg
+    - assets/animations/
     - assets/maps/
     - .env
 

@@ -156,8 +156,8 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Lottie.network(
-              'https://assets9.lottiefiles.com/packages/lf20_jcikwtux.json',
+            Lottie.asset(
+              'assets/animations/empty_saved.json',
               width: 160,
               height: 160,
               repeat: true,

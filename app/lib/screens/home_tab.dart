@@ -1172,8 +1172,6 @@ class _CompactDestinationCard extends StatelessWidget {
         destination.category.isNotEmpty ? destination.category.first : 'scenic';
 
     final color = AppTheme.categoryColour(cat);
-    final icon = _iconFor(cat);
-
     final locationParts = [
       if ((destination.district ?? '').trim().isNotEmpty) destination.district!,
       if ((destination.municipality ?? '').trim().isNotEmpty)
@@ -1201,31 +1199,21 @@ class _CompactDestinationCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Container(
-                height: 5,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(18),
-                  ),
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 10, 14),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: color,
-                        size: 24,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: SizedBox(
+                        width: 72,
+                        height: 72,
+                        child: DestinationImage(
+                          destination: destination,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),

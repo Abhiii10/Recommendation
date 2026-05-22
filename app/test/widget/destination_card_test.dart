@@ -4,9 +4,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rural_tourism_app/models/destination.dart';
+import 'package:rural_tourism_app/services/image_cache_service.dart';
 import 'package:rural_tourism_app/theme/app_theme.dart';
 import 'package:rural_tourism_app/widgets/destination_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakeImageCacheService extends Fake implements ImageCacheService {
+  @override
+  Future<String?> resolveNetworkUrl(
+    String name, {
+    String? destinationId,
+  }) async =>
+      null;
+
+  @override
+  Future<void> prefetchAll(List<Destination> destinations) async {}
+
+  @override
+  Future<List<String>> resolveGallery(
+    String destinationName, {
+    String? destinationId,
+    int maxImages = 5,
+  }) async =>
+      [];
+
+  @override
+  Future<void> prefetchGalleries(List<Destination> destinations) async {}
+
+  static final instance = _FakeImageCacheService();
+}
 
 void main() {
   late Directory tempDir;
@@ -36,6 +62,7 @@ void main() {
   });
 
   setUp(() {
+    ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     SharedPreferences.setMockInitialValues({
       'img_cache_with-image-light': '',
       'img_cache_without-image-light': '',
@@ -43,7 +70,12 @@ void main() {
     });
   });
 
+  tearDown(() {
+    ImageCacheService.debugInstance = null;
+  });
+
   testWidgets('DestinationCard golden - light with imageUrl', (tester) async {
+    ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     await tester.pumpWidget(
       _CardHarness(
         brightness: Brightness.light,
@@ -63,6 +95,7 @@ void main() {
 
   testWidgets('DestinationCard golden - light without imageUrl',
       (tester) async {
+    ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     await tester.pumpWidget(
       _CardHarness(
         brightness: Brightness.light,
@@ -78,6 +111,7 @@ void main() {
   });
 
   testWidgets('DestinationCard golden - dark with imageUrl', (tester) async {
+    ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     await tester.pumpWidget(
       _CardHarness(
         brightness: Brightness.dark,

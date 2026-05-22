@@ -345,7 +345,15 @@ AI_BACKEND_BASE_URL=http://10.0.2.2:8000
 cd app
 flutter clean
 flutter pub get
-flutter run
+flutter run --dart-define=ANTHROPIC_API_KEY=your_key_here
+```
+
+For local web or emulator runs, keep API keys out of `.env` files and pass
+runtime secrets with `--dart-define`. The app asserts in debug mode when
+`ANTHROPIC_API_KEY` is missing:
+
+```powershell
+flutter run --dart-define=ANTHROPIC_API_KEY=your_key_here
 ```
 
 Analyze Flutter code:

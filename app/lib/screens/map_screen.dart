@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -9,6 +11,23 @@ import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../theme/app_theme.dart';
 import 'details_screen.dart';
+
+const _kCategoryIcons = <String, IconData>{
+  'trekking': Icons.hiking_rounded,
+  'cultural': Icons.account_balance_rounded,
+  'culture': Icons.account_balance_rounded,
+  'village': Icons.home_work_rounded,
+  'nature': Icons.eco_rounded,
+  'adventure': Icons.terrain_rounded,
+  'relaxation': Icons.spa_rounded,
+  'pilgrimage': Icons.temple_hindu_rounded,
+  'wildlife': Icons.forest_rounded,
+  'boating': Icons.sailing_rounded,
+  'photography': Icons.camera_alt_rounded,
+  'spiritual': Icons.brightness_5_rounded,
+  'scenic': Icons.landscape_rounded,
+  'historic': Icons.domain_rounded,
+};
 
 class MapScreen extends StatefulWidget {
   final List<Destination> destinations;
@@ -28,7 +47,7 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   TileProvider? _offlineTileProvider;
   bool _offlineTileLoadAttempted = false;
-  Destination? _selected;
+  Destination? _selectedDestination;
 
   @override
   void initState() {
@@ -124,7 +143,8 @@ class _MapScreenState extends State<MapScreen> {
                     initialZoom: 8.6,
                     minZoom: 7,
                     maxZoom: 16,
-                    onTap: (_, __) => setState(() => _selected = null),
+                    onTap: (_, __) =>
+                        setState(() => _selectedDestination = null),
                   ),
                   children: [
                     if (usingOfflineTiles)
@@ -146,13 +166,25 @@ class _MapScreenState extends State<MapScreen> {
                           point: point,
                           width: 58,
                           height: 58,
-                          child: _DestinationMarker(
-                            destination: destination,
-                            selected: _selected?.id == destination.id,
-                            onTap: () {
-                              setState(() => _selected = destination);
-                              _mapController.move(point, 11);
-                            },
+                          child: Semantics(
+                            button: true,
+                            label: 'Open ${destination.name} on map',
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(
+                                  () => _selectedDestination = destination,
+                                );
+                                _mapController.move(point, 11);
+                              },
+                              child: _DestinationPin(
+                                category: destination.category.isNotEmpty
+                                    ? destination.category.first
+                                    : 'scenic',
+                                isSelected:
+                                    _selectedDestination?.id == destination.id,
+                              ),
+                            ),
                           ),
                         );
                       }).toList(),
@@ -184,14 +216,16 @@ class _MapScreenState extends State<MapScreen> {
                     duration: const Duration(milliseconds: 220),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
-                    child: _selected == null
+                    child: _selectedDestination == null
                         ? _MapHint(
                             key: const ValueKey('hint'), color: cs.primary)
                         : _DestinationPreview(
-                            key: ValueKey(_selected!.id),
-                            destination: _selected!,
-                            onClose: () => setState(() => _selected = null),
-                            onOpen: () => _openDestination(_selected!),
+                            key: ValueKey(_selectedDestination!.id),
+                            destination: _selectedDestination!,
+                            onClose: () =>
+                                setState(() => _selectedDestination = null),
+                            onOpen: () =>
+                                _openDestination(_selectedDestination!),
                           ),
                   ),
                 ),
@@ -201,62 +235,99 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-class _DestinationMarker extends StatelessWidget {
-  final Destination destination;
-  final bool selected;
-  final VoidCallback onTap;
+class _DestinationPin extends StatefulWidget {
+  final String category;
+  final bool isSelected;
 
-  const _DestinationMarker({
-    required this.destination,
-    required this.selected,
-    required this.onTap,
+  const _DestinationPin({
+    required this.category,
+    this.isSelected = false,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final category =
-        destination.category.isNotEmpty ? destination.category.first : 'scenic';
-    final color = AppTheme.categoryColour(category);
+  State<_DestinationPin> createState() => _DestinationPinState();
+}
 
-    return Semantics(
-      button: true,
-      label: 'Open ${destination.name} on map',
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedScale(
-          duration: const Duration(milliseconds: 180),
-          scale: selected ? 1.12 : 1,
-          child: Container(
+class _DestinationPinState extends State<_DestinationPin>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppTheme.categoryColour(widget.category);
+    final icon =
+        _kCategoryIcons[widget.category.toLowerCase()] ?? Icons.place_rounded;
+
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (_, child) => Transform.scale(
+        scale: widget.isSelected ? 1.0 + (_pulse.value * 0.12) : 1.0,
+        child: child,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
+              color: color,
               shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.45),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            alignment: Alignment.center,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.22),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.landscape_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
+            child: Icon(icon, color: Colors.white, size: 18),
           ),
-        ),
+          CustomPaint(
+            size: const Size(12, 7),
+            painter: _PinTailPainter(color: color),
+          ),
+        ],
       ),
     );
+  }
+}
+
+class _PinTailPainter extends CustomPainter {
+  final Color color;
+
+  const _PinTailPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = ui.Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PinTailPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
 

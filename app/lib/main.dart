@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/utils/backend_config.dart';
@@ -22,10 +21,6 @@ Future<void> main() async {
   await runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
-
-      try {
-        await dotenv.load(fileName: '.env');
-      } catch (_) {}
 
       await AppTelemetry.instance.initialize();
       BackendConfig.debugAssertAnthropicApiKeyConfigured();

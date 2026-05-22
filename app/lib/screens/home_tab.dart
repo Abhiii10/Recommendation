@@ -437,22 +437,6 @@ class _HomeTabState extends State<HomeTab> {
                               'All Destinations (${widget.destinations.length})',
                         ),
                         const SizedBox(height: 12),
-                        ...widget.destinations.map((d) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _CompactDestinationCard(
-                              destination: d,
-                              reason: 'Browse all destinations',
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => DetailsScreen(destination: d),
-                                ),
-                              ),
-                              onMap: widget.onOpenMap,
-                            ),
-                          );
-                        }),
                       ] else if (rankedResults.isEmpty) ...[
                         _EmptyResult(
                           query: _debouncedQuery,
@@ -504,6 +488,37 @@ class _HomeTabState extends State<HomeTab> {
               ),
             ),
           ),
+          if (!hasFilter)
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              sliver: SliverList.builder(
+                itemCount: widget.destinations.length,
+                itemBuilder: (context, index) {
+                  final destination = widget.destinations[index];
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _CompactDestinationCard(
+                          destination: destination,
+                          reason: 'Browse all destinations',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailsScreen(
+                                destination: destination,
+                              ),
+                            ),
+                          ),
+                          onMap: widget.onOpenMap,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );

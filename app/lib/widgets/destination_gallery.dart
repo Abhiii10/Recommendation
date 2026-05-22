@@ -26,6 +26,7 @@ class _DestinationGalleryState extends State<DestinationGallery> {
   List<String> _urls = [];
   bool _loading = true;
   int _current = 0;
+  int _requestId = 0;
   late final PageController _pageController;
 
   @override
@@ -44,6 +45,7 @@ class _DestinationGalleryState extends State<DestinationGallery> {
         _loading = true;
         _current = 0;
       });
+      if (_pageController.hasClients) _pageController.jumpToPage(0);
       _loadGallery();
     }
   }
@@ -178,12 +180,13 @@ class _DestinationGalleryState extends State<DestinationGallery> {
   }
 
   Future<void> _loadGallery() async {
+    final id = ++_requestId;
     final urls = await ImageCacheService.instance.resolveGallery(
       widget.destination.name,
       destinationId: widget.destination.id,
     );
 
-    if (!mounted) return;
+    if (!mounted || id != _requestId) return;
 
     if (urls.isNotEmpty) {
       setState(() {
@@ -198,7 +201,7 @@ class _DestinationGalleryState extends State<DestinationGallery> {
       destinationId: widget.destination.id,
     );
 
-    if (!mounted) return;
+    if (!mounted || id != _requestId) return;
 
     setState(() {
       _urls = single == null || single.isEmpty ? [] : [single];

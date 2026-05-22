@@ -33,6 +33,10 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <meta-data
+            android:name="com.posthog.posthog.AUTO_INIT"
+            android:value="false" />
+
     </application>
 
     <queries>

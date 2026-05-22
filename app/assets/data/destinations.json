@@ -35,8 +35,7 @@
       "homestay",
       "annapurna"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_002",
@@ -74,8 +73,7 @@
       "machhapuchhre",
       "australian-base-camp"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_003",
@@ -113,8 +111,7 @@
       "conservation",
       "tasa-danda"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_004",
@@ -152,8 +149,7 @@
       "eco-village",
       "homestay"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_005",
@@ -191,8 +187,7 @@
       "eco-living",
       "ridge-hiking"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_006",
@@ -228,8 +223,7 @@
       "wetland",
       "fishery"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_007",
@@ -266,8 +260,7 @@
       "sundari-danda",
       "wetland"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_008",
@@ -305,8 +298,7 @@
       "kali-gandaki",
       "mustang"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_009",
@@ -344,8 +336,7 @@
       "monastery",
       "stone-streets"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_010",
@@ -383,8 +374,7 @@
       "monastery",
       "pilgrimage"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_011",
@@ -421,8 +411,7 @@
       "108-water-spouts",
       "eternal-flame"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_012",
@@ -460,8 +449,7 @@
       "gangapurna",
       "high-altitude"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_013",
@@ -498,8 +486,7 @@
       "annapurna",
       "trekking"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_014",
@@ -537,8 +524,7 @@
       "cliffside",
       "heritage"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_015",
@@ -575,8 +561,7 @@
       "museum",
       "model-village"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_016",
@@ -614,8 +599,7 @@
       "honey-hunting",
       "hill-station"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_017",
@@ -653,8 +637,7 @@
       "homestay",
       "viewpoint"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_018",
@@ -691,8 +674,7 @@
       "hill-town",
       "heritage"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_019",
@@ -729,8 +711,7 @@
       "hill-station",
       "newar"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_020",
@@ -767,8 +748,7 @@
       "model-village",
       "pata-award"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_021",
@@ -806,8 +786,7 @@
       "forbidden kingdom",
       "tiji festival"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_022",
@@ -844,8 +823,7 @@
       "glacial lake",
       "annapurna circuit"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_023",
@@ -883,8 +861,7 @@
       "earthquake epicenter",
       "gorkha trekking"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_024",
@@ -920,8 +897,7 @@
       "manaslu region",
       "remote tourism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_025",
@@ -957,8 +933,7 @@
       "mountain view",
       "fishtail"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_026",
@@ -995,8 +970,7 @@
       "blue sheep",
       "conservation"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?wildlife,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_027",
@@ -1034,8 +1008,7 @@
       "short trek",
       "sacred hill"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_028",
@@ -1073,8 +1046,7 @@
       "suspension bridge",
       "extreme adventure"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_029",
@@ -1110,8 +1082,7 @@
       "kali",
       "pilgrimage"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_030",
@@ -1148,8 +1119,7 @@
       "holy site",
       "meditation"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_031",
@@ -1186,8 +1156,7 @@
       "jungle safari",
       "chitwan buffer zone"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_032",
@@ -1223,8 +1192,7 @@
       "annapurna circuit",
       "marsyangdi"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_033",
@@ -1261,8 +1229,7 @@
       "monastery",
       "mountain village"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_034",
@@ -1300,8 +1267,7 @@
       "annapurna region",
       "magar culture"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_035",
@@ -1337,8 +1303,7 @@
       "panorama",
       "trekking destination"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_036",
@@ -1375,8 +1340,7 @@
       "healing",
       "kali gandaki"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_037",
@@ -1414,8 +1378,7 @@
       "terraced fields",
       "modi river"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_038",
@@ -1452,8 +1415,7 @@
       "sunrise",
       "hill station"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_039",
@@ -1490,8 +1452,7 @@
       "trekking hub",
       "lamjung"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_040",
@@ -1528,8 +1489,7 @@
       "tibetan culture",
       "high himalayas"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_041",
@@ -1566,8 +1526,7 @@
       "buddhism",
       "remote tourism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_042",
@@ -1602,8 +1561,7 @@
       "manaslu",
       "high altitude"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_043",
@@ -1640,8 +1598,7 @@
       "largest cave",
       "underground"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_044",
@@ -1677,8 +1634,7 @@
       "community trek",
       "dhaulagiri"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_045",
@@ -1715,8 +1671,7 @@
       "sacred lake",
       "remote"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_046",
@@ -1753,8 +1708,7 @@
       "turquoise water",
       "sikles trek"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_047",
@@ -1791,8 +1745,7 @@
       "tibetan culture",
       "manang"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_048",
@@ -1831,8 +1784,7 @@
       "pokhara viewpoint",
       "buddhism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_049",
@@ -1867,8 +1819,7 @@
       "subterranean",
       "pokhara attraction"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_050",
@@ -1902,8 +1853,7 @@
       "shiva lingam",
       "underground"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_051",
@@ -1941,8 +1891,7 @@
       "shah kings",
       "historical fort"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_052",
@@ -1977,8 +1926,7 @@
       "cable car",
       "pilgrimage"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_053",
@@ -2019,8 +1967,7 @@
       "mirror reflection",
       "iconic"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_054",
@@ -2057,8 +2004,7 @@
       "goddess barahi",
       "pagoda style"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_055",
@@ -2094,8 +2040,7 @@
       "stalactites",
       "batdudichaur"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_056",
@@ -2131,8 +2076,7 @@
       "seti river",
       "geological wonder"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_057",
@@ -2167,8 +2111,7 @@
       "hinduism",
       "old pokhara"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_058",
@@ -2203,8 +2146,7 @@
       "history",
       "museum"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_059",
@@ -2242,8 +2184,7 @@
       "kalash",
       "viewpoint"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_060",
@@ -2278,8 +2219,7 @@
       "engineering marvel",
       "kali gandaki"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_061",
@@ -2314,8 +2254,7 @@
       "kali gandaki",
       "muktinath gateway"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_062",
@@ -2352,8 +2291,7 @@
       "360 view",
       "parbat"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_063",
@@ -2390,8 +2328,7 @@
       "short trek",
       "machhapuchhre"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_064",
@@ -2428,8 +2365,7 @@
       "kaski viewpoint",
       "serenity"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_065",
@@ -2466,8 +2402,7 @@
       "gurung settlement",
       "madi valley"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_066",
@@ -2503,8 +2438,7 @@
       "magar village",
       "remote"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_067",
@@ -2539,8 +2473,7 @@
       "canyoning",
       "annapurna"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_068",
@@ -2575,8 +2508,7 @@
       "kali gandaki",
       "geology"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_069",
@@ -2611,8 +2543,7 @@
       "roadside attraction",
       "nature"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_070",
@@ -2648,8 +2579,7 @@
       "panorama",
       "underrated"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_071",
@@ -2686,8 +2616,7 @@
       "poon hill alternative",
       "panorama"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_072",
@@ -2725,8 +2654,7 @@
       "sky caves",
       "upper mustang gateway"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_073",
@@ -2764,8 +2692,7 @@
       "royal palace",
       "upper mustang"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_074",
@@ -2802,8 +2729,7 @@
       "buddhist architecture",
       "upper mustang"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_075",
@@ -2840,8 +2766,7 @@
       "upper mustang",
       "buddhist art"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_076",
@@ -2877,8 +2802,7 @@
       "jomsom detour",
       "nilgiri reflection"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_077",
@@ -2906,7 +2830,7 @@
     "culture_level": 5,
     "nature_level": 5,
     "short_description": "One of the oldest Thakali villages in Mustang.",
-    "full_description": "Thini is located just above Jomsom. It offers an authentic Thakali cultural experience, ancient Bön monasteries, and a stunning view of the Kali Gandaki valley.",
+    "full_description": "Thini is located just above Jomsom. It offers an authentic Thakali cultural experience, ancient BÃ¶n monasteries, and a stunning view of the Kali Gandaki valley.",
     "latitude": 28.7833,
     "longitude": 83.7333,
     "tags": [
@@ -2914,8 +2838,7 @@
       "jomsom detour",
       "ancient village"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_078",
@@ -2929,7 +2852,7 @@
       "religious"
     ],
     "activities": [
-      "bön religion study",
+      "bÃ¶n religion study",
       "trekking",
       "photography"
     ],
@@ -2943,17 +2866,16 @@
     "adventure_level": 3,
     "culture_level": 5,
     "nature_level": 5,
-    "short_description": "A hidden village that is one of the few centers of the Bön religion.",
-    "full_description": "Located in a side valley between Jomsom and Muktinath, Lubra is a rare Bön settlement. It remains largely untouched by modern tourism.",
+    "short_description": "A hidden village that is one of the few centers of the BÃ¶n religion.",
+    "full_description": "Located in a side valley between Jomsom and Muktinath, Lubra is a rare BÃ¶n settlement. It remains largely untouched by modern tourism.",
     "latitude": 28.8167,
     "longitude": 83.7667,
     "tags": [
-      "bön religion",
+      "bÃ¶n religion",
       "hidden village",
       "mustang"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_079",
@@ -2989,8 +2911,7 @@
       "annapurna circuit",
       "marsyangdi"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_080",
@@ -3027,8 +2948,7 @@
       "ancient village",
       "tibetan architecture"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_081",
@@ -3065,8 +2985,7 @@
       "acclimatization",
       "frozen lake"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?lake,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_082",
@@ -3103,8 +3022,7 @@
       "gurung culture",
       "tsum valley gateway"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_083",
@@ -3141,8 +3059,7 @@
       "tibetan culture",
       "manaslu view"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_084",
@@ -3179,8 +3096,7 @@
       "manaslu sunrise",
       "buddhism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_085",
@@ -3216,8 +3132,7 @@
       "stone paved",
       "manaslu trek"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_086",
@@ -3253,8 +3168,7 @@
       "religious",
       "hinduism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_087",
@@ -3291,8 +3205,7 @@
       "history",
       "pokhara view"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_088",
@@ -3329,8 +3242,7 @@
       "historical fort",
       "day hike"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_089",
@@ -3365,8 +3277,7 @@
       "local food",
       "chill out"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_090",
@@ -3404,8 +3315,7 @@
       "religious hub",
       "pokhara viewpoint"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_091",
@@ -3442,8 +3352,7 @@
       "murals",
       "peaceful"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_092",
@@ -3480,8 +3389,7 @@
       "adventure caving",
       "narrow exit"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?wildlife,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_093",
@@ -3516,8 +3424,7 @@
       "extreme sports",
       "highway attraction"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_094",
@@ -3553,8 +3460,7 @@
       "shakti peeth",
       "tharu culture"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_095",
@@ -3590,8 +3496,7 @@
       "ramayana",
       "confluence"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_096",
@@ -3630,8 +3535,7 @@
       "cg park",
       "spiritual hub"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_097",
@@ -3669,8 +3573,7 @@
       "hiking",
       "panoramic view"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_098",
@@ -3707,8 +3610,7 @@
       "goddess temple",
       "forest"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_099",
@@ -3745,8 +3647,7 @@
       "marathon",
       "shah kings"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_100",
@@ -3783,8 +3684,7 @@
       "mixed culture",
       "proximity to headquarters"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_101",
@@ -3821,8 +3721,7 @@
       "accessible",
       "culture"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_102",
@@ -3858,8 +3757,7 @@
       "aandhikhola",
       "orange garden"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_103",
@@ -3893,8 +3791,7 @@
       "shah dynasty",
       "ancestral deity"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_104",
@@ -3930,8 +3827,7 @@
       "adventure sports",
       "swarek"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_105",
@@ -3966,8 +3862,7 @@
       "vishnu",
       "river confluence"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_106",
@@ -4004,8 +3899,7 @@
       "medieval history",
       "sen kings"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?temple,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_107",
@@ -4040,8 +3934,7 @@
       "swasthani",
       "mythology"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_108",
@@ -4078,8 +3971,7 @@
       "paragliding",
       "syangja"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_109",
@@ -4112,8 +4004,7 @@
       "engineering",
       "dam"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_110",
@@ -4148,8 +4039,7 @@
       "beni",
       "literary tourism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_111",
@@ -4183,8 +4073,7 @@
       "river confluence",
       "local hangout"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_112",
@@ -4219,8 +4108,7 @@
       "adventure caving",
       "kushma"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?trekking,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_113",
@@ -4254,8 +4142,7 @@
       "scenic cliff",
       "travel stop"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_114",
@@ -4291,8 +4178,7 @@
       "acclimatization",
       "marsyangdi valley"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_115",
@@ -4329,8 +4215,7 @@
       "local viewpoint",
       "hiking"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_116",
@@ -4364,8 +4249,7 @@
       "waling",
       "hilltop shrine"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_117",
@@ -4399,8 +4283,7 @@
       "agrotourism",
       "winter destination"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_118",
@@ -4435,8 +4318,7 @@
       "kali gandaki",
       "agriculture"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?nature,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_119",
@@ -4471,8 +4353,7 @@
       "magar culture",
       "rural tourism"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   },
   {
     "id": "dest_120",
@@ -4507,7 +4388,6 @@
       "tanahu",
       "river confluence"
     ],
-    "confidence": "high",
-    "imageUrl": "https://source.unsplash.com/800x500/?village,nepal"
+    "confidence": "high"
   }
 ]

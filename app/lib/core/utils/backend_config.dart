@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class BackendConfig {
   const BackendConfig._();
@@ -23,14 +22,10 @@ class BackendConfig {
 }
 
 String get backendBaseUrl {
-  String? configured;
-  try {
-    configured = dotenv.env['AI_BACKEND_BASE_URL']?.trim();
-  } catch (_) {
-    configured = null;
-  }
+  const url = String.fromEnvironment('AI_BACKEND_BASE_URL', defaultValue: '');
+  final configured = url.trim();
 
-  if (configured != null && configured.isNotEmpty) {
+  if (configured.isNotEmpty) {
     return configured;
   }
 

@@ -74,15 +74,13 @@ void main() {
     ImageCacheService.debugInstance = null;
   });
 
-  testWidgets('DestinationCard golden - light with imageUrl', (tester) async {
+  testWidgets('DestinationCard golden - light with local image',
+      (tester) async {
     ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     await tester.pumpWidget(
       _CardHarness(
         brightness: Brightness.light,
-        destination: _destination(
-          id: 'with-image-light',
-          imageUrl: 'https://source.unsplash.com/800x500/?village,nepal',
-        ),
+        destination: _destination(id: 'with-image-light'),
       ),
     );
     await tester.pumpAndSettle();
@@ -93,8 +91,7 @@ void main() {
     );
   });
 
-  testWidgets('DestinationCard golden - light without imageUrl',
-      (tester) async {
+  testWidgets('DestinationCard golden - light local fallback', (tester) async {
     ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     await tester.pumpWidget(
       _CardHarness(
@@ -110,15 +107,12 @@ void main() {
     );
   });
 
-  testWidgets('DestinationCard golden - dark with imageUrl', (tester) async {
+  testWidgets('DestinationCard golden - dark with local image', (tester) async {
     ImageCacheService.debugInstance = _FakeImageCacheService.instance;
     await tester.pumpWidget(
       _CardHarness(
         brightness: Brightness.dark,
-        destination: _destination(
-          id: 'with-image-dark',
-          imageUrl: 'https://source.unsplash.com/800x500/?trekking,nepal',
-        ),
+        destination: _destination(id: 'with-image-dark'),
       ),
     );
     await tester.pumpAndSettle();
@@ -176,7 +170,6 @@ class _CardHarness extends StatelessWidget {
 
 Destination _destination({
   required String id,
-  String? imageUrl,
 }) {
   return Destination(
     id: id,
@@ -196,7 +189,6 @@ Destination _destination({
     shortDescription: 'A Gurung settlement and Annapurna trekking node.',
     fullDescription:
         'A Gurung settlement and Annapurna trekking node with mountain views.',
-    imageUrl: imageUrl,
     latitude: 28.377,
     longitude: 83.807,
     tags: const ['gurung', 'homestay', 'annapurna'],

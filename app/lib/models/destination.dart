@@ -18,7 +18,6 @@ class Destination {
 
   final String shortDescription;
   final String fullDescription;
-  final String? imageUrl;
 
   final double? latitude;
   final double? longitude;
@@ -44,7 +43,6 @@ class Destination {
     this.natureLevel,
     required this.shortDescription,
     required this.fullDescription,
-    this.imageUrl,
     this.latitude,
     this.longitude,
     required this.tags,
@@ -117,7 +115,6 @@ class Destination {
       natureLevel: toInt(json['nature_level']),
       shortDescription: (json['short_description'] ?? '').toString(),
       fullDescription: (json['full_description'] ?? '').toString(),
-      imageUrl: json['imageUrl']?.toString(),
       latitude: toDouble(json['latitude']),
       longitude: toDouble(json['longitude']),
       tags: toStringList(json['tags']),
@@ -144,7 +141,6 @@ class Destination {
       'nature_level': natureLevel,
       'short_description': shortDescription,
       'full_description': fullDescription,
-      'imageUrl': imageUrl,
       'latitude': latitude,
       'longitude': longitude,
       'tags': tags,
@@ -206,7 +202,6 @@ class Destination {
     int? natureLevel,
     String? shortDescription,
     String? fullDescription,
-    String? imageUrl,
     double? latitude,
     double? longitude,
     List<String>? tags,
@@ -230,7 +225,6 @@ class Destination {
       natureLevel: natureLevel ?? this.natureLevel,
       shortDescription: shortDescription ?? this.shortDescription,
       fullDescription: fullDescription ?? this.fullDescription,
-      imageUrl: imageUrl ?? this.imageUrl,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       tags: tags ?? this.tags,

@@ -82,8 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _error = null;
       });
 
-      unawaited(ImageCacheService.instance.prefetchAll(destinations));
-      unawaited(ImageCacheService.instance.prefetchGalleries(destinations));
+      _scheduleImageCacheWarmup(destinations);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -91,6 +90,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loading = false;
       });
     }
+  }
+
+  void _scheduleImageCacheWarmup(List<Destination> destinations) {
+    final stableDestinations = List<Destination>.unmodifiable(destinations);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_warmImageCaches(stableDestinations));
+    });
+  }
+
+  Future<void> _warmImageCaches(List<Destination> destinations) async {
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    await ImageCacheService.instance.prefetchAll(destinations);
+    if (!mounted) return;
+
+    await Future<void>.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
+    await ImageCacheService.instance.prefetchGalleries(destinations);
   }
 
   Future<void> _toggleSaved(Destination destination) async {

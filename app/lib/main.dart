@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/utils/backend_config.dart';
 import 'core/observability/app_telemetry.dart';
 import 'data/datasources/user_profile_local_datasource.dart';
 import 'data/repositories/shared_preferences_user_profile_repository.dart';
@@ -23,7 +22,6 @@ Future<void> main() async {
       WidgetsFlutterBinding.ensureInitialized();
 
       await AppTelemetry.instance.initialize();
-      BackendConfig.debugAssertAnthropicApiKeyConfigured();
 
       FlutterError.onError = (details) {
         FlutterError.presentError(details);

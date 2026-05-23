@@ -54,6 +54,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   void dispose() {
+    _llmService.clearHistory();
     _controller.dispose();
     _scrollController.dispose();
     unawaited(_tts.stop());
@@ -340,6 +341,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   void _clearChat() {
+    _llmService.clearHistory();
     final l10n = AppLocalizations.of(context);
     setState(() {
       _messages

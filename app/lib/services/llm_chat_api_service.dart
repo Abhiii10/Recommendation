@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../core/utils/backend_config.dart';
 
 class LlmChatApiService {
+  static final List<Map<String, String>> _history = [];
+
   final Duration timeout;
   final Duration healthTimeout;
 
@@ -21,7 +23,13 @@ class LlmChatApiService {
     return Uri.parse('$normalizedBaseUrl$path');
   }
 
-  Future<String> ask(String question) async {
+  Future<String> ask(String question) => chat(question);
+
+  Future<String> chat(String question) async {
+    final recentHistory = _history.length <= 6
+        ? List<Map<String, String>>.from(_history)
+        : _history.sublist(_history.length - 6);
+
     final response = await http
         .post(
           _uri('/chat'),
@@ -32,6 +40,7 @@ class LlmChatApiService {
             'question': question,
             'language': 'en',
             'top_k': 5,
+            'history': recentHistory,
           }),
         )
         .timeout(timeout);
@@ -49,7 +58,14 @@ class LlmChatApiService {
       throw Exception('LLM chat failed: empty answer');
     }
 
+    _history.add({'role': 'user', 'text': question});
+    _history.add({'role': 'model', 'text': answer});
+
     return answer;
+  }
+
+  void clearHistory() {
+    _history.clear();
   }
 
   Future<bool> isHealthy() async {

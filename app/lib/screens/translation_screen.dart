@@ -19,6 +19,7 @@ class _TranslationScreenState extends State<TranslationScreen>
   final TranslationService _service = TranslationService.instance;
   final TextEditingController _inputController = TextEditingController();
   final TextEditingController _conversationController = TextEditingController();
+  final TextEditingController _phrasebookSearch = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   late final TabController _tabController;
@@ -30,6 +31,7 @@ class _TranslationScreenState extends State<TranslationScreen>
   bool _loading = false;
   bool _speechReady = false;
   bool _listening = false;
+  bool _nepaliTtsAvailable = true;
 
   String? _error;
 
@@ -37,6 +39,7 @@ class _TranslationScreenState extends State<TranslationScreen>
   TranslationResult? _currentResult;
 
   String _selectedCategory = 'greetings';
+  String _searchQuery = '';
 
   List<PhrasebookEntry> _categoryEntries = [];
   List<TranslationHistoryEntry> _history = [];
@@ -56,6 +59,7 @@ class _TranslationScreenState extends State<TranslationScreen>
     _tabController.dispose();
     _inputController.dispose();
     _conversationController.dispose();
+    _phrasebookSearch.dispose();
     _scrollController.dispose();
     _tts.stop();
     _speech.stop();
@@ -106,6 +110,22 @@ class _TranslationScreenState extends State<TranslationScreen>
   Future<void> _initTts() async {
     await _tts.setPitch(1.0);
     await _tts.setSpeechRate(0.45);
+
+    try {
+      final languages = await _tts.getLanguages as List?;
+      final hasNepali = languages?.any(
+            (language) => language.toString().toLowerCase().contains('ne'),
+          ) ??
+          false;
+
+      if (!mounted) return;
+
+      setState(() => _nepaliTtsAvailable = hasNepali);
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() => _nepaliTtsAvailable = false);
+    }
   }
 
   Future<void> _translateText() async {
@@ -166,6 +186,17 @@ class _TranslationScreenState extends State<TranslationScreen>
 
     _refreshHistory();
     _scrollConversationToBottom();
+
+    if (result.isSuccess) {
+      final lang = result.strategy == TranslationStrategy.phrasebookMatch ||
+              result.strategy == TranslationStrategy.intentModel
+          ? (RomanNepaliNormalizer.isDevanagari(result.translatedText)
+              ? 'ne-NP'
+              : 'en-US')
+          : 'en-US';
+
+      await _speakText(result.translatedText, lang);
+    }
   }
 
   Future<TranslationResult> _translateSafely(String text) async {
@@ -241,6 +272,13 @@ class _TranslationScreenState extends State<TranslationScreen>
 
   Future<void> _speakText(String text, String lang) async {
     if (text.trim().isEmpty) return;
+
+    if (lang == 'ne-NP' && !_nepaliTtsAvailable) {
+      _showSnack(
+        'Nepali voice not installed. Go to Settings -> Language -> Text-to-Speech to install it.',
+      );
+      return;
+    }
 
     await _tts.stop();
     await _tts.setLanguage(lang);
@@ -604,8 +642,39 @@ class _TranslationScreenState extends State<TranslationScreen>
   }
 
   Widget _buildPhrasebookTab() {
+    final entries = _searchQuery.isEmpty
+        ? _categoryEntries
+        : _service.allEntries
+            .where(
+              (entry) =>
+                  entry.english.toLowerCase().contains(_searchQuery) ||
+                  entry.nepali.contains(_searchQuery) ||
+                  entry.romanized.any(
+                    (romanized) =>
+                        romanized.toLowerCase().contains(_searchQuery),
+                  ),
+            )
+            .toList();
+
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+          child: TextField(
+            controller: _phrasebookSearch,
+            decoration: const InputDecoration(
+              hintText: 'Search phrases...',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            onChanged: (query) {
+              setState(() {
+                _searchQuery = query.toLowerCase().trim();
+              });
+            },
+          ),
+        ),
         SizedBox(
           height: 56,
           child: ListView.separated(
@@ -625,21 +694,44 @@ class _TranslationScreenState extends State<TranslationScreen>
           ),
         ),
         Expanded(
-          child: _categoryEntries.isEmpty
+          child: entries.isEmpty
               ? const Center(child: Text('No phrases in this category.'))
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
-                  itemCount: _categoryEntries.length,
+                  itemCount: entries.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    final entry = _categoryEntries[index];
+                    final entry = entries[index];
 
                     return Card(
                       child: ListTile(
                         title: Text(entry.english),
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 5),
-                          child: Text(entry.nepali),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.nepali,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (entry.romanized.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  entry.romanized.first,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.volume_up_outlined),

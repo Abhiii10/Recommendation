@@ -57,6 +57,7 @@ class RecommendationService:
         accommodation_repo = JsonAccommodationRepository()
 
         self._interaction_repo = build_interaction_repository()
+        self._cached_interactions = self._interaction_repo.get_all()
 
         self._destinations = destination_repo.get_all()
         self._accommodations = accommodation_repo.get_all()
@@ -94,7 +95,7 @@ class RecommendationService:
 
         candidate_ids = [c["destination"].id for c in candidates]
 
-        interactions = self._interaction_repo.get_all()
+        interactions = self._cached_interactions
         collab_filter = CollaborativeFilter(interactions)
 
         raw_collab = collab_filter.score_candidates(

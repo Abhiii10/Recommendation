@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,8 +18,7 @@ class TranslationService {
 
   static const String _googleTranslateUrl =
       'https://translate.googleapis.com/translate_a/single';
-  static const String _myMemoryBaseUrl =
-      'https://api.mymemory.translated.net';
+  static const String _myMemoryBaseUrl = 'https://api.mymemory.translated.net';
   static const Duration _onlineTimeout = Duration(seconds: 10);
   static const double _phraseThreshold = 0.46; // was 0.58 — too strict
   static const String _historyKey = 'translation_history_v3';
@@ -71,8 +71,16 @@ class TranslationService {
       return intentResult;
     }
 
+    var isOnline = true;
+    try {
+      final results = await Connectivity().checkConnectivity();
+      isOnline = results.any((result) => result != ConnectivityResult.none);
+    } catch (_) {
+      isOnline = true;
+    }
+
     // 3. Online: Google Translate first (better Nepali quality)
-    if (allowOnline) {
+    if (allowOnline && isOnline) {
       final googleResult = await _tryGoogleTranslate(trimmed, effectiveMode);
       if (googleResult != null) {
         await _addToHistory(trimmed, googleResult, effectiveMode);
@@ -130,7 +138,8 @@ class TranslationService {
     );
   }
 
-  double _scoreEntry(String input, PhrasebookEntry entry, TranslationMode mode) {
+  double _scoreEntry(
+      String input, PhrasebookEntry entry, TranslationMode mode) {
     final inputLower = input.toLowerCase().trim();
     final inputNorm = RomanNepaliNormalizer.normalize(input);
     final inputTokens = RomanNepaliNormalizer.tokenize(inputNorm).toSet();
@@ -197,7 +206,8 @@ class TranslationService {
     final inter = a.intersection(b).length;
     if (inter == 0) return 0.0;
     final union = a.union(b).length;
-    return (inter / union) * 0.40 + (inter / math.min(a.length, b.length)) * 0.60;
+    return (inter / union) * 0.40 +
+        (inter / math.min(a.length, b.length)) * 0.60;
   }
 
   // ── Intent model ────────────────────────────────────────────────────────
@@ -228,9 +238,8 @@ class TranslationService {
         },
       );
 
-      final response = await http
-          .get(uri, headers: {'User-Agent': 'Mozilla/5.0'})
-          .timeout(_onlineTimeout);
+      final response = await http.get(uri,
+          headers: {'User-Agent': 'Mozilla/5.0'}).timeout(_onlineTimeout);
 
       if (response.statusCode != 200) return null;
 
@@ -365,7 +374,8 @@ class TranslationService {
     _phrasebook = entries
         .whereType<Map>()
         .map((e) => PhrasebookEntry.fromJson(Map<String, dynamic>.from(e)))
-        .where((e) => e.id.isNotEmpty && e.english.isNotEmpty && e.nepali.isNotEmpty)
+        .where((e) =>
+            e.id.isNotEmpty && e.english.isNotEmpty && e.nepali.isNotEmpty)
         .toList();
   }
 }

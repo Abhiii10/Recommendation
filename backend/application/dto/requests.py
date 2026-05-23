@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -30,10 +30,16 @@ class InteractionRequestDto(BaseModel):
     timestamp: Optional[str] = None
 
 
+class ChatHistoryItem(BaseModel):
+    role: str
+    text: str
+
+
 class ChatRequestDto(BaseModel):
     question: str = Field(..., min_length=1, examples=["Tell me about Ghandruk"])
     language: str = Field("en", examples=["en"])
     top_k: int = Field(5, ge=1, le=10)
+    history: List[ChatHistoryItem] = Field(default_factory=list)
 
 
 # ── Evaluation DTOs ───────────────────────────────────────────────────────────

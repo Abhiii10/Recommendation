@@ -9,6 +9,7 @@ from backend.application.dto.requests import ChatRequestDto
 from backend.application.dto.responses import ChatResponseDto
 from backend.core.config import settings
 from backend.domain.entities.destination import Destination
+from backend.infrastructure.ml.candidate_retriever import CandidateRetriever
 from backend.infrastructure.repositories.json_destination_repository import (
     JsonDestinationRepository,
 )
@@ -34,6 +35,7 @@ class GeminiChatService:
     def __init__(self) -> None:
         self._destination_repo = JsonDestinationRepository()
         self._destinations = self._destination_repo.get_all()
+        self._retriever = CandidateRetriever(self._destinations)
 
     async def answer(self, request: ChatRequestDto) -> ChatResponseDto:
         question = request.question.strip()
@@ -73,6 +75,23 @@ If the context is not enough, give general rural tourism guidance and clearly sa
             f"{settings.gemini_model}:generateContent"
         )
 
+        contents = []
+
+        for turn in request.history:
+            contents.append(
+                {
+                    "role": turn.role,
+                    "parts": [{"text": turn.text}],
+                }
+            )
+
+        contents.append(
+            {
+                "role": "user",
+                "parts": [{"text": prompt}],
+            }
+        )
+
         payload = {
             "systemInstruction": {
                 "parts": [
@@ -81,16 +100,7 @@ If the context is not enough, give general rural tourism guidance and clearly sa
                     }
                 ]
             },
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": [
-                        {
-                            "text": prompt,
-                        }
-                    ],
-                }
-            ],
+            "contents": contents,
             "generationConfig": {
                 "temperature": settings.gemini_temperature,
                 "maxOutputTokens": settings.gemini_max_output_tokens,
@@ -143,6 +153,20 @@ If the context is not enough, give general rural tourism guidance and clearly sa
         )
 
     def _retrieve_destinations(
+        self,
+        question: str,
+        top_k: int,
+    ) -> List[Destination]:
+        try:
+            candidates = self._retriever.retrieve(
+                query_text=question,
+                top_k=top_k,
+            )
+            return [candidate["destination"] for candidate in candidates]
+        except Exception:
+            return self._keyword_retrieve(question, top_k)
+
+    def _keyword_retrieve(
         self,
         question: str,
         top_k: int,

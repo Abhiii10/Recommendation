@@ -11,6 +11,7 @@ import '../services/recommender_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_card.dart';
+import '../widgets/empty_state_widget.dart';
 import '../widgets/score_breakdown_widget.dart';
 import '../widgets/skeleton_card.dart';
 import 'ai_destination_detail_screen.dart';
@@ -61,6 +62,7 @@ class RecommendTab extends StatefulWidget {
   final RecommenderService service;
   final Future<void> Function(Destination) onToggleSaved;
   final bool Function(Destination) isSaved;
+  final VoidCallback? onOpenAbout;
 
   const RecommendTab({
     super.key,
@@ -69,6 +71,7 @@ class RecommendTab extends StatefulWidget {
     required this.service,
     required this.onToggleSaved,
     required this.isSaved,
+    this.onOpenAbout,
   });
 
   @override
@@ -699,35 +702,20 @@ class _RecommendTabState extends State<RecommendTab> {
   }
 
   Widget _buildEmptyState() {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(children: [
-          Icon(Icons.search_off_rounded, size: 40, color: cs.primary),
-          const SizedBox(height: 14),
-          Text(
-              _showOnlySaved
-                  ? 'No saved results matched this profile'
-                  : 'No results matched this profile',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-              textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text(
-              _showOnlySaved
-                  ? 'Turn off "Show only saved" or bookmark more places first.'
-                  : 'Try changing the activity, season, budget or vibe.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: cs.onSurfaceVariant),
-              textAlign: TextAlign.center),
-        ]),
-      ),
+    return EmptyStateWidget(
+      title: _showOnlySaved
+          ? 'No saved results matched this profile'
+          : 'No results matched this profile',
+      subtitle: _showOnlySaved
+          ? 'Your saved list has not found this trail yet. Show all results or bookmark more places first.'
+          : 'The recommender found mist on this pass. Try changing the activity, season, budget, or vibe.',
+      icon: Icons.search_off_rounded,
+      actionLabel: _showOnlySaved ? 'Show All Results' : null,
+      onAction: _showOnlySaved
+          ? () => setState(() {
+                _showOnlySaved = false;
+              })
+          : null,
     );
   }
 
@@ -772,6 +760,12 @@ class _RecommendTabState extends State<RecommendTab> {
         title: const Text('Recommendations'),
         centerTitle: false,
         actions: [
+          if (widget.onOpenAbout != null)
+            IconButton(
+              icon: const Icon(Icons.info_outline_rounded),
+              tooltip: 'About',
+              onPressed: widget.onOpenAbout,
+            ),
           if (_error != null)
             IconButton(
               icon: const Icon(Icons.warning_amber_rounded),

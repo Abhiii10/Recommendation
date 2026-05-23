@@ -19,7 +19,6 @@ import 'home_tab.dart' as home;
 import 'map_screen.dart';
 import 'recommend_tab.dart' as recommend;
 import 'saved_tab.dart';
-import 'translation_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final ValueNotifier<ThemeMode> themeMode;
@@ -132,6 +131,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _goToTab(int index) => setState(() => _currentIndex = index);
 
+  void _openAbout() {
+    unawaited(HapticFeedback.selectionClick());
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AboutTab(themeMode: widget.themeMode),
+      ),
+    );
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -191,6 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onOpenRecommend: () => _goToTab(1),
         onOpenMap: () => _goToTab(2),
         onOpenSaved: () => _goToTab(3),
+        onOpenAbout: _openAbout,
       ),
       recommend.RecommendTab(
         destinations: _destinations,
@@ -198,19 +207,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         service: _service!,
         onToggleSaved: _toggleSaved,
         isSaved: _isSaved,
+        onOpenAbout: _openAbout,
       ),
       MapScreen(
         destinations: _destinations,
         accommodations: _accommodations,
+        onOpenAbout: _openAbout,
       ),
       SavedTab(
         savedDestinations: _savedDestinations,
         accommodations: _accommodations,
         onToggleSaved: _toggleSaved,
+        onOpenAbout: _openAbout,
       ),
-      const TranslationScreen(),
-      ChatbotScreen(destinations: _destinations),
-      AboutTab(themeMode: widget.themeMode),
+      ChatbotScreen(
+        destinations: _destinations,
+        onOpenAbout: _openAbout,
+      ),
     ];
 
     return Scaffold(
@@ -337,17 +350,9 @@ class _AppNavBar extends StatelessWidget {
         badge: savedCount > 0 ? '$savedCount' : null,
       ),
       const _NavItem(
-          icon: Icons.translate_outlined,
-          activeIcon: Icons.translate_rounded,
-          label: 'Translate'),
-      const _NavItem(
           icon: Icons.chat_bubble_outline_rounded,
           activeIcon: Icons.chat_bubble_rounded,
           label: 'Chat'),
-      const _NavItem(
-          icon: Icons.info_outline_rounded,
-          activeIcon: Icons.info_rounded,
-          label: 'About'),
     ];
 
     return ClipRect(

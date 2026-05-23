@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/accommodation.dart';
@@ -8,19 +9,31 @@ import '../models/destination.dart';
 import '../theme/app_theme.dart';
 import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_card.dart';
+import '../widgets/empty_state_widget.dart';
 import 'details_screen.dart';
 
 class SavedTab extends StatelessWidget {
   final List<Destination> savedDestinations;
   final List<Accommodation> accommodations;
   final Future<void> Function(Destination) onToggleSaved;
+  final VoidCallback? onOpenAbout;
 
   const SavedTab({
     super.key,
     required this.savedDestinations,
     required this.accommodations,
     required this.onToggleSaved,
+    this.onOpenAbout,
   });
+
+  void _openTripPlanner(BuildContext context) {
+    unawaited(HapticFeedback.selectionClick());
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const _TripPlannerPlaceholderScreen(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +81,22 @@ class SavedTab extends StatelessWidget {
             ),
           ],
         ),
+        actions: [
+          if (onOpenAbout != null)
+            IconButton(
+              tooltip: 'About',
+              icon: const Icon(Icons.info_outline_rounded),
+              onPressed: onOpenAbout,
+            ),
+        ],
       ),
       body: savedDestinations.isEmpty
-          ? const _EmptyState()
+          ? const EmptyStateWidget(
+              title: 'No saved destinations yet',
+              subtitle:
+                  'Your shortlist is lighter than a tea-house daypack. Bookmark a place when one feels right.',
+              icon: Icons.bookmark_border_rounded,
+            )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
               itemCount: savedDestinations.length,
@@ -142,117 +168,70 @@ class SavedTab extends StatelessWidget {
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openTripPlanner(context),
+        icon: const Icon(Icons.route_rounded),
+        label: const Text('Plan a Trip'),
+      ),
     );
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+class _TripPlannerPlaceholderScreen extends StatelessWidget {
+  const _TripPlannerPlaceholderScreen();
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Lottie.asset(
-              'assets/animations/empty_saved.json',
-              width: 160,
-              height: 160,
-              repeat: true,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppTheme.earthOchre.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.bookmark_border_rounded,
-                  size: 44,
-                  color: AppTheme.earthOchre,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              l10n.savedEmpty,
-              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              l10n.savedEmptySubtitle,
-              style: tt.bodyMedium?.copyWith(
-                color: cs.onSurfaceVariant,
-                height: 1.6,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 10,
-              runSpacing: 10,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Trip Planner'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _HintPill(
-                  icon: Icons.home_rounded,
-                  label: 'Browse Home',
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: cs.primaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.route_rounded,
+                    color: cs.onPrimaryContainer,
+                    size: 34,
+                  ),
                 ),
-                _HintPill(
-                  icon: Icons.auto_awesome_rounded,
-                  label: 'Get AI Picks',
+                const SizedBox(height: 20),
+                Text(
+                  'Trip Planner',
+                  style: tt.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: cs.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Build day plans from your saved destinations. This screen is ready for the next feature pass.',
+                  style: tt.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HintPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _HintPill({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: cs.primaryContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: cs.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: cs.primary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
-        ],
+        ),
       ),
     );
   }

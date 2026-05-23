@@ -20,6 +20,7 @@ class LocalDataService {
   static const String _webEventsKey = 'web_app_events';
   static const String _webCachePrefix = 'web_recommendation_cache_';
   static const String _webCacheTimestampSuffix = '_generated_at';
+  static const String _webReviewsPrefix = 'web_destination_reviews_';
 
   Database? _db;
   bool _ffiInitialized = false;
@@ -62,9 +63,14 @@ class LocalDataService {
           )
         ''');
 
+        await _createDestinationReviewsTable(db);
         await UserProfileLocalDatasource.runMigrations(db, 0, version);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 3) {
+          await _createDestinationReviewsTable(db);
+        }
+
         await UserProfileLocalDatasource.runMigrations(
           db,
           oldVersion,
@@ -72,6 +78,23 @@ class LocalDataService {
         );
       },
     );
+  }
+
+  Future<void> _createDestinationReviewsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS destination_reviews(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        destination_id TEXT NOT NULL,
+        rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+        review_text TEXT,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_destination_reviews_destination_id
+      ON destination_reviews(destination_id)
+    ''');
   }
 
   void _initDesktopDatabaseFactory() {
@@ -182,6 +205,73 @@ class LocalDataService {
     );
 
     return rows.isNotEmpty;
+  }
+
+  Future<void> saveReview(String destId, int rating, String? text) async {
+    await init();
+
+    if (rating < 1 || rating > 5) {
+      throw ArgumentError.value(rating, 'rating', 'Must be between 1 and 5.');
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final review = <String, dynamic>{
+      'destination_id': destId,
+      'rating': rating,
+      'review_text': text?.trim().isEmpty == true ? null : text?.trim(),
+      'created_at': now,
+    };
+
+    if (kIsWeb) {
+      await _saveReviewForWeb(destId, review);
+      return;
+    }
+
+    await _database.insert('destination_reviews', review);
+  }
+
+  Future<List<Map<String, dynamic>>> getReviews(String destId) async {
+    await init();
+
+    if (kIsWeb) {
+      return _getReviewsForWeb(destId);
+    }
+
+    return _database.query(
+      'destination_reviews',
+      where: 'destination_id = ?',
+      whereArgs: [destId],
+      orderBy: 'created_at DESC',
+    );
+  }
+
+  Future<double?> getAverageRating(String destId) async {
+    await init();
+
+    if (kIsWeb) {
+      final reviews = await _getReviewsForWeb(destId);
+      if (reviews.isEmpty) return null;
+
+      final total = reviews.fold<double>(
+        0,
+        (sum, review) => sum + (review['rating'] as num).toDouble(),
+      );
+      return total / reviews.length;
+    }
+
+    final rows = await _database.rawQuery(
+      '''
+      SELECT AVG(rating) AS average_rating
+      FROM destination_reviews
+      WHERE destination_id = ?
+      ''',
+      [destId],
+    );
+
+    final value = rows.first['average_rating'];
+    if (value == null) return null;
+
+    return (value as num).toDouble();
   }
 
   Future<void> cacheRecommendations(
@@ -381,6 +471,39 @@ class LocalDataService {
               Map<String, dynamic>.from(entry as Map),
             ),
           )
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _saveReviewForWeb(
+    String destId,
+    Map<String, dynamic> review,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final reviews = await _getReviewsForWeb(destId);
+    reviews.insert(0, {
+      'id': DateTime.now().microsecondsSinceEpoch,
+      ...review,
+    });
+
+    await prefs.setString(
+      '$_webReviewsPrefix$destId',
+      jsonEncode(reviews),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _getReviewsForWeb(String destId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('$_webReviewsPrefix$destId');
+
+    if (raw == null || raw.isEmpty) return [];
+
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((entry) => Map<String, dynamic>.from(entry as Map))
           .toList();
     } catch (_) {
       return [];

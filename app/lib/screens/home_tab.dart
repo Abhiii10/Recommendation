@@ -11,6 +11,7 @@ import '../models/destination.dart';
 import '../theme/app_theme.dart';
 import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_image.dart';
+import '../widgets/empty_state_widget.dart';
 import 'details_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ class HomeTab extends StatefulWidget {
   final VoidCallback onOpenRecommend;
   final VoidCallback onOpenMap;
   final VoidCallback onOpenSaved;
+  final VoidCallback? onOpenAbout;
 
   const HomeTab({
     super.key,
@@ -58,6 +60,7 @@ class HomeTab extends StatefulWidget {
     required this.onOpenRecommend,
     required this.onOpenMap,
     required this.onOpenSaved,
+    this.onOpenAbout,
   });
 
   @override
@@ -220,12 +223,62 @@ class _HomeTabState extends State<HomeTab> {
   List<Destination> get _featuredDestinations {
     final sorted = [...widget.destinations];
     sorted.sort((a, b) {
-      final as_ = a.tags.length + a.activities.length + a.category.length;
-      final bs_ = b.tags.length + b.activities.length + b.category.length;
-      return bs_.compareTo(as_);
+      final scoreCompare = _featuredScore(b).compareTo(_featuredScore(a));
+      return scoreCompare != 0
+          ? scoreCompare
+          : a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
     return sorted.take(6).toList();
   }
+
+  double _featuredScore(Destination destination) {
+    final adventureScore =
+        ((destination.adventureLevel ?? 0).clamp(0, 5) / 5) * 0.3;
+    final activityScore =
+        (destination.activities.length.clamp(0, 10) / 10) * 0.3;
+    final tagScore = (destination.tags.length.clamp(0, 15) / 15) * 0.2;
+    final familyScore = destination.familyFriendly == true ? 0.2 : 0.0;
+
+    return adventureScore + activityScore + tagScore + familyScore;
+  }
+
+  String get _currentSeason {
+    final month = DateTime.now().month;
+    if (month == 12 || month <= 2) return 'winter';
+    if (month <= 5) return 'spring';
+    if (month <= 8) return 'summer';
+    return 'autumn';
+  }
+
+  List<Destination> _bestThisSeasonDestinations(String season) {
+    final lowerSeason = season.toLowerCase();
+    return widget.destinations
+        .where(
+          (destination) => destination.bestSeason.any(
+            (value) => value.toLowerCase().contains(lowerSeason),
+          ),
+        )
+        .toList();
+  }
+
+  IconData _seasonIcon(String season) {
+    switch (season) {
+      case 'spring':
+        return Icons.local_florist_rounded;
+      case 'summer':
+        return Icons.wb_sunny_rounded;
+      case 'autumn':
+        return Icons.forest_rounded;
+      case 'winter':
+        return Icons.ac_unit_rounded;
+      default:
+        return Icons.calendar_month_rounded;
+    }
+  }
+
+  String _seasonLabel(String season) => season.isEmpty
+      ? season
+      : '${season[0].toUpperCase()}${season.substring(1)}';
 
   List<_ScoredDestination> get _rankedResults {
     final q = _debouncedQuery.trim().toLowerCase();
@@ -346,6 +399,8 @@ class _HomeTabState extends State<HomeTab> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final featured = _featuredDestinations;
+    final currentSeason = _currentSeason;
+    final seasonalDestinations = _bestThisSeasonDestinations(currentSeason);
     final rankedResults = _rankedResults;
     final hasFilter = _debouncedQuery.isNotEmpty || _activeCategory != null;
 
@@ -357,6 +412,14 @@ class _HomeTabState extends State<HomeTab> {
             pinned: true,
             expandedHeight: 300,
             backgroundColor: cs.surface,
+            actions: [
+              if (widget.onOpenAbout != null)
+                IconButton(
+                  tooltip: 'About',
+                  icon: const Icon(Icons.info_outline_rounded),
+                  onPressed: widget.onOpenAbout,
+                ),
+            ],
             title: Row(
               children: [
                 Container(
@@ -518,6 +581,31 @@ class _HomeTabState extends State<HomeTab> {
                             ),
                           ),
                         ),
+                        if (seasonalDestinations.isNotEmpty) ...[
+                          const SizedBox(height: 28),
+                          _SectionLabel(
+                            text: 'Best This Season',
+                            sub: 'Ideal for ${_seasonLabel(currentSeason)}',
+                            icon: _seasonIcon(currentSeason),
+                          ),
+                          const SizedBox(height: 12),
+                          _SeasonalDestinationRail(
+                            destinations: seasonalDestinations,
+                            onTap: (d) => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => DetailsScreen(
+                                  destination: d,
+                                  nearbyAccommodations:
+                                      accommodationsForDestination(
+                                    d,
+                                    widget.accommodations,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 28),
                         _SectionLabel(
                           text:
@@ -850,10 +938,12 @@ class _CategoryStripState extends State<_CategoryStrip> {
 class _SectionLabel extends StatelessWidget {
   final String text;
   final String? sub;
+  final IconData? icon;
 
   const _SectionLabel({
     required this.text,
     this.sub,
+    this.icon,
   });
 
   @override
@@ -862,11 +952,28 @@ class _SectionLabel extends StatelessWidget {
 
     return Row(
       children: [
+        if (icon != null) ...[
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: cs.primaryContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Icon(icon, color: cs.onPrimaryContainer, size: 18),
+          ),
+          const SizedBox(width: 10),
+        ],
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(text, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                text,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
               if (sub != null)
                 Text(
                   sub!,
@@ -1069,6 +1176,45 @@ class _FeaturedCarousel extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _SeasonalDestinationRail extends StatelessWidget {
+  final List<Destination> destinations;
+  final ValueChanged<Destination> onTap;
+
+  const _SeasonalDestinationRail({
+    required this.destinations,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 206,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: destinations.length,
+        itemBuilder: (context, index) {
+          final destination = destinations[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index == destinations.length - 1 ? 0 : 12,
+            ),
+            child: SizedBox(
+              width: 156,
+              child: HeroMode(
+                enabled: false,
+                child: _FeaturedMiniCard(
+                  destination: destination,
+                  onTap: () => onTap(destination),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -1460,45 +1606,18 @@ class _EmptyResult extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final subtitle = query.isNotEmpty
+        ? 'No trail matched "$query"${category != null ? ' in $category' : ''}. Try another signpost.'
+        : 'This category is as quiet as a hill village after sunset. Try another filter.';
 
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: cs.errorContainer.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: cs.error.withValues(alpha: 0.15),
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                Icons.search_off_rounded,
-                size: 36,
-                color: cs.error,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'No results found',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                query.isNotEmpty
-                    ? 'Nothing matched "$query"${category != null ? ' in $category' : ''}. Try a different search.'
-                    : 'No destinations in this category yet.',
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+        EmptyStateWidget(
+          title: 'No results found',
+          subtitle: subtitle,
+          icon: Icons.search_off_rounded,
+          actionLabel: 'Open Map',
+          onAction: onMap,
         ),
         const SizedBox(height: 20),
         const _SectionLabel(text: 'Try these instead'),

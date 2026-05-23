@@ -34,11 +34,13 @@ const _kCategoryIcons = <String, IconData>{
 class MapScreen extends StatefulWidget {
   final List<Destination> destinations;
   final List<Accommodation> accommodations;
+  final VoidCallback? onOpenAbout;
 
   const MapScreen({
     super.key,
     required this.destinations,
     required this.accommodations,
+    this.onOpenAbout,
   });
 
   @override
@@ -156,6 +158,12 @@ class _MapScreenState extends State<MapScreen> {
               label: Text('${mapped.length} places'),
             ),
           ),
+          if (widget.onOpenAbout != null)
+            IconButton(
+              tooltip: 'About',
+              icon: const Icon(Icons.info_outline_rounded),
+              onPressed: widget.onOpenAbout,
+            ),
         ],
       ),
       body: mapped.isEmpty

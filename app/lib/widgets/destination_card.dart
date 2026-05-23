@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/destination.dart';
+import '../services/local_data_service.dart';
 import '../theme/app_theme.dart';
 import 'destination_image.dart';
 import 'score_breakdown_widget.dart';
@@ -113,6 +114,10 @@ class DestinationCard extends StatelessWidget {
                               color: catColor,
                             ),
                           const Spacer(),
+                          _AverageRatingBadge(
+                            destinationId: destination.id,
+                            hasTrailing: trailing != null,
+                          ),
                           if (trailing != null) trailing!,
                         ],
                       ),
@@ -371,6 +376,89 @@ class _ModePill extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AverageRatingBadge extends StatefulWidget {
+  final String destinationId;
+  final bool hasTrailing;
+
+  const _AverageRatingBadge({
+    required this.destinationId,
+    required this.hasTrailing,
+  });
+
+  @override
+  State<_AverageRatingBadge> createState() => _AverageRatingBadgeState();
+}
+
+class _AverageRatingBadgeState extends State<_AverageRatingBadge> {
+  late Future<double?> _ratingFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _ratingFuture =
+        LocalDataService.instance.getAverageRating(widget.destinationId);
+  }
+
+  @override
+  void didUpdateWidget(covariant _AverageRatingBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.destinationId != widget.destinationId) {
+      _ratingFuture =
+          LocalDataService.instance.getAverageRating(widget.destinationId);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<double?>(
+      future: _ratingFuture,
+      builder: (context, snapshot) {
+        final rating = snapshot.data;
+        if (rating == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: EdgeInsets.only(right: widget.hasTrailing ? 8 : 0),
+          child: _RatingBadge(rating: rating),
+        );
+      },
+    );
+  }
+}
+
+class _RatingBadge extends StatelessWidget {
+  final double rating;
+
+  const _RatingBadge({required this.rating});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star_rounded, size: 13, color: cs.primary),
+          const SizedBox(width: 3),
+          Text(
+            rating.toStringAsFixed(1),
+            style: TextStyle(
+              color: cs.onPrimaryContainer,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

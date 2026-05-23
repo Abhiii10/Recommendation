@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/observability/app_telemetry.dart';
 import 'data/datasources/user_profile_local_datasource.dart';
@@ -10,6 +11,7 @@ import 'data/repositories/shared_preferences_user_profile_repository.dart';
 import 'data/repositories/user_profile_repository_impl.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/local_data_service.dart';
 import 'services/user_profile_service.dart';
 import 'theme/app_theme.dart';
@@ -78,10 +80,34 @@ class _RuralTourismAppState extends State<RuralTourismApp> {
   final ValueNotifier<ThemeMode> _themeMode =
       ValueNotifier<ThemeMode>(ThemeMode.system);
 
+  bool? _onboardingComplete;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadOnboardingState());
+  }
+
   @override
   void dispose() {
     _themeMode.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadOnboardingState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _onboardingComplete =
+          prefs.getBool(OnboardingScreen.completionKey) ?? false;
+    });
+  }
+
+  void _handleOnboardingComplete() {
+    if (!mounted) return;
+
+    setState(() => _onboardingComplete = true);
   }
 
   @override
@@ -97,9 +123,28 @@ class _RuralTourismAppState extends State<RuralTourismApp> {
           themeMode: themeMode,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DashboardScreen(themeMode: _themeMode),
+          home: _buildHome(),
         );
       },
     );
+  }
+
+  Widget _buildHome() {
+    final onboardingComplete = _onboardingComplete;
+
+    if (onboardingComplete == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (!onboardingComplete) {
+      return OnboardingScreen(
+        userProfileService: userProfileService,
+        onComplete: _handleOnboardingComplete,
+      );
+    }
+
+    return DashboardScreen(themeMode: _themeMode);
   }
 }

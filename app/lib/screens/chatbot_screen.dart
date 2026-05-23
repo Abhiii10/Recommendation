@@ -12,13 +12,16 @@ import '../services/chatbot_service.dart';
 import '../services/llm_chat_api_service.dart';
 import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
+import 'translation_screen.dart';
 
 class ChatbotScreen extends StatefulWidget {
   final List<Destination> destinations;
+  final VoidCallback? onOpenAbout;
 
   const ChatbotScreen({
     super.key,
     required this.destinations,
+    this.onOpenAbout,
   });
 
   @override
@@ -360,6 +363,50 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _scrollToBottom();
   }
 
+  void _openTranslation() {
+    unawaited(HapticFeedback.selectionClick());
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const TranslationScreen(),
+      ),
+    );
+  }
+
+  Future<void> _confirmClearChat() async {
+    unawaited(HapticFeedback.selectionClick());
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Clear chat?'),
+          content: const Text(
+            'This will remove the current conversation and reset the chatbot history.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                unawaited(HapticFeedback.selectionClick());
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                unawaited(HapticFeedback.selectionClick());
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Clear'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || confirmed != true) return;
+    _clearChat();
+  }
+
   Future<void> _showBotMessageMenu(
     ChatMessage message,
     Offset globalPosition,
@@ -463,17 +510,32 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           ],
         ),
         actions: [
+          if (widget.onOpenAbout != null)
+            IconButton(
+              icon: const Icon(Icons.info_outline_rounded),
+              tooltip: 'About',
+              onPressed: widget.onOpenAbout,
+            ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Clear chat',
-            onPressed: _clearChat,
+            onPressed: _confirmClearChat,
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.small(
+        tooltip: 'Open translation',
+        onPressed: _openTranslation,
+        child: const Icon(Icons.translate_rounded),
       ),
       body: DecoratedBox(
         decoration: AppTheme.scaffoldDecorationFor(context),
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: _buildModeBanner(),
+            ),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -500,6 +562,84 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             _buildInputBar(colorScheme),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildModeBanner() {
+    final cs = Theme.of(context).colorScheme;
+    final isOnline = _llmOnline == true;
+    final color = isOnline ? cs.primary : cs.tertiary;
+    final icon =
+        isOnline ? Icons.auto_awesome_rounded : Icons.offline_bolt_rounded;
+    final label = isOnline ? 'AI Mode' : 'Offline Mode';
+    final body = isOnline
+        ? 'Online LLM responses are available.'
+        : _llmOnline == null
+            ? 'Checking whether the AI server is reachable.'
+            : 'Offline fallback answers are active.';
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.18),
+            color.withValues(alpha: 0.04),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.30), width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 21),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  body,
+                  style: TextStyle(
+                    color: color.withValues(alpha: 0.78),
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Refresh status',
+            onPressed: () {
+              unawaited(HapticFeedback.selectionClick());
+              unawaited(_refreshLlmStatus());
+            },
+            icon: Icon(Icons.refresh_rounded, color: color, size: 20),
+          ),
+        ],
       ),
     );
   }
@@ -675,6 +815,20 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       ],
                     ),
                   ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: 4,
+                    left: isUser ? 0 : 2,
+                    right: isUser ? 2 : 0,
+                  ),
+                  child: Text(
+                    _relativeTime(message.timestamp),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -682,6 +836,24 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ],
       ),
     );
+  }
+
+  String _relativeTime(DateTime timestamp) {
+    final difference = DateTime.now().difference(timestamp);
+
+    if (difference.inMinutes < 1) {
+      return 'just now';
+    }
+
+    if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    }
+
+    if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    }
+
+    return '${difference.inDays}d ago';
   }
 }
 
@@ -745,7 +917,10 @@ class _QuickSuggestionsState extends State<_QuickSuggestions>
                   child: ActionChip(
                     avatar: Icon(suggestion.icon, size: 14),
                     label: Text(suggestion.text),
-                    onPressed: () => widget.onSelected(suggestion),
+                    onPressed: () {
+                      unawaited(HapticFeedback.selectionClick());
+                      widget.onSelected(suggestion);
+                    },
                     backgroundColor: cs.primaryContainer.withValues(alpha: 0.7),
                     side: BorderSide.none,
                     labelStyle: const TextStyle(
@@ -819,7 +994,10 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        unawaited(HapticFeedback.selectionClick());
+        onTap();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: 8,
@@ -945,9 +1123,15 @@ class _TypingDot extends StatelessWidget {
       animation: controller,
       builder: (_, __) {
         final value = sin((controller.value + offset) * pi).clamp(0.0, 1.0);
-        return Transform.translate(
-          offset: Offset(0, -4 * value),
-          child: const CircleAvatar(radius: 4, backgroundColor: Colors.white70),
+        return Opacity(
+          opacity: 0.45 + (value * 0.55),
+          child: Transform.scale(
+            scale: 0.72 + (value * 0.42),
+            child: const CircleAvatar(
+              radius: 4,
+              backgroundColor: Colors.white70,
+            ),
+          ),
         );
       },
     );

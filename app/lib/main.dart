@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +24,15 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
+      // ── Step 1: Load .env FIRST before anything else ──────────────────────
+      try {
+        await dotenv.load(fileName: '.env');
+        debugPrint('✅ .env loaded — backend: ${dotenv.maybeGet('AI_BACKEND_BASE_URL')}');
+      } catch (e) {
+        debugPrint('⚠️ .env not found, using hardcoded fallback: $e');
+      }
+
+      // ── Step 2: Telemetry (now reads from dotenv correctly) ───────────────
       await AppTelemetry.instance.initialize();
 
       FlutterError.onError = (details) {
@@ -36,6 +46,7 @@ Future<void> main() async {
         );
       };
 
+      // ── Step 3: User profile service ──────────────────────────────────────
       if (kIsWeb) {
         userProfileService = UserProfileService(
           const SharedPreferencesUserProfileRepository(),
@@ -106,7 +117,6 @@ class _RuralTourismAppState extends State<RuralTourismApp> {
 
   void _handleOnboardingComplete() {
     if (!mounted) return;
-
     setState(() => _onboardingComplete = true);
   }
 

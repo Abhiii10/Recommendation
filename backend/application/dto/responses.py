@@ -25,5 +25,5 @@ class SimilarResponseDto(BaseModel):
 
 class ChatResponseDto(BaseModel):
     answer: str
-    source: str = "gemini"
+    source: str = "groq"
     used_context: List[str] = Field(default_factory=list)

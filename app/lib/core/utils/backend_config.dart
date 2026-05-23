@@ -1,17 +1,15 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class BackendConfig {
   const BackendConfig._();
 
   static String get anthropicApiKey {
-    const key = String.fromEnvironment(
-      'ANTHROPIC_API_KEY',
-      defaultValue: '',
-    );
+    final key = dotenv.maybeGet('ANTHROPIC_API_KEY')?.trim() ?? '';
     assert(
       key.isNotEmpty,
       '\n\nWARNING: ANTHROPIC_API_KEY not set.\n'
-      'Run: flutter run --dart-define=ANTHROPIC_API_KEY=your_key\n',
+      'Add ANTHROPIC_API_KEY=your_key to your app/.env file\n',
     );
     return key;
   }
@@ -25,15 +23,17 @@ class BackendConfig {
 }
 
 String get backendBaseUrl {
-  const defined = String.fromEnvironment(
-    'AI_BACKEND_BASE_URL',
-    defaultValue: '',
-  );
-  if (defined.trim().isNotEmpty) return defined.trim();
+  final fromEnv = dotenv.maybeGet('AI_BACKEND_BASE_URL')?.trim() ?? '';
+  if (fromEnv.isNotEmpty) {
+    debugPrint('🟢 backendBaseUrl from .env → $fromEnv');
+    return fromEnv;
+  }
+
+  // Hardcoded fallback — update this to your LAN IP
+  const fallback = 'http://192.168.18.132:8000';
+  debugPrint('🟡 backendBaseUrl fallback → $fallback');
 
   if (kIsWeb) return 'http://127.0.0.1:8000';
-  if (defaultTargetPlatform == TargetPlatform.android) {
-    return 'http://10.0.2.2:8000';
-  }
+  if (defaultTargetPlatform == TargetPlatform.android) return fallback;
   return 'http://127.0.0.1:8000';
 }

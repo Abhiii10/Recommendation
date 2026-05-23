@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/utils/backend_config.dart';
@@ -11,16 +12,15 @@ class LlmChatApiService {
   final Duration healthTimeout;
 
   LlmChatApiService({
-    this.timeout = const Duration(seconds: 15),
-    this.healthTimeout = const Duration(seconds: 3),
+    this.timeout = const Duration(seconds: 30),
+    this.healthTimeout = const Duration(seconds: 5),
   });
 
   Uri _uri(String path) {
-    final normalizedBaseUrl = backendBaseUrl.endsWith('/')
+    final base = backendBaseUrl.endsWith('/')
         ? backendBaseUrl.substring(0, backendBaseUrl.length - 1)
         : backendBaseUrl;
-
-    return Uri.parse('$normalizedBaseUrl$path');
+    return Uri.parse('$base$path');
   }
 
   Future<String> ask(String question) => chat(question);
@@ -30,49 +30,62 @@ class LlmChatApiService {
         ? List<Map<String, String>>.from(_history)
         : _history.sublist(_history.length - 6);
 
-    final response = await http
-        .post(
-          _uri('/chat'),
-          headers: const {
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'question': question,
-            'language': 'en',
-            'top_k': 5,
-            'history': recentHistory,
-          }),
-        )
-        .timeout(timeout);
+    final url = _uri('/chat');
+    debugPrint('🔵 Chat POST → $url');
+    debugPrint('🔵 Chat question → $question');
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'LLM chat failed: ${response.statusCode} ${response.body}',
-      );
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'question': question,
+              'language': 'en',
+              'top_k': 5,
+              'history': recentHistory,
+            }),
+          )
+          .timeout(timeout);
+
+      debugPrint('🔵 Chat response status → ${response.statusCode}');
+      debugPrint('🔵 Chat response body → ${response.body.substring(0, response.body.length.clamp(0, 300))}');
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('LLM chat failed: ${response.statusCode} ${response.body}');
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final answer = data['answer']?.toString().trim();
+
+      if (answer == null || answer.isEmpty) {
+        throw Exception('LLM chat failed: empty answer');
+      }
+
+      _history.add({'role': 'user', 'text': question});
+      _history.add({'role': 'model', 'text': answer});
+
+      debugPrint('✅ Chat success → ${answer.substring(0, answer.length.clamp(0, 100))}');
+      return answer;
+
+    } catch (e, stack) {
+      debugPrint('🔴 Chat POST failed → $e');
+      debugPrint('🔴 Stack → $stack');
+      rethrow;
     }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final answer = data['answer']?.toString().trim();
-
-    if (answer == null || answer.isEmpty) {
-      throw Exception('LLM chat failed: empty answer');
-    }
-
-    _history.add({'role': 'user', 'text': question});
-    _history.add({'role': 'model', 'text': answer});
-
-    return answer;
   }
 
-  void clearHistory() {
-    _history.clear();
-  }
+  void clearHistory() => _history.clear();
 
   Future<bool> isHealthy() async {
     try {
-      final response = await http.get(_uri('/health')).timeout(healthTimeout);
+      final url = _uri('/health');
+      debugPrint('🔵 Chat health check → $url');
+      final response = await http.get(url).timeout(healthTimeout);
+      debugPrint('🔵 Chat health response → ${response.statusCode} ${response.body}');
       return response.statusCode >= 200 && response.statusCode < 300;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('🔴 Chat health check failed → $e');
       return false;
     }
   }

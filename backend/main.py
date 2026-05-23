@@ -18,7 +18,7 @@ class ApplicationFactory:
             description=(
                 "AI-powered recommendation backend for Nepal Rural Tourism app. "
                 "Uses SBERT semantic retrieval, contextual reranking, "
-                "collaborative filtering, Gemini Flash chatbot, "
+                "collaborative filtering, Groq chatbot, "
                 "and ML-based ranking with offline evaluation."
             ),
         )
@@ -40,7 +40,7 @@ class ApplicationFactory:
         application.include_router(
             chat_router,
             prefix="/chat",
-            tags=["Gemini Flash Chatbot"],
+            tags=["Groq Chatbot"],
         )
 
         application.include_router(

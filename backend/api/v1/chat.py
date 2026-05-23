@@ -2,10 +2,10 @@ from fastapi import APIRouter
 
 from backend.application.dto.requests import ChatRequestDto
 from backend.application.dto.responses import ChatResponseDto
-from backend.application.services.gemini_chat_service import GeminiChatService
+from backend.application.services.groq_chat_service import GroqChatService
 
 router = APIRouter()
-service = GeminiChatService()
+service = GroqChatService()
 
 
 @router.post("", response_model=ChatResponseDto)

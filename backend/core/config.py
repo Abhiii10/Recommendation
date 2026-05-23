@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     max_results_per_district: int = 2
     max_results_per_category: int = 2
 
+    # ── Groq chatbot ──────────────────────────────────────────────────────────
+    groq_api_key:            str = ""
+    groq_model:              str = "llama-3.1-8b-instant"
+    groq_base_url:           str = "https://api.groq.com/openai/v1"
+    groq_max_output_tokens:  int = 600
+    groq_temperature:        float = 0.4
+
     # ── Gemini Flash chatbot ──────────────────────────────────────────────────
     gemini_api_key:            str = ""
     gemini_model:              str = "gemini-2.0-flash"

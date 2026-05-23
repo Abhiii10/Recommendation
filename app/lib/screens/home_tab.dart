@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../theme/app_theme.dart';
+import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_image.dart';
 import 'details_screen.dart';
 
@@ -44,6 +46,7 @@ IconData _iconFor(String cat) =>
 // ─────────────────────────────────────────────────────────────────────────────
 class HomeTab extends StatefulWidget {
   final List<Destination> destinations;
+  final List<Accommodation> accommodations;
   final VoidCallback onOpenRecommend;
   final VoidCallback onOpenMap;
   final VoidCallback onOpenSaved;
@@ -51,6 +54,7 @@ class HomeTab extends StatefulWidget {
   const HomeTab({
     super.key,
     required this.destinations,
+    required this.accommodations,
     required this.onOpenRecommend,
     required this.onOpenMap,
     required this.onOpenSaved,
@@ -503,7 +507,14 @@ class _HomeTabState extends State<HomeTab> {
                           onTap: (d) => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => DetailsScreen(destination: d),
+                              builder: (_) => DetailsScreen(
+                                destination: d,
+                                nearbyAccommodations:
+                                    accommodationsForDestination(
+                                  d,
+                                  widget.accommodations,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -521,7 +532,14 @@ class _HomeTabState extends State<HomeTab> {
                           onTap: (d) => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => DetailsScreen(destination: d),
+                              builder: (_) => DetailsScreen(
+                                destination: d,
+                                nearbyAccommodations:
+                                    accommodationsForDestination(
+                                  d,
+                                  widget.accommodations,
+                                ),
+                              ),
                             ),
                           ),
                           onMap: widget.onOpenMap,
@@ -550,6 +568,11 @@ class _HomeTabState extends State<HomeTab> {
                                 MaterialPageRoute(
                                   builder: (_) => DetailsScreen(
                                     destination: item.destination,
+                                    nearbyAccommodations:
+                                        accommodationsForDestination(
+                                      item.destination,
+                                      widget.accommodations,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -584,6 +607,11 @@ class _HomeTabState extends State<HomeTab> {
                             MaterialPageRoute(
                               builder: (_) => DetailsScreen(
                                 destination: destination,
+                                nearbyAccommodations:
+                                    accommodationsForDestination(
+                                  destination,
+                                  widget.accommodations,
+                                ),
                               ),
                             ),
                           ),

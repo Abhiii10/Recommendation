@@ -187,6 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final pages = [
       home.HomeTab(
         destinations: _destinations,
+        accommodations: _accommodations,
         onOpenRecommend: () => _goToTab(1),
         onOpenMap: () => _goToTab(2),
         onOpenSaved: () => _goToTab(3),

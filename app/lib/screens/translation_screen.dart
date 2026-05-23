@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../services/translation_service.dart';
+import '../theme/app_theme.dart';
 import '../translation/roman_nepali_normalizer.dart';
 import '../translation/translation_intent_model.dart';
 
@@ -388,24 +389,74 @@ class _TranslationScreenState extends State<TranslationScreen>
   }
 
   Widget _buildModeBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Row(
-        children: TranslationMode.values.map((mode) {
-          final selected = _mode == mode;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+          ),
+        ),
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          children: TranslationMode.values.map((mode) {
+            final selected = _mode == mode;
+            final icon = mode == TranslationMode.englishToNepali
+                ? Icons.arrow_forward_rounded
+                : mode == TranslationMode.nepaliToEnglish
+                    ? Icons.arrow_back_rounded
+                    : Icons.swap_horiz_rounded;
 
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: ChoiceChip(
-                selected: selected,
-                label: Center(child: Text(mode.label)),
-                onSelected: (_) => setState(() => _mode = mode),
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _mode = mode);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 14,
+                        color: selected
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        mode.label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight:
+                              selected ? FontWeight.w700 : FontWeight.w400,
+                          color: selected
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -471,55 +522,67 @@ class _TranslationScreenState extends State<TranslationScreen>
         ? result.translatedText
         : result.errorMessage ?? 'No suitable translation found.';
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _TranslationSourceChip(result: result),
-                ),
-                Chip(
-                  label: Text(result.confidencePercent),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-            if (result.intent != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Intent: ${result.intent}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 14),
-            SelectableText(
-              output,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => _copy(output),
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _speakResult(result),
-                  icon: const Icon(Icons.volume_up_outlined),
-                  label: const Text('Speak'),
-                ),
-              ],
-            ),
-            if (result.intent != null) _buildRelatedPhrases(result.intent!),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.mountainTeal.withValues(alpha: 0.06),
+            Colors.transparent,
           ],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.mountainTeal.withValues(alpha: 0.18),
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _TranslationSourceChip(result: result),
+              ),
+              Chip(
+                label: Text(result.confidencePercent),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          if (result.intent != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Intent: ${result.intent}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          const SizedBox(height: 14),
+          SelectableText(
+            output,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _copy(output),
+                icon: const Icon(Icons.copy),
+                label: const Text('Copy'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _speakResult(result),
+                icon: const Icon(Icons.volume_up_outlined),
+                label: const Text('Speak'),
+              ),
+            ],
+          ),
+          if (result.intent != null) _buildRelatedPhrases(result.intent!),
+        ],
       ),
     );
   }

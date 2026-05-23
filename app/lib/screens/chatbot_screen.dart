@@ -29,7 +29,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FlutterTts _tts = FlutterTts();
-  final LlmChatApiService _llmService = const LlmChatApiService();
+  final LlmChatApiService _llmService = LlmChatApiService();
 
   late final ChatbotService _service;
 

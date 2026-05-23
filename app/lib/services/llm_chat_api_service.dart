@@ -5,12 +5,12 @@ import 'package:http/http.dart' as http;
 import '../core/utils/backend_config.dart';
 
 class LlmChatApiService {
-  static final List<Map<String, String>> _history = [];
+  final List<Map<String, String>> _history = [];
 
   final Duration timeout;
   final Duration healthTimeout;
 
-  const LlmChatApiService({
+  LlmChatApiService({
     this.timeout = const Duration(seconds: 15),
     this.healthTimeout = const Duration(seconds: 3),
   });

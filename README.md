@@ -306,13 +306,15 @@ ipconfig
 Find the Wi-Fi IPv4 address, for example:
 
 ```text
-192.168.18.132
+192.168.x.x
 ```
 
-Then set `app/.env`:
+Pass the phone-reachable backend URL to Flutter with `--dart-define`:
 
-```env
-AI_BACKEND_BASE_URL=http://192.168.18.132:8000
+```powershell
+flutter run `
+  --dart-define=ANTHROPIC_API_KEY=sk-ant-... `
+  --dart-define=AI_BACKEND_BASE_URL=http://192.168.x.x:8000
 ```
 
 Allow Windows firewall access:
@@ -324,17 +326,17 @@ netsh advfirewall firewall add rule name="FastAPI 8000" dir=in action=allow prot
 Test from phone browser:
 
 ```text
-http://192.168.18.132:8000/health
+http://192.168.x.x:8000/health
 ```
 
 ---
 
 ## Android Emulator Setup
 
-For Android emulator, use:
+For Android emulator, the app defaults to:
 
-```env
-AI_BACKEND_BASE_URL=http://10.0.2.2:8000
+```text
+http://10.0.2.2:8000
 ```
 
 ---
@@ -345,15 +347,19 @@ AI_BACKEND_BASE_URL=http://10.0.2.2:8000
 cd app
 flutter clean
 flutter pub get
-flutter run --dart-define=ANTHROPIC_API_KEY=your_key_here
+flutter run `
+  --dart-define=ANTHROPIC_API_KEY=sk-ant-... `
+  --dart-define=AI_BACKEND_BASE_URL=http://192.168.x.x:8000
 ```
 
-For local web or emulator runs, keep API keys out of `.env` files and pass
-runtime secrets with `--dart-define`. The app asserts in debug mode when
-`ANTHROPIC_API_KEY` is missing:
+Keep API keys and backend URLs out of APK assets. Pass runtime values with
+`--dart-define`. The app asserts in debug mode when `ANTHROPIC_API_KEY` is
+missing:
 
 ```powershell
-flutter run --dart-define=ANTHROPIC_API_KEY=your_key_here
+flutter run `
+  --dart-define=ANTHROPIC_API_KEY=sk-ant-... `
+  --dart-define=AI_BACKEND_BASE_URL=http://192.168.x.x:8000
 ```
 
 Analyze Flutter code:

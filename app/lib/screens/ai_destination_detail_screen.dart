@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/utils/backend_config.dart';
+import '../main.dart' show userProfileService;
 import '../models/accommodation_model.dart';
 import '../models/api_recommendation_item.dart';
 import '../models/destination.dart';
@@ -32,6 +33,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   List<ApiRecommendationItem> _similar = [];
   bool _loadingAccommodations = true;
   bool _loadingSimilar = true;
+  bool _backendOffline = false;
   bool _saved = false;
 
   @override
@@ -52,8 +54,9 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
 
   Future<void> _logView() async {
     try {
+      final userId = await _currentUserId();
       await _api.logInteraction(
-        userId: 'demo_user_1',
+        userId: userId,
         destinationId: widget.item.id,
         eventType: 'detail_view',
       );
@@ -62,7 +65,9 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
 
   Future<void> _loadAccommodations() async {
     try {
-      final accommodations = await _api.accommodations(widget.item.id);
+      final accommodations = await _api
+          .accommodations(widget.item.id)
+          .timeout(const Duration(seconds: 8));
       if (!mounted) {
         return;
       }
@@ -74,14 +79,18 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
       if (!mounted) {
         return;
       }
-      setState(() => _loadingAccommodations = false);
+      setState(() {
+        _backendOffline = true;
+        _loadingAccommodations = false;
+      });
     }
   }
 
   Future<void> _loadSimilar() async {
     try {
-      final similar =
-          await _api.similar(destinationId: widget.item.id, topK: 5);
+      final similar = await _api
+          .similar(destinationId: widget.item.id, topK: 5)
+          .timeout(const Duration(seconds: 8));
       if (!mounted) {
         return;
       }
@@ -93,15 +102,19 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
       if (!mounted) {
         return;
       }
-      setState(() => _loadingSimilar = false);
+      setState(() {
+        _backendOffline = true;
+        _loadingSimilar = false;
+      });
     }
   }
 
   Future<void> _toggleSave() async {
     setState(() => _saved = !_saved);
     try {
+      final userId = await _currentUserId();
       await _api.logInteraction(
-        userId: 'demo_user_1',
+        userId: userId,
         destinationId: widget.item.id,
         eventType: 'save',
       );
@@ -120,6 +133,14 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
         ),
       ),
     );
+  }
+
+  Future<String> _currentUserId() async {
+    try {
+      return await userProfileService.stableUserId();
+    } catch (_) {
+      return 'anonymous';
+    }
   }
 
   @override
@@ -193,8 +214,17 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   }
 
   Widget _buildAccommodationsTab() {
+    final cs = Theme.of(context).colorScheme;
+
     if (_loadingAccommodations) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_accommodations.isEmpty && _backendOffline) {
+      return _BackendOfflineState(
+        message: 'Nearby stays not available without the AI server.',
+        colorScheme: cs,
+      );
     }
 
     if (_accommodations.isEmpty) {
@@ -213,8 +243,17 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   }
 
   Widget _buildSimilarTab() {
+    final cs = Theme.of(context).colorScheme;
+
     if (_loadingSimilar) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_similar.isEmpty && _backendOffline) {
+      return _BackendOfflineState(
+        message: 'Similar destinations not available without the AI server.',
+        colorScheme: cs,
+      );
     }
 
     if (_similar.isEmpty) {
@@ -249,6 +288,46 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class _BackendOfflineState extends StatelessWidget {
+  final String message;
+  final ColorScheme colorScheme;
+
+  const _BackendOfflineState({
+    required this.message,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.cloud_off_rounded,
+            size: 48,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Backend offline',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 13,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

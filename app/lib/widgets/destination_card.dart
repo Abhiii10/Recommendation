@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -29,7 +31,7 @@ const _kCategoryIcons = <String, IconData>{
 IconData _iconFor(String cat) =>
     _kCategoryIcons[cat.toLowerCase()] ?? Icons.place_rounded;
 
-class DestinationCard extends StatelessWidget {
+class DestinationCard extends StatefulWidget {
   final Destination destination;
   final List<String> reasons;
   final String scoreLabel;
@@ -39,6 +41,8 @@ class DestinationCard extends StatelessWidget {
   final Widget? trailing;
   final Widget? footer;
   final List<String> badges;
+  final bool? isSaved;
+  final VoidCallback? onToggleSaved;
 
   const DestinationCard({
     super.key,
@@ -51,12 +55,69 @@ class DestinationCard extends StatelessWidget {
     this.trailing,
     this.footer,
     this.badges = const [],
+    this.isSaved,
+    this.onToggleSaved,
   });
+
+  @override
+  State<DestinationCard> createState() => _DestinationCardState();
+
+  static String _budgetLabel(String value) {
+    switch (value.toLowerCase()) {
+      case 'budget':
+        return 'Budget friendly';
+      case 'medium':
+        return 'Mid-range';
+      case 'premium':
+        return 'Premium';
+      default:
+        return value;
+    }
+  }
+}
+
+class _DestinationCardState extends State<DestinationCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _burstController;
+  late final Animation<double> _burstAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _burstController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _burstAnimation = CurvedAnimation(
+      parent: _burstController,
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant DestinationCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isSaved != true && widget.isSaved == true) {
+      _burstController.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _burstController.dispose();
+    super.dispose();
+  }
+
+  void _handleSaveTap() {
+    unawaited(HapticFeedback.selectionClick());
+    widget.onToggleSaved?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final destination = widget.destination;
     final cat =
         destination.category.isNotEmpty ? destination.category.first : 'scenic';
     final catColor = AppTheme.categoryColourFor(context, cat);
@@ -67,7 +128,7 @@ class DestinationCard extends StatelessWidget {
 
     final metaLabels = [
       destination.type,
-      _budgetLabel(destination.priceTier),
+      DestinationCard._budgetLabel(destination.priceTier),
       destination.bestSeasonText,
     ].where((label) => label.trim().isNotEmpty).take(3).toList();
 
@@ -83,7 +144,7 @@ class DestinationCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           HapticFeedback.selectionClick();
-          onTap();
+          widget.onTap();
         },
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -104,21 +165,34 @@ class DestinationCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (modeLabel != null || trailing != null) ...[
+                    if (widget.modeLabel != null ||
+                        widget.trailing != null ||
+                        widget.onToggleSaved != null) ...[
                       Row(
                         children: [
-                          if (modeLabel != null)
+                          if (widget.modeLabel != null)
                             _ModePill(
-                              label: modeLabel!,
-                              icon: modeIcon ?? Icons.auto_awesome_rounded,
+                              label: widget.modeLabel!,
+                              icon:
+                                  widget.modeIcon ?? Icons.auto_awesome_rounded,
                               color: catColor,
                             ),
                           const Spacer(),
                           _AverageRatingBadge(
                             destinationId: destination.id,
-                            hasTrailing: trailing != null,
+                            hasTrailing: widget.trailing != null ||
+                                widget.onToggleSaved != null,
                           ),
-                          if (trailing != null) trailing!,
+                          if (widget.trailing != null) widget.trailing!,
+                          if (widget.trailing != null &&
+                              widget.onToggleSaved != null)
+                            const SizedBox(width: 6),
+                          if (widget.onToggleSaved != null)
+                            _SaveBurstButton(
+                              isSaved: widget.isSaved == true,
+                              animation: _burstAnimation,
+                              onTap: _handleSaveTap,
+                            ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -144,12 +218,12 @@ class DestinationCard extends StatelessWidget {
                         color: cs.onSurfaceVariant,
                       ),
                     ),
-                    if (badges.isNotEmpty) ...[
+                    if (widget.badges.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: badges
+                        children: widget.badges
                             .map((badge) => _BadgeChip(
                                   label: badge,
                                   color: catColor,
@@ -166,15 +240,15 @@ class DestinationCard extends StatelessWidget {
                             tags.map((tag) => _TagChip(label: tag)).toList(),
                       ),
                     ],
-                    if (reasons.isNotEmpty) ...[
+                    if (widget.reasons.isNotEmpty) ...[
                       const SizedBox(height: 14),
-                      _ReasonsPanel(reasons: reasons, color: catColor),
+                      _ReasonsPanel(reasons: widget.reasons, color: catColor),
                     ],
-                    if (scoreLabel != 'Saved') ...[
+                    if (widget.scoreLabel != 'Saved') ...[
                       const SizedBox(height: 12),
                       _ScorePromptRow(
-                        scoreLabel: scoreLabel,
-                        scoreBreakdown: footer,
+                        scoreLabel: widget.scoreLabel,
+                        scoreBreakdown: widget.footer,
                       ),
                     ],
                     const SizedBox(height: 14),
@@ -208,18 +282,92 @@ class DestinationCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  static String _budgetLabel(String value) {
-    switch (value.toLowerCase()) {
-      case 'budget':
-        return 'Budget friendly';
-      case 'medium':
-        return 'Mid-range';
-      case 'premium':
-        return 'Premium';
-      default:
-        return value;
+class _SaveBurstButton extends StatelessWidget {
+  final bool isSaved;
+  final Animation<double> animation;
+  final VoidCallback onTap;
+
+  const _SaveBurstButton({
+    required this.isSaved,
+    required this.animation,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: 46,
+      height: 46,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedBuilder(
+            animation: animation,
+            builder: (context, _) {
+              return IgnorePointer(
+                child: CustomPaint(
+                  size: const Size(46, 46),
+                  painter: _BookmarkBurstPainter(
+                    progress: animation.value,
+                    color: cs.primary,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton.filledTonal(
+            tooltip: isSaved ? 'Remove from saved' : 'Save destination',
+            onPressed: onTap,
+            icon: Icon(
+              isSaved ? Icons.bookmark : Icons.bookmark_border,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookmarkBurstPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  const _BookmarkBurstPainter({
+    required this.progress,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    final center = size.center(Offset.zero);
+    final distance = 8 + (progress * 22);
+    final radius = 3.8 - (progress * 1.8);
+    final opacity = (1 - progress).clamp(0.0, 1.0);
+    if (opacity <= 0) return;
+
+    final paint = Paint()..color = color.withValues(alpha: opacity);
+
+    for (var i = 0; i < 6; i++) {
+      final angle = (-math.pi / 2) + ((math.pi * 2) / 6 * i);
+      final offset = Offset(
+        math.cos(angle) * distance,
+        math.sin(angle) * distance,
+      );
+      canvas.drawCircle(center + offset, radius, paint);
     }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BookmarkBurstPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }
 

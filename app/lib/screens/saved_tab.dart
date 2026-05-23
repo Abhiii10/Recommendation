@@ -11,6 +11,7 @@ import '../utils/accommodation_matcher.dart';
 import '../widgets/destination_card.dart';
 import '../widgets/empty_state_widget.dart';
 import 'details_screen.dart';
+import 'trip_planner_screen.dart';
 
 class SavedTab extends StatelessWidget {
   final List<Destination> savedDestinations;
@@ -30,7 +31,9 @@ class SavedTab extends StatelessWidget {
     unawaited(HapticFeedback.selectionClick());
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const _TripPlannerPlaceholderScreen(),
+        builder: (_) => TripPlannerScreen(
+          savedDestinations: savedDestinations,
+        ),
       ),
     );
   }
@@ -172,66 +175,6 @@ class SavedTab extends StatelessWidget {
         onPressed: () => _openTripPlanner(context),
         icon: const Icon(Icons.route_rounded),
         label: const Text('Plan a Trip'),
-      ),
-    );
-  }
-}
-
-class _TripPlannerPlaceholderScreen extends StatelessWidget {
-  const _TripPlannerPlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trip Planner'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: cs.primaryContainer,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.route_rounded,
-                    color: cs.onPrimaryContainer,
-                    size: 34,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Trip Planner',
-                  style: tt.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Build day plans from your saved destinations. This screen is ready for the next feature pass.',
-                  style: tt.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant,
-                    height: 1.6,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

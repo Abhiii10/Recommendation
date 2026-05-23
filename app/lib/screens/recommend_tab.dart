@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../models/accommodation.dart';
 import '../models/destination.dart';
 import '../models/unified_recommendation.dart';
+import '../services/local_data_service.dart';
 import '../services/recommendation_manager.dart';
 import '../services/recommender_service.dart';
 import '../theme/app_theme.dart';
@@ -210,8 +211,12 @@ class _RecommendTabState extends State<RecommendTab> {
     }
   }
 
+  Future<void> _refreshResults() async {
+    await LocalDataService.instance.clearRecommendationCache();
+    await _generate();
+  }
+
   Future<void> _saveResult(UnifiedRecommendationResult r) async {
-    HapticFeedback.lightImpact();
     await widget.onToggleSaved(r.destination);
     try {
       await _manager.logSave(r);
@@ -585,16 +590,9 @@ class _RecommendTabState extends State<RecommendTab> {
             ? Icons.auto_awesome_rounded
             : Icons.offline_bolt_rounded,
         badges: _badges(result, idx),
-        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-          _buildScoreRing(result.score),
-          const SizedBox(width: 6),
-          IconButton.filledTonal(
-            tooltip: saved ? 'Remove from saved' : 'Save destination',
-            onPressed: () => _saveResult(result),
-            icon:
-                Icon(saved ? Icons.bookmark : Icons.bookmark_border, size: 20),
-          ),
-        ]),
+        trailing: _buildScoreRing(result.score),
+        isSaved: saved,
+        onToggleSaved: () => _saveResult(result),
         footer: ScoreBreakdownWidget(
           components: result.components,
           compact: false,
@@ -788,36 +786,40 @@ class _RecommendTabState extends State<RecommendTab> {
       ),
       body: DecoratedBox(
         decoration: AppTheme.scaffoldDecorationFor(context),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 860),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildModeBanner(),
-                      const SizedBox(height: 16),
-                      _buildFilterCard(),
-                      const SizedBox(height: 20),
-                      if (_response != null || _busy) ...[
-                        Row(children: [
-                          Text('Ranked destinations',
-                              style: theme.textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.w800)),
-                          const Spacer(),
-                          Text('${_visible.length} results',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant)),
-                        ]),
-                        const SizedBox(height: 14),
-                      ],
-                      _buildResultsSection(),
-                    ]),
+        child: RefreshIndicator(
+          onRefresh: _refreshResults,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 860),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildModeBanner(),
+                        const SizedBox(height: 16),
+                        _buildFilterCard(),
+                        const SizedBox(height: 20),
+                        if (_response != null || _busy) ...[
+                          Row(children: [
+                            Text('Ranked destinations',
+                                style: theme.textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w800)),
+                            const Spacer(),
+                            Text('${_visible.length} results',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant)),
+                          ]),
+                          const SizedBox(height: 14),
+                        ],
+                        _buildResultsSection(),
+                      ]),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

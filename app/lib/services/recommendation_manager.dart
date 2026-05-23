@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,6 +39,8 @@ class RecommendationManager {
 
   Future<bool> isBackendAvailable() async {
     try {
+      final result = await Connectivity().checkConnectivity();
+      if (result.contains(ConnectivityResult.none)) return false;
       return await _apiService.isHealthy();
     } catch (_) {
       return false;

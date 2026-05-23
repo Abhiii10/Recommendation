@@ -329,6 +329,11 @@ class LocalDataService {
     return _decodeRecommendationResults(payload);
   }
 
+  Future<void> clearRecommendationCache() async {
+    final db = database;
+    await db.delete('recommendation_cache');
+  }
+
   List<RecommendationResult> _decodeRecommendationResults(List payload) {
     return payload.map((entry) {
       final map = Map<String, dynamic>.from(entry as Map);

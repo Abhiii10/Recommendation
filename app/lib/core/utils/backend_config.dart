@@ -23,6 +23,13 @@ class BackendConfig {
 }
 
 String get backendBaseUrl {
+  const defined = String.fromEnvironment('AI_BACKEND_BASE_URL');
+  final compileTimeConfigured = defined.trim();
+
+  if (compileTimeConfigured.isNotEmpty) {
+    return compileTimeConfigured;
+  }
+
   final configured = dotenv.maybeGet('AI_BACKEND_BASE_URL')?.trim() ?? '';
 
   if (configured.isNotEmpty) {

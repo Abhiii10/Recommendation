@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
@@ -69,7 +70,8 @@ class Settings(BaseSettings):
     RANDOM_SEED:   int  = 42
 
     model_config = SettingsConfigDict(
-        env_file=ROOT_DIR / ".env",
+        env_file=BACKEND_DIR / ".env",
+        env_file_encoding="utf-8",
         env_prefix="",
         extra="ignore",
     )

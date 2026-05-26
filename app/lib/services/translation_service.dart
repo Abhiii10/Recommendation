@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -95,7 +96,16 @@ class TranslationService {
       }
     }
 
-    // 5. Return best offline match even if below threshold (better than nothing)
+    // 5. Groq AI translation (last resort)
+    if (allowOnline && isOnline) {
+      final groqResult = await _tryGroqTranslate(trimmed, effectiveMode);
+      if (groqResult != null) {
+        await _addToHistory(trimmed, groqResult, effectiveMode);
+        return groqResult;
+      }
+    }
+
+    // 6. Return best offline match even if below threshold (better than nothing)
     if (phraseResult != null && phraseResult.confidence > 0.20) {
       await _addToHistory(trimmed, phraseResult, effectiveMode);
       return phraseResult;
@@ -307,6 +317,55 @@ class TranslationService {
         translatedText: translated,
         strategy: TranslationStrategy.onlineFallback,
         confidence: confidence,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<TranslationResult?> _tryGroqTranslate(
+      String input, TranslationMode mode) async {
+    try {
+      final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
+      final targetLang = mode == TranslationMode.englishToNepali
+          ? 'Nepali (Devanagari script)'
+          : 'English';
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization':
+                  'Bearer ${dotenv.maybeGet("GROQ_API_KEY") ?? ""}',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'model': 'llama-3.1-8b-instant',
+              'messages': [
+                {
+                  'role': 'system',
+                  'content':
+                      'You are a translator. Translate the given text to $targetLang. '
+                          'Reply with ONLY the translated text, nothing else. '
+                          'No explanations, no quotes, no punctuation changes.',
+                },
+                {'role': 'user', 'content': input},
+              ],
+              'max_tokens': 200,
+              'temperature': 0.1,
+            }),
+          )
+          .timeout(_onlineTimeout);
+
+      if (response.statusCode != 200) return null;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final translated =
+          data['choices']?[0]?['message']?['content']?.toString().trim() ?? '';
+      if (translated.isEmpty) return null;
+
+      return TranslationResult(
+        translatedText: translated,
+        strategy: TranslationStrategy.onlineFallback,
+        confidence: 0.85,
       );
     } catch (_) {
       return null;

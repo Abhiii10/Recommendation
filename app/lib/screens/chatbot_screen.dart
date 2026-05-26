@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -726,6 +727,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     required ThemeData theme,
   }) {
     final isUser = message.isUser;
+    final bubbleTextStyle = TextStyle(
+      color: isUser ? colorScheme.onPrimary : Colors.white,
+      fontSize: 14,
+      height: 1.5,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -786,14 +792,36 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         bottomRight: Radius.circular(isUser ? 4 : 20),
                       ),
                     ),
-                    child: Text(
-                      message.text,
-                      style: TextStyle(
-                        color: isUser ? colorScheme.onPrimary : Colors.white,
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
-                    ),
+                    child: isUser
+                        ? Text(
+                            message.text,
+                            style: bubbleTextStyle,
+                          )
+                        : MarkdownBody(
+                            data: message.text,
+                            styleSheet: MarkdownStyleSheet(
+                              p: bubbleTextStyle,
+                              strong: bubbleTextStyle.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              listBullet: bubbleTextStyle,
+                              h1: bubbleTextStyle.copyWith(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                              ),
+                              h2: bubbleTextStyle.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                              h3: bubbleTextStyle.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                              blockSpacing: 8,
+                              listIndent: 16,
+                            ),
+                            shrinkWrap: true,
+                          ),
                   ),
                 ),
                 if (!isUser)

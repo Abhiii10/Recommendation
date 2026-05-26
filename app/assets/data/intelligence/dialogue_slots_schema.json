@@ -1,0 +1,9 @@
+{
+  "slots": {
+    "budget_level": {"type":"enum","values":["low","medium","high","unspecified"],"prompts_en":["What's your approximate budget?","How much are you willing to spend?"],"prompts_ne":["तपाईंको अनुमानित बजेट कति हो?","तपाईं कति खर्च गर्न चाहनुहुन्छ?"]},
+    "activity_type": {"type":"enum","values":["relaxation","adventure","culture","pilgrimage","nature","family","unspecified"],"prompts_en":["What kind of experience are you looking for?","Do you prefer adventure or relaxation?"],"prompts_ne":["तपाईं कस्तो अनुभव खोज्दै हुनुहुन्छ?","साहस वा आराम मन पर्छ?"]},
+    "duration": {"type":"duration","prompts_en":["How many days do you have?","What's the duration of your trip?"],"prompts_ne":["तपाईंसँग कति दिन छ?","यात्रा कति दिनको हो?"]},
+    "group_type": {"type":"enum","values":["solo","couple","family","group","unspecified"],"prompts_en":["Are you traveling alone or with others?"],"prompts_ne":["तपाईं एक्लै वा अरूसँग यात्रा गर्दै हुनुहुन्छ?"]},
+    "location": {"type":"entity","entity_type":"DESTINATION","prompts_en":["Where would you like to go?"],"prompts_ne":["तपाईं कहाँ जान चाहनुहुन्छ?"]}
+  }
+}

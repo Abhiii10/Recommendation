@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/chat_message.dart';
@@ -44,7 +45,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _botTyping = false;
   bool _ttsPlaying = false;
   bool? _llmOnline;
-  DateTime? _lastLlmHealthCheck;
   String? _ttsSpeaking;
 
   @override
@@ -131,62 +131,38 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _controller.clear();
     FocusScope.of(context).unfocus();
 
+    final likelyEmergency = _service.isEmergencyLike(trimmed);
+
     setState(() {
       _messages.add(ChatMessage.fromUser(trimmed));
       _suggestions = [];
-      _botTyping = true;
+      _botTyping = !likelyEmergency;
     });
 
     _scrollToBottom();
 
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    if (!mounted) return;
-
-    final localResponse = _service.respond(trimmed);
-
-    ChatMessage response = localResponse;
-
-    final shouldTryOnlineLlm = await _shouldTryOnlineLlm();
-    if (!mounted) return;
-
-    if (shouldTryOnlineLlm) {
-      try {
-        final llmAnswer = await _llmService.ask(trimmed);
-
-        response = ChatMessage.fromBot(
-          llmAnswer,
-          detectedIntent: localResponse.detectedIntent,
-          confidence: localResponse.confidence,
-          responseMode: ChatResponseMode.onlineLlm,
-        );
-        _setLlmOnline(true);
-      } catch (_) {
-        _setLlmOnline(false);
-        response = ChatMessage.fromBot(
-          localResponse.text,
-          detectedIntent: localResponse.detectedIntent,
-          confidence: localResponse.confidence,
-          responseMode: ChatResponseMode.offlineFallback,
-        );
-      }
-    } else {
-      response = ChatMessage.fromBot(
-        localResponse.text,
-        detectedIntent: localResponse.detectedIntent,
-        confidence: localResponse.confidence,
-        responseMode: ChatResponseMode.offlineFallback,
-      );
+    if (!likelyEmergency) {
+      await Future.delayed(const Duration(milliseconds: 320));
     }
+
+    if (!mounted) return;
+
+    final response = await _service.respondAdvanced(
+      trimmed,
+      allowOnlineEnhancement: !likelyEmergency,
+    );
 
     if (!mounted) return;
 
     setState(() {
       _messages.add(response);
-      _suggestions = _service.suggestionsForIntent(
-        response.detectedIntent ?? 'fallback',
-      );
+      _suggestions = _service.suggestionsFromAdvanced(response);
       _botTyping = false;
+      _llmOnline = response.responseMode == ChatResponseMode.onlineLlm
+          ? true
+          : _llmOnline == true
+              ? true
+              : false;
     });
 
     _scrollToBottom();
@@ -198,23 +174,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _setLlmOnline(online);
   }
 
-  Future<bool> _shouldTryOnlineLlm() async {
-    final lastCheck = _lastLlmHealthCheck;
-    if (lastCheck != null &&
-        DateTime.now().difference(lastCheck) < const Duration(seconds: 30)) {
-      return _llmOnline != false;
-    }
-
-    final online = await _llmService.isHealthy();
-    _setLlmOnline(online);
-    return online;
-  }
-
   void _setLlmOnline(bool online) {
     if (!mounted) return;
     setState(() {
       _llmOnline = online;
-      _lastLlmHealthCheck = DateTime.now();
     });
   }
 
@@ -256,6 +219,17 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
 
     await _tts.speak(text);
+  }
+
+  Future<void> _dial(String number) async {
+    final uri = Uri(scheme: 'tel', path: number);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Dial $number from your phone app.')),
+      );
+    }
   }
 
   Future<void> _translate(ChatMessage message) async {
@@ -727,8 +701,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     required ThemeData theme,
   }) {
     final isUser = message.isUser;
+    final isEmergency = !isUser && message.isEmergency;
     final bubbleTextStyle = TextStyle(
-      color: isUser ? colorScheme.onPrimary : Colors.white,
+      color: isUser
+          ? colorScheme.onPrimary
+          : isEmergency
+              ? colorScheme.onErrorContainer
+              : Colors.white,
       fontSize: 14,
       height: 1.5,
     );
@@ -768,78 +747,89 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                             message,
                             details.globalPosition,
                           ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isUser ? colorScheme.primary : null,
-                      gradient: isUser
-                          ? null
-                          : const LinearGradient(
-                              colors: [
-                                AppTheme.mountainTeal,
-                                AppTheme.highlandSage,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(isUser ? 18 : 4),
-                        topRight: const Radius.circular(20),
-                        bottomLeft: const Radius.circular(20),
-                        bottomRight: Radius.circular(isUser ? 4 : 20),
-                      ),
-                    ),
-                    child: isUser
-                        ? Text(
-                            message.text,
-                            style: bubbleTextStyle,
-                          )
-                        : MarkdownBody(
-                            data: message.text,
-                            styleSheet: MarkdownStyleSheet(
-                              p: bubbleTextStyle,
-                              strong: bubbleTextStyle.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                              listBullet: bubbleTextStyle,
-                              h1: bubbleTextStyle.copyWith(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 18,
-                              ),
-                              h2: bubbleTextStyle.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
-                              h3: bubbleTextStyle.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
-                              blockSpacing: 8,
-                              listIndent: 16,
-                            ),
-                            shrinkWrap: true,
+                  child: isEmergency
+                      ? _EmergencyCard(
+                          message: message,
+                          onCall: _dial,
+                        )
+                      : Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
                           ),
-                  ),
+                          decoration: BoxDecoration(
+                            color: isUser ? colorScheme.primary : null,
+                            gradient: isUser
+                                ? null
+                                : const LinearGradient(
+                                    colors: [
+                                      AppTheme.mountainTeal,
+                                      AppTheme.highlandSage,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(isUser ? 18 : 4),
+                              topRight: const Radius.circular(20),
+                              bottomLeft: const Radius.circular(20),
+                              bottomRight: Radius.circular(isUser ? 4 : 20),
+                            ),
+                          ),
+                          child: isUser
+                              ? Text(
+                                  message.text,
+                                  style: bubbleTextStyle,
+                                )
+                              : MarkdownBody(
+                                  data: message.text,
+                                  styleSheet: MarkdownStyleSheet(
+                                    p: bubbleTextStyle,
+                                    strong: bubbleTextStyle.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    listBullet: bubbleTextStyle,
+                                    h1: bubbleTextStyle.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                    ),
+                                    h2: bubbleTextStyle.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                    h3: bubbleTextStyle.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
+                                    blockSpacing: 8,
+                                    listIndent: 16,
+                                  ),
+                                  shrinkWrap: true,
+                                ),
+                        ),
                 ),
                 if (!isUser)
                   Padding(
                     padding: const EdgeInsets.only(top: 4, left: 2),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        if (message.responseMode != null) ...[
-                          _ResponseModeBadge(mode: message.responseMode!),
-                          const SizedBox(width: 6),
-                        ],
-                        _ActionButton(
-                          icon: Icons.translate_rounded,
-                          label: 'Nepali',
-                          color: colorScheme.secondary,
-                          onTap: () => _translate(message),
-                        ),
+                        _ResponseSourceBadge(message: message),
+                        if (message.detectedLanguageLabel != null)
+                          _LanguageBadge(label: message.detectedLanguageLabel!),
+                        if ((message.confidence ?? 1) < 0.70)
+                          _ConfidenceIndicator(
+                            confidence: message.confidence ?? 0,
+                          ),
+                        if (!message.isEmergency)
+                          _ActionButton(
+                            icon: Icons.translate_rounded,
+                            label: 'Nepali',
+                            color: colorScheme.secondary,
+                            onTap: () => _translate(message),
+                          ),
                       ],
                     ),
                   ),
@@ -966,17 +956,62 @@ class _QuickSuggestionsState extends State<_QuickSuggestions>
   }
 }
 
-class _ResponseModeBadge extends StatelessWidget {
-  final ChatResponseMode mode;
+class _ResponseSourceBadge extends StatelessWidget {
+  final ChatMessage message;
 
-  const _ResponseModeBadge({required this.mode});
+  const _ResponseSourceBadge({required this.message});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isOnline = mode == ChatResponseMode.onlineLlm;
+    final isOnline = message.responseMode == ChatResponseMode.onlineLlm;
+    final isEmergency = message.isEmergency;
     final color = isOnline ? colorScheme.primary : colorScheme.tertiary;
+    final effectiveColor = isEmergency ? colorScheme.error : color;
+    final label = message.responseSourceLabel ??
+        (isOnline ? 'Online enhancement' : 'Offline knowledge base');
 
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: effectiveColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isEmergency
+                ? Icons.emergency_rounded
+                : isOnline
+                    ? Icons.cloud_done_rounded
+                    : Icons.offline_bolt_rounded,
+            size: 12,
+            color: effectiveColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: effectiveColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageBadge extends StatelessWidget {
+  final String label;
+
+  const _LanguageBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.secondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -986,20 +1021,159 @@ class _ResponseModeBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isOnline ? Icons.cloud_done_rounded : Icons.offline_bolt_rounded,
-            size: 12,
-            color: color,
-          ),
+          Icon(Icons.language_rounded, size: 12, color: color),
           const SizedBox(width: 4),
           Text(
-            isOnline ? 'Online LLM' : 'Offline fallback',
+            label,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConfidenceIndicator extends StatelessWidget {
+  final double confidence;
+
+  const _ConfidenceIndicator({required this.confidence});
+
+  @override
+  Widget build(BuildContext context) {
+    final value = confidence.clamp(0.0, 1.0);
+    final color = value >= 0.80
+        ? Colors.green
+        : value >= 0.60
+            ? Colors.orange
+            : Theme.of(context).colorScheme.error;
+    return Container(
+      constraints: const BoxConstraints(minWidth: 104),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 32,
+            height: 4,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: value,
+                minHeight: 4,
+                backgroundColor: color.withValues(alpha: 0.18),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Confidence: ${(value * 100).round()}%',
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmergencyCard extends StatelessWidget {
+  final ChatMessage message;
+  final ValueChanged<String> onCall;
+
+  const _EmergencyCard({
+    required this.message,
+    required this.onCall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final contacts = (message.metadata['contacts'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer.withValues(alpha: 0.96),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(4),
+          topRight: Radius.circular(20),
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+        border: Border.all(color: colorScheme.error, width: 1.4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.emergency_rounded, color: colorScheme.error),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Emergency protocol',
+                  style: TextStyle(
+                    color: colorScheme.onErrorContainer,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          MarkdownBody(
+            data: message.text,
+            styleSheet: MarkdownStyleSheet(
+              p: TextStyle(
+                color: colorScheme.onErrorContainer,
+                height: 1.45,
+              ),
+              listBullet: TextStyle(color: colorScheme.onErrorContainer),
+              strong: TextStyle(
+                color: colorScheme.onErrorContainer,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            shrinkWrap: true,
+          ),
+          if (contacts.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: contacts.map((contact) {
+                final number = contact['number']?.toString() ?? '';
+                final name = contact['name']?.toString() ?? number;
+                return ActionChip(
+                  avatar: const Icon(Icons.call_rounded, size: 16),
+                  label: Text('$name $number'),
+                  onPressed: number.isEmpty ? null : () => onCall(number),
+                  backgroundColor: colorScheme.surface,
+                  labelStyle: TextStyle(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ],
       ),
     );

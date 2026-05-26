@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../services/translation_service.dart';
@@ -293,6 +294,11 @@ class _TranslationScreenState extends State<TranslationScreen>
     _showSnack('Copied');
   }
 
+  Future<void> _share(String text) async {
+    if (text.trim().isEmpty) return;
+    await SharePlus.instance.share(ShareParams(text: text));
+  }
+
   void _loadCategory(String category) {
     setState(() {
       _selectedCategory = category;
@@ -564,6 +570,34 @@ class _TranslationScreenState extends State<TranslationScreen>
             output,
             style: Theme.of(context).textTheme.titleLarge,
           ),
+          if (result.romanized != null && result.romanized!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              result.romanized!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+          if (result.alternatives.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Alternatives',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: result.alternatives.take(4).map((alternative) {
+                return InputChip(
+                  label: Text(alternative),
+                  onPressed: () => _copy(alternative),
+                );
+              }).toList(),
+            ),
+          ],
           const SizedBox(height: 14),
           Wrap(
             spacing: 10,
@@ -578,6 +612,11 @@ class _TranslationScreenState extends State<TranslationScreen>
                 onPressed: () => _speakResult(result),
                 icon: const Icon(Icons.volume_up_outlined),
                 label: const Text('Speak'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _share(output),
+                icon: const Icon(Icons.share_outlined),
+                label: const Text('Share'),
               ),
             ],
           ),

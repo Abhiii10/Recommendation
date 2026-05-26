@@ -7,6 +7,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../features/intelligence/models/translation_request.dart' as ai;
+import '../features/intelligence/models/translation_response.dart' as ai;
+import '../features/intelligence/services/translation_service_advanced.dart';
 import '../translation/roman_nepali_normalizer.dart';
 import '../translation/translation_intent_model.dart';
 import '../translation/translation_models.dart';
@@ -28,6 +31,7 @@ class TranslationService {
   bool _isInitialized = false;
   List<PhrasebookEntry> _phrasebook = [];
   final List<TranslationHistoryEntry> _history = [];
+  final TranslationServiceAdvanced _advanced = TranslationServiceAdvanced();
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -57,6 +61,18 @@ class TranslationService {
     }
 
     final effectiveMode = _resolveMode(trimmed, mode);
+
+    final advancedResult = await _tryAdvancedTranslate(
+      trimmed,
+      effectiveMode,
+      allowOnline,
+    );
+    if (advancedResult != null &&
+        advancedResult.isSuccess &&
+        advancedResult.confidence >= 0.55) {
+      await _addToHistory(trimmed, advancedResult, effectiveMode);
+      return advancedResult;
+    }
 
     // 1. Phrasebook exact / fuzzy
     final phraseResult = _tryPhrasebook(trimmed, effectiveMode);
@@ -119,6 +135,65 @@ class TranslationService {
           ? 'No translation found. Check your internet connection or try a simpler phrase.'
           : 'No offline match. Try phrases about food, water, hotels, transport, directions, or emergencies.',
     );
+  }
+
+  Future<TranslationResult?> _tryAdvancedTranslate(
+    String input,
+    TranslationMode mode,
+    bool allowOnline,
+  ) async {
+    try {
+      await _advanced.init();
+      final result = await _advanced.translate(
+        ai.TranslationRequest(
+          text: input,
+          direction: _toAdvancedDirection(mode),
+          allowOnline: allowOnline,
+        ),
+      );
+      if (!result.isSuccess) return null;
+      return TranslationResult(
+        translatedText: result.translatedText,
+        strategy: _toLegacyStrategy(result.method),
+        confidence: result.confidence,
+        intent: result.matchedId,
+        methodLabelOverride: result.methodLabel,
+        isOfflineOverride: result.isOffline,
+        alternatives: result.alternatives,
+        romanized: result.romanized,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  ai.IntelligenceTranslationDirection _toAdvancedDirection(
+    TranslationMode mode,
+  ) {
+    switch (mode) {
+      case TranslationMode.englishToNepali:
+        return ai.IntelligenceTranslationDirection.englishToNepali;
+      case TranslationMode.nepaliToEnglish:
+        return ai.IntelligenceTranslationDirection.nepaliToEnglish;
+      case TranslationMode.autoDetect:
+        return ai.IntelligenceTranslationDirection.auto;
+    }
+  }
+
+  TranslationStrategy _toLegacyStrategy(ai.TranslationMethod method) {
+    switch (method) {
+      case ai.TranslationMethod.exactPhrasebook:
+      case ai.TranslationMethod.fuzzyPhrasebook:
+        return TranslationStrategy.phrasebookMatch;
+      case ai.TranslationMethod.template:
+      case ai.TranslationMethod.glossary:
+      case ai.TranslationMethod.neural:
+        return TranslationStrategy.intentModel;
+      case ai.TranslationMethod.online:
+        return TranslationStrategy.onlineFallback;
+      case ai.TranslationMethod.noResult:
+        return TranslationStrategy.noResult;
+    }
   }
 
   // ── Phrasebook ──────────────────────────────────────────────────────────

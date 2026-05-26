@@ -1,0 +1,11 @@
+{
+  "templates": {
+    "destination_recommendation_single": {"en":"Based on your preferences, I recommend **{destination_name}**.\n\n{description}\n\nLocation: {location}\nBudget: {budget}\nDuration: {duration}\n\nWould you like more details about this place?","ne":"तपाईंको रुचि अनुसार, म **{destination_name}** सुझाउँछु।\n\n{description_ne}\n\nस्थान: {location}\nबजेट: {budget}\nअवधि: {duration}\n\nके तपाईं यो ठाउँको बारेमा थप जानकारी चाहनुहुन्छ?"},
+    "destination_recommendation_multiple": {"en":"Here are {count} destinations that match your preferences:\n\n{destinations_list}\n\nWould you like details about any of these?","ne":"तपाईंको रुचि अनुसार यी {count} गन्तव्यहरू उपयुक्त छन्:\n\n{destinations_list_ne}\n\nके तपाईं यी मध्ये कुनैको बारेमा विस्तृत जानकारी चाहनुहुन्छ?"},
+    "homestay_found": {"en":"I found {count} homestays in {location}:\n\n{homestays_list}\n\nYou can contact them directly using the phone numbers provided.","ne":"मैले {location} मा {count} होमस्टेहरू फेला पारेँ:\n\n{homestays_list_ne}\n\nतपाईं दिइएका फोन नम्बर प्रयोग गरी सीधै सम्पर्क गर्न सक्नुहुन्छ।"},
+    "no_results": {"en":"I couldn't find exact matches for your query. Try rephrasing or browse the Destinations tab for more options.","ne":"मैले तपाईंको प्रश्नको लागि सटीक मिल्दो जुल्दो फेला पारिनँ। पुनः प्रयास गर्नुहोस् वा थप विकल्पहरूको लागि गन्तव्य ट्याब हेर्नुहोस्।"},
+    "fallback": {"en":"I'm not sure I understood your question. Could you rephrase it? You can ask about destinations, homestays, food, transport, or cultural tips.","ne":"मैले तपाईंको प्रश्न बुझिनँ। कृपया पुनः भन्नुहुन्छ? तपाईं गन्तव्य, होमस्टे, खाना, यातायात, वा सांस्कृतिक सुझावहरू बारे सोध्न सक्नुहुन्छ।"},
+    "greeting": {"en":"Hello! I'm your rural Nepal tourism assistant. I can help you find destinations, homestays, and local experiences. What would you like to explore today?","ne":"नमस्ते! म तपाईंको ग्रामीण नेपाल पर्यटन सहायक हुँ। म तपाईंलाई गन्तव्य, होमस्टे, र स्थानीय अनुभवहरू फेला पार्न मद्दत गर्न सक्छु। आज तपाईं के अन्वेषण गर्न चाहनुहुन्छ?"},
+    "emergency_response": {"en":"EMERGENCY CONTACTS - NEPAL\n\nPolice: 100\nAmbulance: 102\nFire Brigade: 101\nTourist Police: 1144\nMountain Rescue: 01-4003635","ne":"आपतकालीन सम्पर्क - नेपाल\n\nप्रहरी: 100\nएम्बुलेन्स: 102\nदमकल: 101\nपर्यटक प्रहरी: 1144\nमाउन्टेन रेस्क्यु: 01-4003635"}
+  }
+}

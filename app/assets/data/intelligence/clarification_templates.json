@@ -1,0 +1,10 @@
+{
+  "templates": {
+    "intent_unclear": {"en":"I'm not sure I understood correctly. Are you looking for {option_a} or {option_b}?","ne":"मैले सही बुझिनँ जस्तो लाग्छ। तपाईं {option_a} वा {option_b} खोज्दै हुनुहुन्छ?"},
+    "missing_slot_budget": {"en":"To give you the best recommendations, what's your approximate budget level?","ne":"उत्तम सुझाव दिन, तपाईंको अनुमानित बजेट कति हो?"},
+    "missing_slot_duration": {"en":"How many days do you have for this trip?","ne":"यो यात्राको लागि तपाईंसँग कति दिन छ?"},
+    "missing_slot_activity": {"en":"What type of experience interests you most - adventure, culture, or relaxation?","ne":"तपाईंलाई कस्तो अनुभवमा बढी रुचि छ - साहस, संस्कृति, वा आराम?"},
+    "multiple_matches": {"en":"I found several options. Would you prefer {option_a} or {option_b}?","ne":"मैले धेरै विकल्पहरू फेला पारेँ। तपाईं {option_a} वा {option_b} मन पराउनुहुन्छ?"},
+    "confirm_recommendation": {"en":"Based on your preferences, I recommend {destination}. Would you like more details?","ne":"तपाईंको रुचि अनुसार, म {destination} सुझाउँछु। के तपाईं विस्तृत जानकारी चाहनुहुन्छ?"}
+  }
+}

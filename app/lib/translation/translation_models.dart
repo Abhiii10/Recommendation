@@ -111,6 +111,10 @@ class TranslationResult {
   final String? errorMessage;
   final String? intent;
   final PhrasebookEntry? matchedEntry;
+  final String? methodLabelOverride;
+  final bool? isOfflineOverride;
+  final List<String> alternatives;
+  final String? romanized;
 
   const TranslationResult({
     required this.translatedText,
@@ -119,14 +123,20 @@ class TranslationResult {
     this.errorMessage,
     this.intent,
     this.matchedEntry,
+    this.methodLabelOverride,
+    this.isOfflineOverride,
+    this.alternatives = const [],
+    this.romanized,
   });
 
   bool get isSuccess =>
-      translatedText.trim().isNotEmpty && strategy != TranslationStrategy.noResult;
+      translatedText.trim().isNotEmpty &&
+      strategy != TranslationStrategy.noResult;
 
   bool get isOffline =>
-      strategy == TranslationStrategy.phrasebookMatch ||
-      strategy == TranslationStrategy.intentModel;
+      isOfflineOverride ??
+      (strategy == TranslationStrategy.phrasebookMatch ||
+          strategy == TranslationStrategy.intentModel);
 
   bool get isUrgent {
     if (matchedEntry?.isUrgent == true) return true;
@@ -140,6 +150,7 @@ class TranslationResult {
   }
 
   String get strategyLabel {
+    if (methodLabelOverride != null) return methodLabelOverride!;
     switch (strategy) {
       case TranslationStrategy.phrasebookMatch:
         return 'Offline phrasebook';
@@ -195,10 +206,10 @@ class TranslationHistoryEntry {
       mode: modeIndex >= 0 && modeIndex < TranslationMode.values.length
           ? TranslationMode.values[modeIndex]
           : TranslationMode.autoDetect,
-      strategy:
-          strategyIndex >= 0 && strategyIndex < TranslationStrategy.values.length
-              ? TranslationStrategy.values[strategyIndex]
-              : TranslationStrategy.noResult,
+      strategy: strategyIndex >= 0 &&
+              strategyIndex < TranslationStrategy.values.length
+          ? TranslationStrategy.values[strategyIndex]
+          : TranslationStrategy.noResult,
       timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ??
           DateTime.now(),
     );

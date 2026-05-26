@@ -1,0 +1,13 @@
+{
+  "synonyms": {
+    "budget": {"english":["cheap","affordable","low-cost","economical","inexpensive"],"nepali":["सस्तो","कम खर्च","बजेट"],"romanized":["sasto","kam kharcha","budget"]},
+    "relaxation": {"english":["peaceful","quiet","calm","serene","tranquil","restful"],"nepali":["शान्त","आराम","शान्तिमय"],"romanized":["shanta","aram","peaceful"]},
+    "trekking": {"english":["hiking","walking","trail","hike"],"nepali":["ट्रेकिङ","पदयात्रा"],"romanized":["trekking","hiking","padayatra"]},
+    "culture": {"english":["cultural","traditional","heritage","temple","monastery"],"nepali":["संस्कृति","परम्परा","सम्पदा","मन्दिर"],"romanized":["sanskriti","parampara","mandir"]},
+    "adventure": {"english":["thrilling","exciting","extreme","challenging"],"nepali":["साहसिक","रोमाञ्चक"],"romanized":["sahasi","romanchak"]},
+    "pilgrimage": {"english":["religious","sacred","temple","shrine"],"nepali":["धार्मिक","पवित्र","मन्दिर"],"romanized":["dharmik","mandir"]},
+    "family": {"english":["kids-friendly","children","elderly","parents"],"nepali":["परिवार","बच्चा","वृद्ध"],"romanized":["pariwar","baccha"]},
+    "food": {"english":["meal","cuisine","restaurant","dal bhat"],"nepali":["खाना","दाल भात"],"romanized":["khana","dal bhat"]},
+    "homestay": {"english":["accommodation","lodge","guesthouse","room","stay"],"nepali":["होमस्टे","आवास","कोठा"],"romanized":["homestay","basna","kotha"]}
+  }
+}

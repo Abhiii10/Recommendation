@@ -1,0 +1,29 @@
+{
+  "entries": [
+    {"id":"ph_001","category":"greetings","english":"Hello","nepali":"नमस्ते","romanized":["namaste"],"context":"Universal greeting","formality":"neutral"},
+    {"id":"ph_002","category":"greetings","english":"Thank you","nepali":"धन्यवाद","romanized":["dhanyabad"],"context":"Polite expression","formality":"neutral"},
+    {"id":"ph_003","category":"homestay","english":"I would like to stay here tonight","nepali":"म आज रात यहाँ बस्न चाहन्छु","romanized":["ma aaj raat yaha basna chahanchu"],"context":"Asking for accommodation","formality":"polite"},
+    {"id":"ph_004","category":"homestay","english":"Do you have a room available?","nepali":"कोठा खाली छ?","romanized":["kotha khali cha"],"context":"Room availability","formality":"polite"},
+    {"id":"ph_005","category":"homestay","english":"Is dinner included?","nepali":"रातिको खाना समावेश छ?","romanized":["raat ko khana samabesh cha"],"context":"Meal inclusion","formality":"polite"},
+    {"id":"ph_006","category":"food","english":"I am vegetarian","nepali":"म शाकाहारी हुँ","romanized":["ma shakahari hu"],"context":"Dietary need","formality":"neutral"},
+    {"id":"ph_007","category":"food","english":"I need drinking water","nepali":"मलाई पिउने पानी चाहिन्छ","romanized":["malai piune pani chahincha"],"context":"Water request","formality":"polite"},
+    {"id":"ph_008","category":"food","english":"How spicy is this?","nepali":"यो कति पिरो छ?","romanized":["yo kati piro cha"],"context":"Food spice","formality":"neutral"},
+    {"id":"ph_009","category":"transport","english":"Where is the bus stop?","nepali":"बस स्टप कहाँ छ?","romanized":["bus stop kaha cha"],"context":"Transport","formality":"neutral"},
+    {"id":"ph_010","category":"transport","english":"When does the jeep leave?","nepali":"जीप कहिले छुट्छ?","romanized":["jeep kahile chhutchha"],"context":"Transport schedule","formality":"neutral"},
+    {"id":"ph_011","category":"directions","english":"Where is the trail?","nepali":"बाटो कहाँ छ?","romanized":["bato kaha cha"],"context":"Directions","formality":"neutral"},
+    {"id":"ph_012","category":"directions","english":"Is it far from here?","nepali":"यहाँबाट टाढा छ?","romanized":["yahabata tadha cha"],"context":"Distance","formality":"neutral"},
+    {"id":"ph_013","category":"price","english":"How much does it cost?","nepali":"कति पर्छ?","romanized":["kati parchha"],"context":"Price","formality":"neutral"},
+    {"id":"ph_014","category":"price","english":"Can you make it cheaper?","nepali":"अलि सस्तो गर्न सक्नुहुन्छ?","romanized":["ali sasto garna saknuhunchha"],"context":"Bargaining","formality":"polite"},
+    {"id":"ph_015","category":"emergency","english":"I need help urgently","nepali":"मलाई तुरुन्त मद्दत चाहियो","romanized":["malai turunta madat chahiyo"],"context":"Emergency","formality":"urgent","urgent":true},
+    {"id":"ph_016","category":"emergency","english":"Call the police","nepali":"प्रहरीलाई बोलाउनुहोस्","romanized":["prahari lai bolaunuhos"],"context":"Emergency","formality":"urgent","urgent":true},
+    {"id":"ph_017","category":"emergency","english":"I need an ambulance","nepali":"मलाई एम्बुलेन्स चाहियो","romanized":["malai ambulance chahiyo"],"context":"Emergency","formality":"urgent","urgent":true},
+    {"id":"ph_018","category":"health","english":"I feel sick","nepali":"मलाई बिरामी महसुस भयो","romanized":["malai birami mahasus bhayo"],"context":"Health","formality":"neutral"},
+    {"id":"ph_019","category":"trekking","english":"Is this trail safe?","nepali":"यो बाटो सुरक्षित छ?","romanized":["yo bato surakshit cha"],"context":"Trekking safety","formality":"neutral"},
+    {"id":"ph_020","category":"trekking","english":"Do I need a guide?","nepali":"मलाई गाइड चाहिन्छ?","romanized":["malai guide chahincha"],"context":"Trekking","formality":"neutral"},
+    {"id":"ph_021","category":"culture","english":"May I take a photo?","nepali":"के म फोटो खिच्न सक्छु?","romanized":["ke ma photo khichna sakchu"],"context":"Cultural etiquette","formality":"polite"},
+    {"id":"ph_022","category":"culture","english":"Where should I remove my shoes?","nepali":"जुत्ता कहाँ खोल्ने?","romanized":["jutta kaha kholne"],"context":"Temple etiquette","formality":"polite"},
+    {"id":"ph_023","category":"weather","english":"Will it rain today?","nepali":"आज पानी पर्छ?","romanized":["aaj pani parchha"],"context":"Weather","formality":"neutral"},
+    {"id":"ph_024","category":"shopping","english":"Do you accept cash only?","nepali":"नगद मात्र चल्छ?","romanized":["nagad matra chalchha"],"context":"Payment","formality":"neutral"},
+    {"id":"ph_025","category":"time","english":"What time should I leave?","nepali":"म कति बजे निस्किनुपर्छ?","romanized":["ma kati baje niskinu parchha"],"context":"Schedule","formality":"neutral"}
+  ]
+}

@@ -30,7 +30,7 @@ String get backendBaseUrl {
   }
 
   // Hardcoded fallback — update this to your LAN IP
-  const fallback = 'http://192.168.18.132:8000';
+  const fallback = 'http://192.168.1.200:8000';
   debugPrint('🟡 backendBaseUrl fallback → $fallback');
 
   if (kIsWeb) return 'http://127.0.0.1:8000';

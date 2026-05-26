@@ -1,0 +1,24 @@
+{
+  "templates": [
+    {"id":"tmpl_001","pattern_en":"where is {place}","pattern_ne":"{place} कहाँ छ?","slots":["place"],"category":"directions"},
+    {"id":"tmpl_002","pattern_en":"how much is {item}","pattern_ne":"{item} को कति पर्छ?","slots":["item"],"category":"price"},
+    {"id":"tmpl_003","pattern_en":"i want to go to {place}","pattern_ne":"म {place} जान चाहन्छु","slots":["place"],"category":"transport"},
+    {"id":"tmpl_004","pattern_en":"is there {thing} nearby","pattern_ne":"नजिकै {thing} छ?","slots":["thing"],"category":"general"},
+    {"id":"tmpl_005","pattern_en":"can you help me {action}","pattern_ne":"के तपाईं मलाई {action} मद्दत गर्न सक्नुहुन्छ?","slots":["action"],"category":"help"},
+    {"id":"tmpl_006","pattern_en":"i need {thing}","pattern_ne":"मलाई {thing} चाहिन्छ","slots":["thing"],"category":"general"},
+    {"id":"tmpl_007","pattern_en":"i want {thing}","pattern_ne":"मलाई {thing} चाहियो","slots":["thing"],"category":"general"},
+    {"id":"tmpl_008","pattern_en":"do you have {thing}","pattern_ne":"तपाईंसँग {thing} छ?","slots":["thing"],"category":"homestay"},
+    {"id":"tmpl_009","pattern_en":"is {place} safe","pattern_ne":"{place} सुरक्षित छ?","slots":["place"],"category":"safety"},
+    {"id":"tmpl_010","pattern_en":"how far is {place}","pattern_ne":"{place} कति टाढा छ?","slots":["place"],"category":"directions"},
+    {"id":"tmpl_011","pattern_en":"when does {vehicle} leave","pattern_ne":"{vehicle} कहिले छुट्छ?","slots":["vehicle"],"category":"transport"},
+    {"id":"tmpl_012","pattern_en":"please call {person}","pattern_ne":"कृपया {person} लाई फोन गर्नुहोस्","slots":["person"],"category":"help"},
+    {"id":"tmpl_013","pattern_en":"i am allergic to {thing}","pattern_ne":"मलाई {thing} एलर्जी छ","slots":["thing"],"category":"health"},
+    {"id":"tmpl_014","pattern_en":"can i eat {food}","pattern_ne":"के म {food} खान सक्छु?","slots":["food"],"category":"food"},
+    {"id":"tmpl_015","pattern_en":"where can i buy {item}","pattern_ne":"म {item} कहाँ किन्न सक्छु?","slots":["item"],"category":"shopping"},
+    {"id":"tmpl_016","pattern_en":"i lost my {thing}","pattern_ne":"मेरो {thing} हरायो","slots":["thing"],"category":"emergency"},
+    {"id":"tmpl_017","pattern_en":"i am going to {place}","pattern_ne":"म {place} जाँदैछु","slots":["place"],"category":"transport"},
+    {"id":"tmpl_018","pattern_en":"is breakfast included","pattern_ne":"बिहानको खाना समावेश छ?","slots":[],"category":"homestay"},
+    {"id":"tmpl_019","pattern_en":"where is the toilet","pattern_ne":"शौचालय कहाँ छ?","slots":[],"category":"general"},
+    {"id":"tmpl_020","pattern_en":"please write the address","pattern_ne":"कृपया ठेगाना लेखिदिनुहोस्","slots":[],"category":"directions"}
+  ]
+}

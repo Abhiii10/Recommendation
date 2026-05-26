@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/utils/haversine.dart';
+import '../features/intelligence/models/chatbot_response.dart' as intelligence;
+import '../features/intelligence/safety/emergency_detector.dart';
+import '../features/intelligence/services/chatbot_service_advanced.dart';
 import '../models/chat_message.dart';
 import '../models/destination.dart';
 
@@ -13,6 +16,7 @@ const double _mediumConfidenceThreshold = 0.24;
 
 class ChatbotService {
   final List<Destination> destinations;
+  final ChatbotServiceAdvanced _advanced = ChatbotServiceAdvanced();
 
   late final Map<String, dynamic> _knowledgeBase;
   late final Map<String, dynamic> _responses;
@@ -60,6 +64,7 @@ class ChatbotService {
     }
 
     _aliasToDestination = _buildDestinationAliasMap();
+    await _advanced.init();
     _ready = true;
   }
 
@@ -99,6 +104,87 @@ class ChatbotService {
       detectedIntent: classification.intent,
       confidence: classification.confidence,
     );
+  }
+
+  Future<ChatMessage> respondAdvanced(
+    String userText, {
+    bool allowOnlineEnhancement = true,
+  }) async {
+    if (!_ready) await init();
+    final response = await _advanced.respond(
+      text: userText,
+      conversationId: 'chatbot_screen',
+      allowOnlineEnhancement: allowOnlineEnhancement,
+    );
+    return _chatMessageFromAdvanced(response);
+  }
+
+  bool isEmergencyLike(String userText) {
+    return const EmergencyDetector().detect(userText).isEmergency;
+  }
+
+  List<QuickSuggestion> suggestionsFromAdvanced(ChatMessage message) {
+    if (message.advancedSuggestions.isEmpty) {
+      return suggestionsForIntent(message.detectedIntent ?? 'fallback');
+    }
+    return message.advancedSuggestions
+        .map(
+          (label) => QuickSuggestion(
+            label,
+            icon: _iconForSuggestion(label),
+            message: _messageForSuggestion(label),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  ChatMessage _chatMessageFromAdvanced(intelligence.ChatbotResponse response) {
+    return ChatMessage.fromBot(
+      response.text,
+      detectedIntent: response.intent,
+      confidence: response.confidence,
+      responseMode: response.source ==
+              intelligence.ChatbotResponseSource.onlineEnhancement
+          ? ChatResponseMode.onlineLlm
+          : ChatResponseMode.offlineFallback,
+      isEmergency: response.isEmergency,
+      responseSourceLabel: response.sourceLabel,
+      detectedLanguageLabel: response.language?.primaryLanguage.name,
+      advancedSuggestions: response.suggestions,
+      metadata: response.metadata,
+    );
+  }
+
+  IconData _iconForSuggestion(String label) {
+    final lower = label.toLowerCase();
+    if (lower.contains('map') || lower.contains('direction')) {
+      return Icons.map_rounded;
+    }
+    if (lower.contains('call')) return Icons.call_rounded;
+    if (lower.contains('homestay')) return Icons.hotel_rounded;
+    if (lower.contains('season')) return Icons.calendar_month_rounded;
+    if (lower.contains('safety') || lower.contains('police')) {
+      return Icons.health_and_safety_rounded;
+    }
+    if (lower.contains('food')) return Icons.restaurant_rounded;
+    return Icons.auto_awesome_rounded;
+  }
+
+  String _messageForSuggestion(String label) {
+    switch (label) {
+      case 'Show on map':
+        return 'Show this destination on the map';
+      case 'Find homestay nearby':
+        return 'Find homestays nearby';
+      case 'Call Tourist Police':
+        return 'I need tourist police help';
+      case 'Call Ambulance':
+        return 'I need an ambulance';
+      case 'Share location':
+        return 'How can I share my location?';
+      default:
+        return label;
+    }
   }
 
   String debugDetectIntent(String userText) {

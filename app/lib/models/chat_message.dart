@@ -17,6 +17,11 @@ class ChatMessage {
   final double? confidence;
 
   final ChatResponseMode? responseMode;
+  final bool isEmergency;
+  final String? responseSourceLabel;
+  final String? detectedLanguageLabel;
+  final List<String> advancedSuggestions;
+  final Map<String, dynamic> metadata;
 
   const ChatMessage({
     required this.text,
@@ -25,6 +30,11 @@ class ChatMessage {
     this.detectedIntent,
     this.confidence,
     this.responseMode,
+    this.isEmergency = false,
+    this.responseSourceLabel,
+    this.detectedLanguageLabel,
+    this.advancedSuggestions = const [],
+    this.metadata = const {},
   });
 
   bool get isUser => sender == MessageSender.user;
@@ -41,6 +51,11 @@ class ChatMessage {
     String? detectedIntent,
     double? confidence,
     ChatResponseMode? responseMode,
+    bool isEmergency = false,
+    String? responseSourceLabel,
+    String? detectedLanguageLabel,
+    List<String> advancedSuggestions = const [],
+    Map<String, dynamic> metadata = const {},
   }) =>
       ChatMessage(
         text: text,
@@ -49,6 +64,11 @@ class ChatMessage {
         detectedIntent: detectedIntent,
         confidence: confidence,
         responseMode: responseMode,
+        isEmergency: isEmergency,
+        responseSourceLabel: responseSourceLabel,
+        detectedLanguageLabel: detectedLanguageLabel,
+        advancedSuggestions: advancedSuggestions,
+        metadata: metadata,
       );
 }
 

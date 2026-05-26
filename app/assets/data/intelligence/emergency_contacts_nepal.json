@@ -1,0 +1,14 @@
+{
+  "country": "Nepal",
+  "contacts": [
+    {"type":"police","number":"100","name_en":"Police Emergency","name_ne":"प्रहरी आपतकालीन सेवा","description_en":"For reporting crimes, emergencies, or requesting police assistance","description_ne":"अपराध रिपोर्ट गर्न, आपतकालीन अवस्था, वा प्रहरी सहायताको लागि"},
+    {"type":"ambulance","number":"102","name_en":"Ambulance Service","name_ne":"एम्बुलेन्स सेवा","description_en":"For medical emergencies and ambulance dispatch","description_ne":"स्वास्थ्य आपतकालीन अवस्था र एम्बुलेन्स प्रेषणको लागि"},
+    {"type":"fire","number":"101","name_en":"Fire Brigade","name_ne":"दमकल सेवा","description_en":"For fire emergencies and rescue","description_ne":"आगलागी र उद्धारको लागि"},
+    {"type":"tourist_police","number":"1144","name_en":"Tourist Police","name_ne":"पर्यटक प्रहरी","description_en":"Specialized assistance for tourists, available 24/7","description_ne":"पर्यटकहरूको लागि विशेष सहायता, २४/७ उपलब्ध"},
+    {"type":"mountain_rescue","number":"01-4003635","name_en":"CIWEC Hospital / Mountain Rescue","name_ne":"सिआईडब्ल्यूईसी अस्पताल / माउन्टेन रेस्क्यु","description_en":"For altitude sickness and mountain emergencies","description_ne":"उचाइ रोग र पहाडी आपतकालीन अवस्थाको लागि"}
+  ],
+  "instructions": {
+    "en": ["Stay calm and assess the situation","If safe, stay where you are and wait for help","Inform your homestay host or nearest local person","Use the offline Map tab to share your saved location","Keep your phone charged and carry a power bank in rural areas"],
+    "ne": ["शान्त रहनुहोस् र स्थिति मूल्याङ्कन गर्नुहोस्","यदि सुरक्षित छ भने तपाईं जहाँ हुनुहुन्छ त्यहीँ बस्नुहोस् र मद्दतको प्रतीक्षा गर्नुहोस्","आफ्नो होमस्टे होस्ट वा नजिकैको स्थानीय व्यक्तिलाई जानकारी गराउनुहोस्","आफ्नो सेभ गरिएको स्थान साझा गर्न अफलाइन नक्सा ट्याब प्रयोग गर्नुहोस्","आफ्नो फोन चार्ज राख्नुहोस् र ग्रामीण क्षेत्रमा पावर बैंक बोक्नुहोस्"]
+  }
+}

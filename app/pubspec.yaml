@@ -51,6 +51,7 @@ flutter:
   assets:
     - .env
     - assets/data/
+    - assets/data/intelligence/
     - assets/images/pokhara.png
     - assets/images/pokhara_hero.webp
     - assets/images/cat_trekking.jpg
@@ -63,6 +64,7 @@ flutter:
     - assets/images/cat_relaxation.jpg
     - assets/animations/
     - assets/maps/
+    - assets/embeddings/
 
   fonts:
     - family: Outfit

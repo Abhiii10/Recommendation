@@ -19,6 +19,7 @@ class TranslationResponse {
   final String? matchedId;
   final String sourceLanguage;
   final String targetLanguage;
+  final String? sourceLabel;
 
   const TranslationResponse({
     required this.translatedText,
@@ -31,12 +32,14 @@ class TranslationResponse {
     this.matchedId,
     this.sourceLanguage = 'auto',
     this.targetLanguage = 'auto',
+    this.sourceLabel,
   });
 
   bool get isSuccess =>
       translatedText.trim().isNotEmpty && method != TranslationMethod.noResult;
 
   String get methodLabel {
+    if (sourceLabel != null && sourceLabel!.isNotEmpty) return sourceLabel!;
     switch (method) {
       case TranslationMethod.exactPhrasebook:
         return 'Exact phrase match';

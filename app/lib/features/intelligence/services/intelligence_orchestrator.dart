@@ -172,27 +172,17 @@ class IntelligenceOrchestrator {
       intent: intent,
     );
 
-    if (dialogue.shouldClarify && dialogue.clarificationQuestion != null) {
-      return ChatbotResponse(
-        text: dialogue.clarificationQuestion!,
-        intent: intent.intent,
-        confidence: intent.confidence,
-        isEmergency: false,
-        source: ChatbotResponseSource.offlineModel,
-        language: nlp.language,
-        intentResult: intent,
-        suggestions: const ['Adventure', 'Culture', 'Relaxation', 'Homestay'],
-        metadata: {'missing_slots': dialogue.missingSlots},
-      );
-    }
-
     final rag = ragPipeline.run(
       nlp: nlp,
       intent: intent.intent,
       dialogueState: dialogue.state,
     );
-    var text = rag.text;
-    var source = ChatbotResponseSource.offlineKnowledgeBase;
+    var text = dialogue.shouldClarify && dialogue.clarificationQuestion != null
+        ? dialogue.clarificationQuestion!
+        : rag.text;
+    var source = dialogue.shouldClarify
+        ? ChatbotResponseSource.offlineModel
+        : ChatbotResponseSource.offlineKnowledgeBase;
     final combinedConfidence =
         (intent.confidence * 0.45 + rag.confidence * 0.55).clamp(0.0, 1.0);
 
@@ -206,6 +196,16 @@ class IntelligenceOrchestrator {
       if (enhanced != null) {
         text = enhanced;
         source = ChatbotResponseSource.onlineEnhancement;
+        return ChatbotResponse(
+          text: text,
+          intent: intent.intent,
+          confidence: 0.95,
+          isEmergency: false,
+          source: source,
+          language: nlp.language,
+          intentResult: intent,
+          suggestions: _suggestionsForIntent(intent.intent),
+        );
       }
     }
 
@@ -237,6 +237,27 @@ class IntelligenceOrchestrator {
   Future<TranslationResponse> translate(TranslationRequest request) async {
     await initialize();
     return translationManager.translate(request);
+  }
+
+  List<String> _suggestionsForIntent(String intent) {
+    switch (intent) {
+      case 'food_query':
+        return ['Best local food', 'Vegetarian options', 'Dal bhat places'];
+      case 'homestay_search':
+        return [
+          'Find homestay nearby',
+          'Budget accommodation',
+          'Village stays'
+        ];
+      case 'transport_query':
+        return ['Bus routes', 'Jeep hire', 'Walking distance'];
+      case 'best_time_to_visit':
+        return ['Spring season', 'Autumn trekking', 'Monsoon travel'];
+      case 'trekking':
+        return ['Easy treks', 'Popular routes', 'Permit info'];
+      default:
+        return ['Destinations', 'Homestays', 'Food & Culture'];
+    }
   }
 
   Future<Map<String, String>> _loadStringMap(String assetPath) async {

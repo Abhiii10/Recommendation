@@ -29,20 +29,28 @@ class HybridTranslationManager {
 
   Future<TranslationResponse> translate(TranslationRequest request) async {
     await load();
+
+    // 1. Exact phrasebook match — always best for known tourism phrases
     final phrase = await phrasebookTranslator.translate(request);
     if (phrase != null && phrase.method == TranslationMethod.exactPhrasebook) {
       return phrase;
     }
 
+    // 2. Template match — structured phrases
     final template = await templateTranslator.translate(request);
-    if (template != null) return template;
+    if (template != null && template.confidence >= 0.80) return template;
 
+    // 3. LLM neural translation (online) — for anything not in phrasebook
+    if (request.allowNeural) {
+      final neural = await neuralTranslationAdapter.translate(request);
+      if (neural != null) return neural;
+    }
+
+    // 4. Glossary (offline fallback)
     final glossary = await glossaryTranslator.translate(request);
-    if (glossary != null && glossary.confidence >= 0.55) return glossary;
+    if (glossary != null && glossary.confidence >= 0.50) return glossary;
 
-    final neural = await neuralTranslationAdapter.translate(request);
-    if (neural != null) return neural;
-
+    // 5. Fuzzy phrasebook match
     if (phrase != null) return phrase;
 
     return const TranslationResponse(
@@ -51,7 +59,7 @@ class HybridTranslationManager {
       confidence: 0,
       isOffline: true,
       errorMessage:
-          'No offline translation match. Try a simpler tourism phrase or use online fallback.',
+          'No translation found. Connect to internet for AI translation.',
     );
   }
 }

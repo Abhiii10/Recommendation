@@ -149,6 +149,7 @@ class TranslationService {
           text: input,
           direction: _toAdvancedDirection(mode),
           allowOnline: allowOnline,
+          allowNeural: allowOnline,
         ),
       );
       if (!result.isSuccess) return null;

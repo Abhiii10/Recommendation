@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -8,6 +10,8 @@ import '../models/api_recommendation_item.dart';
 import '../models/destination.dart';
 import '../models/unified_recommendation.dart';
 import '../models/user_preferences.dart';
+import 'auth_session_service.dart';
+import 'interaction_sync_service.dart';
 import 'local_data_service.dart';
 import 'recommendation_api_service.dart';
 import 'recommender_service.dart';
@@ -19,6 +23,7 @@ class RecommendationManager {
   final RecommenderService _offlineService;
   final List<Destination> _destinations;
   final List<Accommodation> _accommodations;
+  final InteractionSyncService _interactionSyncService;
   late final Map<String, Destination> _destinationById;
 
   RecommendationManager({
@@ -26,9 +31,12 @@ class RecommendationManager {
     required List<Destination> destinations,
     required List<Accommodation> accommodations,
     RecommendationApiService? apiService,
+    InteractionSyncService? interactionSyncService,
   })  : _offlineService = offlineService,
         _destinations = destinations,
         _accommodations = accommodations,
+        _interactionSyncService =
+            interactionSyncService ?? InteractionSyncService.instance,
         _apiService =
             apiService ?? RecommendationApiService(baseUrl: backendBaseUrl) {
     _destinationById = {
@@ -41,7 +49,11 @@ class RecommendationManager {
     try {
       final result = await Connectivity().checkConnectivity();
       if (result.contains(ConnectivityResult.none)) return false;
-      return await _apiService.isHealthy();
+      final healthy = await _apiService.isHealthy();
+      if (healthy) {
+        unawaited(_interactionSyncService.syncPending());
+      }
+      return healthy;
     } catch (_) {
       return false;
     }
@@ -119,6 +131,7 @@ class RecommendationManager {
   Future<void> logSave(
     UnifiedRecommendationResult result, {
     String? userId,
+    bool saved = true,
   }) async {
     if (!result.isAiBacked) {
       return;
@@ -127,13 +140,65 @@ class RecommendationManager {
     try {
       final effectiveUserId = userId ?? await _stableUserId();
 
-      await _apiService.logInteraction(
+      await _interactionSyncService.recordInteraction(
         userId: effectiveUserId,
         destinationId: result.destination.id,
-        eventType: 'save',
+        eventType: saved ? 'save' : 'unsave',
       );
     } catch (_) {
       // Saving should not fail the UI when backend is unavailable.
+    }
+  }
+
+  Future<void> logRecommendationShown(
+    List<UnifiedRecommendationResult> results, {
+    String? userId,
+  }) async {
+    final aiResults = results.where((result) => result.isAiBacked).toList();
+
+    if (aiResults.isEmpty) {
+      return;
+    }
+
+    try {
+      final effectiveUserId = userId ?? await _stableUserId();
+
+      await Future.wait(
+        aiResults.asMap().entries.map((entry) {
+          final rank = entry.key + 1;
+          final result = entry.value;
+
+          return _interactionSyncService.recordInteraction(
+            userId: effectiveUserId,
+            destinationId: result.destination.id,
+            eventType: 'recommendation_shown',
+            value: 1.0 / rank,
+          );
+        }),
+      );
+    } catch (_) {
+      // Impression logging should not fail recommendation display.
+    }
+  }
+
+  Future<void> logClick(
+    UnifiedRecommendationResult result, {
+    String? userId,
+  }) async {
+    if (!result.isAiBacked) {
+      return;
+    }
+
+    try {
+      final effectiveUserId = userId ?? await _stableUserId();
+
+      await _interactionSyncService.recordInteraction(
+        userId: effectiveUserId,
+        destinationId: result.destination.id,
+        eventType: 'click',
+      );
+    } catch (_) {
+      // Click logging should never block navigation.
     }
   }
 
@@ -232,6 +297,12 @@ class RecommendationManager {
 
   Future<String> _stableUserId() async {
     try {
+      final authenticatedUserId =
+          await AuthSessionService.instance.currentUserId();
+      if (authenticatedUserId != null && authenticatedUserId.isNotEmpty) {
+        return authenticatedUserId;
+      }
+
       final prefs = await SharedPreferences.getInstance();
 
       var id = prefs.getString('stable_user_id');

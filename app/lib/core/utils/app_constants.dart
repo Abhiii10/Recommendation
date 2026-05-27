@@ -1,6 +1,6 @@
 abstract final class AppConstants {
   static const String dbName = 'rural_tourism_app.db';
-  static const int dbVersion = 3;
+  static const int dbVersion = 4;
 
   static const String destinationsAsset = 'assets/data/destinations.json';
   static const String accommodationsAsset = 'assets/data/accommodations.json';

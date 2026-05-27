@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nepal-tourism-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nepal_tourism
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nepal_tourism"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nepal-tourism-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      INTERACTION_STORAGE_BACKEND: postgres
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nepal_tourism
+      APP_DB_FILE: data/app.sqlite3
+      AUTH_SECRET_KEY: ${AUTH_SECRET_KEY:-change-this-auth-secret-in-production}
+      AUTH_ACCESS_TOKEN_EXPIRE_MINUTES: ${AUTH_ACCESS_TOKEN_EXPIRE_MINUTES:-43200}
+      AUTH_USERS_FILE: ${AUTH_USERS_FILE:-data/auth_users.json}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
+      GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+      GROQ_MAX_OUTPUT_TOKENS: ${GROQ_MAX_OUTPUT_TOKENS:-600}
+      GROQ_TEMPERATURE: ${GROQ_TEMPERATURE:-0.4}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      GEMINI_MAX_OUTPUT_TOKENS: ${GEMINI_MAX_OUTPUT_TOKENS:-600}
+      GEMINI_TEMPERATURE: ${GEMINI_TEMPERATURE:-0.4}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - backend_models:/app/models
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  postgres_data:
+  backend_models:

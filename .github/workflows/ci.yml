@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend quality gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+
+      - name: Install lightweight test dependencies
+        run: python -m pip install -r requirements-ci.txt
+
+      - name: Compile backend and scripts
+        run: python -m compileall -q backend scripts
+
+      - name: Run backend tests
+        run: python -m pytest backend/tests
+
+      - name: Validate Docker Compose config
+        run: docker compose config --quiet
+
+  flutter:
+    name: Flutter quality gate
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter app
+        run: flutter analyze
+
+      - name: Run stable Flutter tests
+        run: >
+          flutter test
+          test/chatbot_service_test.dart
+          test/intelligence/intent_classification_test.dart
+          test/intelligence/retrieval_evaluation_test.dart
+          test/intelligence/translation_evaluation_test.dart
+          test/recommender_service_test.dart
+          test/widget/recommend_tab_test.dart

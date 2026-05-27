@@ -51,6 +51,7 @@ class HomeTab extends StatefulWidget {
   final VoidCallback onOpenRecommend;
   final VoidCallback onOpenMap;
   final VoidCallback onOpenSaved;
+  final VoidCallback? onOpenAccount;
   final VoidCallback? onOpenAbout;
 
   const HomeTab({
@@ -60,6 +61,7 @@ class HomeTab extends StatefulWidget {
     required this.onOpenRecommend,
     required this.onOpenMap,
     required this.onOpenSaved,
+    this.onOpenAccount,
     this.onOpenAbout,
   });
 
@@ -413,6 +415,12 @@ class _HomeTabState extends State<HomeTab> {
             expandedHeight: 300,
             backgroundColor: cs.surface,
             actions: [
+              if (widget.onOpenAccount != null)
+                IconButton(
+                  tooltip: 'Account',
+                  icon: const Icon(Icons.account_circle_outlined),
+                  onPressed: widget.onOpenAccount,
+                ),
               if (widget.onOpenAbout != null)
                 IconButton(
                   tooltip: 'About',

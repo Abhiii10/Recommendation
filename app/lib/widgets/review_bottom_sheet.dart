@@ -10,6 +10,7 @@ Future<void> showReviewBottomSheet({
   required BuildContext context,
   required String destinationId,
   VoidCallback? onSubmitted,
+  Future<void> Function(int rating)? onRatingSubmitted,
 }) {
   HapticFeedback.selectionClick();
 
@@ -21,6 +22,7 @@ Future<void> showReviewBottomSheet({
       return _ReviewBottomSheet(
         destinationId: destinationId,
         onSubmitted: onSubmitted,
+        onRatingSubmitted: onRatingSubmitted,
       );
     },
   );
@@ -29,10 +31,12 @@ Future<void> showReviewBottomSheet({
 class _ReviewBottomSheet extends StatefulWidget {
   final String destinationId;
   final VoidCallback? onSubmitted;
+  final Future<void> Function(int rating)? onRatingSubmitted;
 
   const _ReviewBottomSheet({
     required this.destinationId,
     this.onSubmitted,
+    this.onRatingSubmitted,
   });
 
   @override
@@ -75,6 +79,7 @@ class _ReviewBottomSheetState extends State<_ReviewBottomSheet> {
       _rating,
       _controller.text,
     );
+    await widget.onRatingSubmitted?.call(_rating);
     if (!mounted) return;
 
     widget.onSubmitted?.call();

@@ -8,14 +8,22 @@ from backend.domain.entities.interaction import Interaction
 
 class InteractionWeightStrategy:
     _WEIGHTS = {
-        EventTypes.CLICK:       1.0,
+        EventTypes.RECOMMENDATION_SHOWN: 0.0,
+        EventTypes.CLICK:       1.5,
         EventTypes.DETAIL_VIEW: 2.0,
         EventTypes.SAVE:        4.0,
         EventTypes.RATING:      5.0,
+        EventTypes.MORE_LIKE_THIS: 4.0,
+        EventTypes.UNSAVE: 0.0,
+        EventTypes.SKIP: 0.0,
+        EventTypes.DISLIKE: 0.0,
+        EventTypes.NOT_INTERESTED: 0.0,
+        EventTypes.SEARCH: 0.0,
+        EventTypes.CHAT_USED: 0.0,
     }
 
     def weight(self, event_type: str) -> float:
-        return self._WEIGHTS.get(event_type, 1.0)
+        return self._WEIGHTS.get(event_type, 0.0)
 
 
 class CollaborativeFilter:
@@ -52,6 +60,8 @@ class CollaborativeFilter:
         matrix: Dict[str, Dict[str, float]] = defaultdict(lambda: defaultdict(float))
         for ix in self._interactions:
             w = self._strategy.weight(ix.event_type)
+            if w <= 0.0:
+                continue
             matrix[ix.user_id][ix.destination_id] += w * ix.value
         return matrix
 

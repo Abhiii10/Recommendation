@@ -7,6 +7,7 @@ import '../domain/entities/user_interaction.dart';
 import '../domain/entities/user_profile.dart';
 import '../domain/repositories/user_profile_repository.dart';
 import '../models/destination.dart';
+import 'auth_session_service.dart';
 
 class UserProfileService {
   final UserProfileRepository _repository;
@@ -38,6 +39,12 @@ class UserProfileService {
 
   Future<String> stableUserId() async {
     try {
+      final authenticatedUserId =
+          await AuthSessionService.instance.currentUserId();
+      if (authenticatedUserId != null && authenticatedUserId.isNotEmpty) {
+        return authenticatedUserId;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       var id = prefs.getString('stable_user_id');
 

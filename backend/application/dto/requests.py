@@ -30,6 +30,21 @@ class InteractionRequestDto(BaseModel):
     timestamp: Optional[str] = None
 
 
+class InteractionBatchRequestDto(BaseModel):
+    interactions: List[InteractionRequestDto] = Field(default_factory=list)
+
+
+class AuthRegisterRequestDto(BaseModel):
+    username: str = Field(..., min_length=2, max_length=80)
+    email: str = Field(..., min_length=5, max_length=254)
+    password: str = Field(..., min_length=8, max_length=128)
+
+
+class AuthLoginRequestDto(BaseModel):
+    email: str = Field(..., min_length=5, max_length=254)
+    password: str = Field(..., min_length=8, max_length=128)
+
+
 class ChatHistoryItem(BaseModel):
     role: str
     text: str

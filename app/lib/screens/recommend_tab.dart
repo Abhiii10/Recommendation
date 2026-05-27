@@ -202,6 +202,7 @@ class _RecommendTabState extends State<RecommendTab> {
         _busy = false;
         _backendAvailable = r.mode == RecommendationMode.ai;
       });
+      unawaited(_manager.logRecommendationShown(r.results));
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -217,9 +218,10 @@ class _RecommendTabState extends State<RecommendTab> {
   }
 
   Future<void> _saveResult(UnifiedRecommendationResult r) async {
+    final wasSaved = widget.isSaved(r.destination);
     await widget.onToggleSaved(r.destination);
     try {
-      await _manager.logSave(r);
+      await _manager.logSave(r, saved: !wasSaved);
     } catch (_) {}
     if (!mounted) return;
     setState(() {});
@@ -599,6 +601,7 @@ class _RecommendTabState extends State<RecommendTab> {
           title: 'Active score signals',
         ),
         onTap: () {
+          unawaited(_manager.logClick(result));
           if (result.isAiBacked) {
             Navigator.push(
                 context,

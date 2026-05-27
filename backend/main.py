@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.v1.analytics import router as analytics_router
+from backend.api.v1.auth import router as auth_router
 from backend.api.v1.chat import router as chat_router
 from backend.api.v1.offline_chat import router as offline_chat_router
 from backend.api.v1.destinations import router as destinations_router
@@ -39,6 +41,12 @@ class ApplicationFactory:
         )
 
         application.include_router(
+            auth_router,
+            prefix="/auth",
+            tags=["Auth"],
+        )
+
+        application.include_router(
             chat_router,
             prefix="/chat",
             tags=["Groq Chatbot"],
@@ -69,6 +77,12 @@ class ApplicationFactory:
         )
 
         # ── ML evaluation and training endpoints ──────────────────────────────
+        application.include_router(
+            analytics_router,
+            prefix="/analytics",
+            tags=["Analytics"],
+        )
+
         application.include_router(
             evaluate_router,
             prefix="/evaluate",

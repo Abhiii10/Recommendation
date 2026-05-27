@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     interactions_file:    Path = data_dir / "interactions.json"
     app_db_file:          Path = data_dir / "app.sqlite3"
     interaction_storage_backend: str = "sqlite"
+    database_url: str = ""
+    auth_users_file: Path = data_dir / "auth_users.json"
+    auth_secret_key: str = "change-this-auth-secret-in-production"
+    auth_access_token_expire_minutes: int = 60 * 24 * 30
 
     # ── ML ranker settings ────────────────────────────────────────────────────
     # users_file stores synthetic users generated for ML training

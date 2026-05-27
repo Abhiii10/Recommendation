@@ -7,3 +7,6 @@ numpy==2.2.5
 scikit-learn==1.6.1
 joblib
 httpx==0.28.1
+faiss-cpu
+sentencepiece
+psycopg[binary]==3.2.3

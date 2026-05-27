@@ -13,6 +13,7 @@ import '../services/offline_storage.dart';
 import '../services/recommender_service.dart';
 import '../widgets/offline_banner.dart';
 import '../widgets/skeleton_card.dart';
+import 'account_screen.dart';
 import 'about_tab.dart';
 import 'chatbot_screen.dart';
 import 'home_tab.dart' as home;
@@ -140,6 +141,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _openAccount() {
+    unawaited(HapticFeedback.selectionClick());
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const AccountScreen(),
+      ),
+    );
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -199,6 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onOpenRecommend: () => _goToTab(1),
         onOpenMap: () => _goToTab(2),
         onOpenSaved: () => _goToTab(3),
+        onOpenAccount: _openAccount,
         onOpenAbout: _openAbout,
       ),
       recommend.RecommendTab(

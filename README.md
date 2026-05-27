@@ -457,7 +457,7 @@ When the backend is unavailable, the app still provides offline recommendations.
 ## ⚠️ Limitations
 
 * Dataset size is limited
-* JSON storage is not ideal for large-scale production
+* JSON/SQLite storage modes are best for demo and local development
 * Collaborative filtering improves only after enough interaction data exists
 * Backend must be running for full AI online mode
 * Local IP changes when Wi-Fi network changes
@@ -466,16 +466,11 @@ When the backend is unavailable, the app still provides offline recommendations.
 
 ## 🔮 Future Improvements
 
-Production-level improvements:
+Production-level improvements still worth adding:
 
-* Replace JSON storage with PostgreSQL
-* Add user authentication
-* Add real-time interaction tracking
-* Add offline interaction sync
 * Deploy FastAPI backend online
 * Add Redis caching
-* Add Docker support
-* Add CI/CD pipeline
+* Add password reset and secure device token storage
 * Add model/version tracking
 * Improve learning-to-rank model
 
@@ -493,9 +488,124 @@ Cached AI fallback
 Local user personalization
 Explainable recommendation reasons
 Evaluation metrics
+Analytics endpoint
+PostgreSQL interaction storage
+Docker runtime
+CI checks
+Offline interaction sync
+Auth-backed user identity
 ```
 
-This makes the project suitable for an advanced college AI/ML demonstration.
+This makes the project suitable for an advanced college AI/ML demonstration
+and a stronger production-style prototype.
+
+---
+
+## Production Storage: PostgreSQL Interaction Events
+
+The backend can now use PostgreSQL for production-style recommendation event
+storage while keeping destination and accommodation data on the existing JSON
+path during migration.
+
+Set these values in `backend/.env`:
+
+```env
+INTERACTION_STORAGE_BACKEND=postgres
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nepal_tourism
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Migrate existing local interaction history:
+
+```bash
+python scripts/migrate_interactions_to_postgres.py --source sqlite
+```
+
+Use `--source json` if your historical interaction data is still stored in
+`data/interactions.json`. Use `--append` only when intentionally adding rows to
+an already populated PostgreSQL table.
+
+---
+
+## Auth-Backed Personalization
+
+The backend exposes account endpoints for production-style identity:
+
+```text
+POST /auth/register
+POST /auth/login
+GET  /auth/me
+```
+
+Flutter stores the returned session locally. When a user is signed in,
+recommendations and synced interactions use the authenticated backend user ID.
+When no account is active, the app keeps using the existing anonymous local ID,
+so guest and offline mode still work.
+
+Set these values before deploying outside local development:
+
+```env
+AUTH_SECRET_KEY=replace-with-a-long-random-secret
+AUTH_ACCESS_TOKEN_EXPIRE_MINUTES=43200
+AUTH_USERS_FILE=data/auth_users.json
+```
+
+---
+
+## Docker Runtime
+
+Phase 4 adds a Docker Compose runtime for the production-style backend stack:
+
+```text
+FastAPI backend
++ PostgreSQL interaction database
++ persistent Postgres volume
++ mounted data/model storage for local development
+```
+
+Start the backend and database:
+
+```bash
+docker compose up --build
+```
+
+The backend will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+Useful checks:
+
+```bash
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/analytics/recommender
+```
+
+After the containers are running, migrate existing SQLite interaction history
+into PostgreSQL:
+
+```bash
+docker compose exec backend python scripts/migrate_interactions_to_postgres.py --source sqlite
+```
+
+If you run the migration from your local machine instead of inside Docker, use:
+
+```bash
+python scripts/migrate_interactions_to_postgres.py --source sqlite
+```
+
+The Compose backend runs with:
+
+```env
+INTERACTION_STORAGE_BACKEND=postgres
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/nepal_tourism
+```
 
 ---
 

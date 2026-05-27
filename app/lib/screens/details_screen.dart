@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/utils/haversine.dart';
+import '../main.dart' show userProfileService;
 import '../models/accommodation.dart';
 import '../models/destination.dart';
+import '../services/interaction_sync_service.dart';
 import '../services/local_data_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/destination_gallery.dart';
@@ -41,6 +43,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   void initState() {
     super.initState();
     _reviewsFuture = _loadReviews();
+    unawaited(_logInteraction('detail_view'));
   }
 
   @override
@@ -68,8 +71,37 @@ class _DetailsScreenState extends State<DetailsScreen> {
         context: context,
         destinationId: widget.destination.id,
         onSubmitted: _refreshReviews,
+        onRatingSubmitted: (rating) => _logInteraction(
+          'rating',
+          value: rating.toDouble(),
+        ),
       ),
     );
+  }
+
+  Future<void> _logInteraction(
+    String eventType, {
+    double value = 1.0,
+  }) async {
+    try {
+      final userId = await userProfileService.stableUserId();
+
+      await InteractionSyncService.instance.recordInteraction(
+        userId: userId,
+        destinationId: widget.destination.id,
+        eventType: eventType,
+        value: value,
+      );
+    } catch (_) {
+      // Backend interaction logging should not block local details.
+    }
+  }
+
+  void _toggleSaved() {
+    final nextSaved = !widget.isSaved;
+    unawaited(HapticFeedback.selectionClick());
+    unawaited(_logInteraction(nextSaved ? 'save' : 'unsave'));
+    widget.onToggleSaved?.call();
   }
 
   @override
@@ -104,10 +136,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
             IconButton(
               tooltip:
                   widget.isSaved ? 'Remove from saved' : 'Save destination',
-              onPressed: () {
-                unawaited(HapticFeedback.selectionClick());
-                widget.onToggleSaved?.call();
-              },
+              onPressed: _toggleSaved,
               icon: Icon(
                 widget.isSaved ? Icons.bookmark : Icons.bookmark_border,
               ),

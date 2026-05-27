@@ -18,6 +18,8 @@ class LocalDataService {
   static final LocalDataService instance = LocalDataService._();
   static const String _webSavedDestinationsKey = 'web_saved_destinations';
   static const String _webEventsKey = 'web_app_events';
+  static const String _webPendingBackendInteractionsKey =
+      'web_pending_backend_interactions';
   static const String _webCachePrefix = 'web_recommendation_cache_';
   static const String _webCacheTimestampSuffix = '_generated_at';
   static const String _webReviewsPrefix = 'web_destination_reviews_';
@@ -64,11 +66,16 @@ class LocalDataService {
         ''');
 
         await _createDestinationReviewsTable(db);
+        await _createPendingBackendInteractionsTable(db);
         await UserProfileLocalDatasource.runMigrations(db, 0, version);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 3) {
           await _createDestinationReviewsTable(db);
+        }
+
+        if (oldVersion < 4) {
+          await _createPendingBackendInteractionsTable(db);
         }
 
         await UserProfileLocalDatasource.runMigrations(
@@ -94,6 +101,26 @@ class LocalDataService {
     await db.execute('''
       CREATE INDEX IF NOT EXISTS idx_destination_reviews_destination_id
       ON destination_reviews(destination_id)
+    ''');
+  }
+
+  Future<void> _createPendingBackendInteractionsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS pending_backend_interactions(
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        destination_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        value REAL NOT NULL DEFAULT 1.0,
+        timestamp TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_pending_backend_interactions_created_at
+      ON pending_backend_interactions(created_at)
     ''');
   }
 
@@ -334,6 +361,109 @@ class LocalDataService {
     await db.delete('recommendation_cache');
   }
 
+  Future<void> enqueueBackendInteraction({
+    required String userId,
+    required String destinationId,
+    required String eventType,
+    double value = 1.0,
+    String? timestamp,
+  }) async {
+    await init();
+
+    final now = DateTime.now();
+    final item = <String, dynamic>{
+      'id':
+          '${now.microsecondsSinceEpoch}_${userId}_${destinationId}_$eventType',
+      'user_id': userId,
+      'destination_id': destinationId,
+      'event_type': eventType,
+      'value': value,
+      'timestamp': timestamp ?? now.toUtc().toIso8601String(),
+      'created_at': now.millisecondsSinceEpoch,
+      'attempts': 0,
+    };
+
+    if (kIsWeb) {
+      await _enqueueBackendInteractionForWeb(item);
+      return;
+    }
+
+    await _database.insert(
+      'pending_backend_interactions',
+      item,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getPendingBackendInteractions({
+    int limit = 50,
+  }) async {
+    await init();
+
+    if (kIsWeb) {
+      final items = await _getPendingBackendInteractionsForWeb();
+      return items.take(limit).toList();
+    }
+
+    return _database.query(
+      'pending_backend_interactions',
+      orderBy: 'created_at ASC',
+      limit: limit,
+    );
+  }
+
+  Future<void> markBackendInteractionsSynced(List<String> ids) async {
+    if (ids.isEmpty) return;
+
+    await init();
+
+    if (kIsWeb) {
+      final idSet = ids.toSet();
+      final items = await _getPendingBackendInteractionsForWeb();
+      final remaining =
+          items.where((item) => !idSet.contains(item['id'])).toList();
+      await _savePendingBackendInteractionsForWeb(remaining);
+      return;
+    }
+
+    final placeholders = List.filled(ids.length, '?').join(',');
+    await _database.delete(
+      'pending_backend_interactions',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+  }
+
+  Future<void> markBackendInteractionSyncAttempted(List<String> ids) async {
+    if (ids.isEmpty) return;
+
+    await init();
+
+    if (kIsWeb) {
+      final idSet = ids.toSet();
+      final items = await _getPendingBackendInteractionsForWeb();
+      final updated = items.map((item) {
+        if (!idSet.contains(item['id'])) return item;
+        return {
+          ...item,
+          'attempts': ((item['attempts'] as num?)?.toInt() ?? 0) + 1,
+        };
+      }).toList();
+      await _savePendingBackendInteractionsForWeb(updated);
+      return;
+    }
+
+    final placeholders = List.filled(ids.length, '?').join(',');
+    await _database.rawUpdate(
+      '''
+      UPDATE pending_backend_interactions
+      SET attempts = attempts + 1
+      WHERE id IN ($placeholders)
+      ''',
+      ids,
+    );
+  }
+
   List<RecommendationResult> _decodeRecommendationResults(List payload) {
     return payload.map((entry) {
       final map = Map<String, dynamic>.from(entry as Map);
@@ -513,6 +643,44 @@ class LocalDataService {
     } catch (_) {
       return [];
     }
+  }
+
+  Future<void> _enqueueBackendInteractionForWeb(
+    Map<String, dynamic> item,
+  ) async {
+    final items = await _getPendingBackendInteractionsForWeb();
+    items.removeWhere((existing) => existing['id'] == item['id']);
+    items.add(item);
+    await _savePendingBackendInteractionsForWeb(items);
+  }
+
+  Future<List<Map<String, dynamic>>>
+      _getPendingBackendInteractionsForWeb() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_webPendingBackendInteractionsKey);
+
+    if (raw == null || raw.isEmpty) return [];
+
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((entry) => Map<String, dynamic>.from(entry as Map))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _savePendingBackendInteractionsForWeb(
+    List<Map<String, dynamic>> items,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final limited =
+        items.length > 500 ? items.sublist(items.length - 500) : items;
+    await prefs.setString(
+      _webPendingBackendInteractionsKey,
+      jsonEncode(limited),
+    );
   }
 
   Future<void> logEvent(String eventType, Map<String, dynamic> payload) async {

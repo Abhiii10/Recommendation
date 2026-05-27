@@ -23,7 +23,13 @@ class BackendConfig {
 }
 
 String get backendBaseUrl {
-  final fromEnv = dotenv.maybeGet('AI_BACKEND_BASE_URL')?.trim() ?? '';
+  String fromEnv = '';
+
+  try {
+    fromEnv = dotenv.maybeGet('AI_BACKEND_BASE_URL')?.trim() ?? '';
+  } catch (_) {
+    fromEnv = '';
+  }
   if (fromEnv.isNotEmpty) {
     debugPrint('🟢 backendBaseUrl from .env → $fromEnv');
     return fromEnv;

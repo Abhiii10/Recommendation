@@ -13,6 +13,8 @@ import 'data/repositories/user_profile_repository_impl.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'services/auth_session_service.dart';
+import 'services/interaction_sync_service.dart';
 import 'services/local_data_service.dart';
 import 'services/user_profile_service.dart';
 import 'theme/app_theme.dart';
@@ -27,7 +29,8 @@ Future<void> main() async {
       // ── Step 1: Load .env FIRST before anything else ──────────────────────
       try {
         await dotenv.load(fileName: '.env');
-        debugPrint('✅ .env loaded — backend: ${dotenv.maybeGet('AI_BACKEND_BASE_URL')}');
+        debugPrint(
+            '✅ .env loaded — backend: ${dotenv.maybeGet('AI_BACKEND_BASE_URL')}');
       } catch (e) {
         debugPrint('⚠️ .env not found, using hardcoded fallback: $e');
       }
@@ -60,7 +63,9 @@ Future<void> main() async {
         userProfileService = UserProfileService(repo);
       }
 
+      await AuthSessionService.instance.init();
       await userProfileService.initOnLaunch();
+      unawaited(InteractionSyncService.instance.syncPending());
 
       runApp(
         const ProviderScope(

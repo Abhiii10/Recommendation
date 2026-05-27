@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/accommodation_model.dart';
 import '../models/api_recommendation_item.dart';
+import 'auth_session_service.dart';
 
 class ApiException implements Exception {
   final int statusCode;
@@ -36,9 +37,13 @@ class RecommendationApiService {
     this.healthTimeout = const Duration(seconds: 3),
   });
 
-  Map<String, String> get _headers => const {
-        'Content-Type': 'application/json',
-      };
+  Future<Map<String, String>> _headers() async {
+    final token = await AuthSessionService.instance.currentToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
 
   Uri _uri(String path) {
     final normalizedBaseUrl = baseUrl.endsWith('/')
@@ -52,10 +57,11 @@ class RecommendationApiService {
     String path,
     Map<String, dynamic> body,
   ) async {
+    final headers = await _headers();
     final response = await _sendWithRetry(
       () => http.post(
         _uri(path),
-        headers: _headers,
+        headers: headers,
         body: jsonEncode(body),
       ),
     );
@@ -67,10 +73,11 @@ class RecommendationApiService {
     String path, {
     Duration? requestTimeout,
   }) async {
+    final headers = await _headers();
     final response = await _sendWithRetry(
       () => http.get(
         _uri(path),
-        headers: _headers,
+        headers: headers,
       ),
       requestTimeout: requestTimeout,
     );
@@ -166,12 +173,26 @@ class RecommendationApiService {
     required String destinationId,
     required String eventType,
     double value = 1.0,
+    DateTime? timestamp,
   }) async {
     await _post('/interactions', {
       'user_id': userId,
       'destination_id': destinationId,
       'event_type': eventType,
       'value': value,
+      'timestamp': (timestamp ?? DateTime.now()).toUtc().toIso8601String(),
+    });
+  }
+
+  Future<void> logInteractionBatch(
+    List<Map<String, dynamic>> interactions,
+  ) async {
+    if (interactions.isEmpty) {
+      return;
+    }
+
+    await _post('/interactions/batch', {
+      'interactions': interactions,
     });
   }
 

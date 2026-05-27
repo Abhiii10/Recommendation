@@ -20,6 +20,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 from backend.core.config import settings
+from backend.core.constants import EventTypes
 from backend.infrastructure.repositories.json_destination_repository import JsonDestinationRepository
 from backend.infrastructure.repositories.interaction_repository_factory import (
     build_interaction_repository,
@@ -30,8 +31,18 @@ from backend.infrastructure.ml.feature_builder import build_ranking_features
 logger = logging.getLogger(__name__)
 
 
-POSITIVE_EVENTS = {"click", "save", "rating"}
-NEGATIVE_EVENTS = {"skip", "dislike", "not_interested"}
+POSITIVE_EVENTS = {
+    EventTypes.CLICK,
+    EventTypes.SAVE,
+    EventTypes.RATING,
+    EventTypes.MORE_LIKE_THIS,
+}
+NEGATIVE_EVENTS = {
+    EventTypes.SKIP,
+    EventTypes.DISLIKE,
+    EventTypes.NOT_INTERESTED,
+    EventTypes.UNSAVE,
+}
 
 
 class RankingModel:
@@ -104,7 +115,7 @@ class RankingModel:
         # detail_view/view are weak signals.
         # If value exists and is high, treat as positive.
         # Otherwise treat as negative/neutral.
-        if event_type in {"detail_view", "view"}:
+        if event_type in {EventTypes.DETAIL_VIEW, "view"}:
             value = getattr(interaction, "value", 1.0)
             return 1 if float(value or 0.0) >= 2.0 else 0
 

@@ -492,16 +492,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               onPressed: widget.onOpenAbout,
             ),
           IconButton(
+            icon: const Icon(Icons.translate_rounded),
+            tooltip: 'Open translation',
+            onPressed: _openTranslation,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Clear chat',
             onPressed: _confirmClearChat,
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.small(
-        tooltip: 'Open translation',
-        onPressed: _openTranslation,
-        child: const Icon(Icons.translate_rounded),
       ),
       body: DecoratedBox(
         decoration: AppTheme.scaffoldDecorationFor(context),

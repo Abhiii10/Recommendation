@@ -9,7 +9,16 @@ from backend.infrastructure.repositories.sqlite_interaction_repository import (
 
 
 def build_interaction_repository() -> InteractionRepository:
-    if settings.interaction_storage_backend.lower() == "json":
+    backend = settings.interaction_storage_backend.lower()
+
+    if backend == "json":
         return JsonInteractionRepository()
+
+    if backend == "postgres":
+        from backend.infrastructure.repositories.postgres_interaction_repository import (
+            PostgresInteractionRepository,
+        )
+
+        return PostgresInteractionRepository()
 
     return SqliteInteractionRepository()

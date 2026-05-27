@@ -155,6 +155,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
       ),
       floatingActionButton: _hasStops
           ? FloatingActionButton.extended(
+              heroTag: 'trip_planner_share_itinerary_fab',
               onPressed: _shareItinerary,
               icon: const Icon(Icons.ios_share_rounded),
               label: const Text('Share Itinerary'),

@@ -6,6 +6,7 @@ import '../main.dart' show userProfileService;
 import '../models/accommodation_model.dart';
 import '../models/api_recommendation_item.dart';
 import '../models/destination.dart';
+import '../services/interaction_sync_service.dart';
 import '../services/recommendation_api_service.dart';
 import '../widgets/accommodation_card.dart';
 import '../widgets/destination_gallery.dart';
@@ -55,7 +56,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   Future<void> _logView() async {
     try {
       final userId = await _currentUserId();
-      await _api.logInteraction(
+      await InteractionSyncService.instance.recordInteraction(
         userId: userId,
         destinationId: widget.item.id,
         eventType: 'detail_view',
@@ -113,10 +114,10 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
     setState(() => _saved = !_saved);
     try {
       final userId = await _currentUserId();
-      await _api.logInteraction(
+      await InteractionSyncService.instance.recordInteraction(
         userId: userId,
         destinationId: widget.item.id,
-        eventType: 'save',
+        eventType: _saved ? 'save' : 'unsave',
       );
     } catch (_) {}
 

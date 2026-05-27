@@ -172,6 +172,7 @@ class SavedTab extends StatelessWidget {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'saved_tab_plan_trip_fab',
         onPressed: () => _openTripPlanner(context),
         icon: const Icon(Icons.route_rounded),
         label: const Text('Plan a Trip'),

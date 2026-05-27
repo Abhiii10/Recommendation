@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.v1.chat import router as chat_router
+from backend.api.v1.offline_chat import router as offline_chat_router
 from backend.api.v1.destinations import router as destinations_router
 from backend.api.v1.evaluate import router as evaluate_router
 from backend.api.v1.interactions import router as interactions_router
@@ -41,6 +42,12 @@ class ApplicationFactory:
             chat_router,
             prefix="/chat",
             tags=["Groq Chatbot"],
+        )
+
+        application.include_router(
+            offline_chat_router,
+            prefix="/chat/offline",
+            tags=["Offline Chat"],
         )
 
         application.include_router(

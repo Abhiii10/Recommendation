@@ -35,7 +35,7 @@ class InvalidTokenError(AuthServiceError):
 
 
 class AuthService:
-    _hash_iterations = 210_000
+    _hash_iterations = 120_000
 
     def __init__(
         self,

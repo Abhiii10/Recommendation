@@ -11,7 +11,11 @@ class JsonStorage:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         if not self.path.exists():
             self.path.write_text("[]", encoding="utf-8")
-        return json.loads(self.path.read_text(encoding="utf-8"))
+        raw = self.path.read_text(encoding="utf-8").strip()
+        if not raw:
+            self.path.write_text("[]", encoding="utf-8")
+            return []
+        return json.loads(raw)
 
     def write(self, data: Any) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)

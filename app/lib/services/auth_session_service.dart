@@ -105,10 +105,15 @@ class AuthSessionService extends ChangeNotifier {
   }
 
   Future<void> _saveSession(AuthSession session) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_sessionKey, jsonEncode(session.toJson()));
     _session = session;
     _initialized = true;
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_sessionKey, jsonEncode(session.toJson()));
+    } catch (error) {
+      debugPrint('Auth session memory-only save: $error');
+    }
   }
 }

@@ -77,7 +77,7 @@ class AuthApiService {
 
   AuthApiService({
     String? baseUrl,
-    this.timeout = const Duration(seconds: 20),
+    this.timeout = const Duration(seconds: 60),
   }) : baseUrl = baseUrl ?? backendBaseUrl;
 
   Uri _uri(String path) {
@@ -138,9 +138,22 @@ class AuthApiService {
   }
 
   Map<String, dynamic> _decode(http.Response response) {
-    final decoded = response.body.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, dynamic> decoded;
+
+    try {
+      final raw = response.body.isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(response.body);
+      decoded = raw is Map<String, dynamic>
+          ? raw
+          : raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : <String, dynamic>{};
+    } catch (_) {
+      throw AuthApiException(
+        'Backend returned an unreadable response (${response.statusCode}).',
+      );
+    }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return decoded;

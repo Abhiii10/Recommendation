@@ -84,10 +84,12 @@ class _AccountScreenState extends State<AccountScreen> {
     } on AuthApiException catch (error) {
       if (!mounted) return;
       setState(() => _error = error.message);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Account auth submit failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
       if (!mounted) return;
       setState(() {
-        _error = 'Could not reach the backend. Guest mode is still available.';
+        _error = 'Sign-in could not finish on this device. ${error.toString()}';
       });
     } finally {
       if (mounted) setState(() => _loading = false);

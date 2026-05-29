@@ -6,6 +6,13 @@ $RootDir = Resolve-Path (Join-Path $ScriptDir "..")
 
 Set-Location $RootDir
 
+$VenvPython = Join-Path $RootDir ".venv\Scripts\python.exe"
+if (Test-Path $VenvPython) {
+    $Python = $VenvPython
+} else {
+    $Python = "python"
+}
+
 Write-Host "Checking port $Port..."
 $netstatLines = netstat -ano | findstr ":$Port"
 $pids = @()
@@ -32,4 +39,4 @@ foreach ($processId in $pids) {
 }
 
 Write-Host "Starting FastAPI backend on port $Port..."
-uvicorn backend.main:app --host 0.0.0.0 --port $Port --reload
+& $Python -m uvicorn backend.main:app --host 0.0.0.0 --port $Port --reload

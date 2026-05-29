@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from backend.core.config import settings
 from backend.domain.entities.destination import Destination
@@ -144,6 +143,8 @@ class SbertEncoder:
 
     def __new__(cls) -> "SbertEncoder":
         if cls._instance is None:
+            from sentence_transformers import SentenceTransformer
+
             cls._instance = super().__new__(cls)
             cls._instance._model = SentenceTransformer(settings.model_name)
         return cls._instance

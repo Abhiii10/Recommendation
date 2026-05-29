@@ -10,10 +10,6 @@ POST /evaluate/clear-synthetic-data      → removes all synthetic users (cleanu
 from fastapi import APIRouter
 
 from backend.application.dto.requests import EvalRequest, EvalResponse
-from backend.infrastructure.ml.synthetic_data import generate_synthetic_interactions
-from backend.infrastructure.ml.ranker import RankingModel
-from backend.infrastructure.ml.evaluator import evaluate_recommender
-from backend.infrastructure.repositories.json_user_repository import JsonUserRepository
 
 router = APIRouter()
 
@@ -32,6 +28,10 @@ def generate_synthetic_data(
     - n_users: number of synthetic user profiles to create (default 100)
     - interactions_per_user: destinations each user interacts with (default 15)
     """
+    from backend.infrastructure.ml.synthetic_data import (
+        generate_synthetic_interactions,
+    )
+
     result = generate_synthetic_interactions(
         n_users=n_users,
         interactions_per_user=interactions_per_user,
@@ -48,6 +48,8 @@ def train_ranker():
     Requires at least 20 interactions with both positive and negative labels.
     Run /generate-synthetic-data first if no interactions exist.
     """
+    from backend.infrastructure.ml.ranker import RankingModel
+
     ranker = RankingModel()
     result = ranker.train_from_storage()
     return result
@@ -66,6 +68,8 @@ def evaluate(request: EvalRequest):
     - diversity      : average pairwise category/activity distance in top-K
     - novelty        : average (1 - popularity) of recommended destinations
     """
+    from backend.infrastructure.ml.evaluator import evaluate_recommender
+
     result = evaluate_recommender(
         n_users=request.n_users,
         k=request.k,
@@ -80,8 +84,12 @@ def clear_synthetic_data():
     Useful for resetting before re-generating with different parameters.
     Note: does NOT remove interactions — use with caution.
     """
+    from backend.infrastructure.repositories.json_user_repository import (
+        JsonUserRepository,
+    )
+
     user_repo = JsonUserRepository()
-    deleted   = user_repo.clear_synthetic()
+    deleted = user_repo.clear_synthetic()
     return {
         "deleted_users": deleted,
         "message": f"Removed {deleted} synthetic users from storage.",

@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from transformers import pipeline
-
 from backend.core.config import settings
 
 
@@ -16,7 +14,7 @@ SUPPORTED_PAIRS = {
     ("fr", "en"): "Helsinki-NLP/opus-mt-fr-en",
 }
 
-_MODEL_CACHE: dict[str, pipeline] = {}
+_MODEL_CACHE: dict[str, object] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +32,8 @@ class TranslationService:
         try:
             translator = _MODEL_CACHE.get(model_id)
             if translator is None:
+                from transformers import pipeline
+
                 translator = pipeline(
                     "translation",
                     model=model_id,

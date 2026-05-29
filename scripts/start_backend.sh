@@ -7,6 +7,12 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cd "$ROOT_DIR"
 
+if [[ -x "${ROOT_DIR}/.venv/bin/python" ]]; then
+  PYTHON="${ROOT_DIR}/.venv/bin/python"
+else
+  PYTHON="python"
+fi
+
 echo "Checking port ${PORT}..."
 if command -v lsof >/dev/null 2>&1; then
   PIDS="$(lsof -ti tcp:"${PORT}" || true)"
@@ -20,4 +26,4 @@ if [[ -n "${PIDS}" ]]; then
 fi
 
 echo "Starting FastAPI backend on port ${PORT}..."
-exec uvicorn backend.main:app --host 0.0.0.0 --port "${PORT}" --reload
+exec "${PYTHON}" -m uvicorn backend.main:app --host 0.0.0.0 --port "${PORT}" --reload

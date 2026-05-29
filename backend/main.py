@@ -1,6 +1,4 @@
 from argparse import ArgumentParser
-import errno
-import socket
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -86,7 +84,7 @@ class ApplicationFactory:
             tags=["Destinations"],
         )
 
-        # ── ML evaluation and training endpoints ──────────────────────────────
+        # ML evaluation and training endpoints.
         application.include_router(
             analytics_router,
             prefix="/analytics",
@@ -104,8 +102,8 @@ class ApplicationFactory:
             return {
                 "project": settings.project_name,
                 "version": settings.project_version,
-                "status":  "running",
-                "docs":    "/docs",
+                "status": "running",
+                "docs": "/docs",
             }
 
         @application.get("/health", tags=["Health"])
@@ -118,37 +116,6 @@ class ApplicationFactory:
 app = ApplicationFactory().create()
 
 
-def _is_port_available(host: str, port: int) -> bool:
-    probe_host = "0.0.0.0" if host in {"", "0.0.0.0"} else host
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        try:
-            sock.bind((probe_host, port))
-        except OSError as exc:
-            if exc.errno in {errno.EADDRINUSE, 10048}:
-                return False
-            raise
-
-    return True
-
-
-def _select_port(host: str, requested_port: int) -> int:
-    if _is_port_available(host, requested_port):
-        return requested_port
-
-    for candidate in range(8001, 8011):
-        if _is_port_available(host, candidate):
-            print(
-                f"Port {requested_port} in use, starting on port {candidate}",
-                flush=True,
-            )
-            return candidate
-
-    raise RuntimeError(
-        f"No free backend port found from {requested_port}, 8001-8010."
-    )
-
-
 def main() -> None:
     parser = ArgumentParser(description="Run the Nepal Tourism FastAPI backend.")
     parser.add_argument("--host", default="0.0.0.0")
@@ -158,12 +125,11 @@ def main() -> None:
 
     import uvicorn
 
-    port = _select_port(args.host, args.port)
     target = "backend.main:app" if args.reload else app
     uvicorn.run(
         target,
         host=args.host,
-        port=port,
+        port=args.port,
         reload=args.reload,
     )
 

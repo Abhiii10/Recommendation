@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator_platform_interface/geolocator_platform_interface.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LocationService {
   const LocationService();
@@ -9,7 +9,7 @@ class LocationService {
     if (!allowed) return null;
 
     try {
-      return GeolocatorPlatform.instance.getCurrentPosition(
+      return Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           timeLimit: Duration(seconds: 10),
@@ -29,7 +29,7 @@ class LocationService {
     final allowed = await _ensurePermission(context);
     if (!allowed) return null;
 
-    return GeolocatorPlatform.instance.getPositionStream(
+    return Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 5,
@@ -38,8 +38,7 @@ class LocationService {
   }
 
   Future<bool> _ensurePermission(BuildContext context) async {
-    final serviceEnabled =
-        await GeolocatorPlatform.instance.isLocationServiceEnabled();
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -49,9 +48,9 @@ class LocationService {
       return false;
     }
 
-    var permission = await GeolocatorPlatform.instance.checkPermission();
+    var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      permission = await GeolocatorPlatform.instance.requestPermission();
+      permission = await Geolocator.requestPermission();
     }
 
     if (permission == LocationPermission.denied) {
@@ -73,7 +72,7 @@ class LocationService {
           ),
         );
       }
-      await GeolocatorPlatform.instance.openAppSettings();
+      await Geolocator.openAppSettings();
       return false;
     }
 

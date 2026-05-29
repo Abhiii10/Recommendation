@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
-import 'package:geolocator_platform_interface/geolocator_platform_interface.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:rural_tourism_app/core/maps/offline_tile_provider.dart';
@@ -55,6 +56,31 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen>
     with SingleTickerProviderStateMixin {
+  static const Map<String, ({String url, String name, bool dark})> _tileStyles =
+      {
+    'voyager': (
+      url:
+          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+      name: '🗺 Voyager',
+      dark: false,
+    ),
+    'positron': (
+      url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+      name: '⬜ Light',
+      dark: false,
+    ),
+    'dark_matter': (
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+      name: '⬛ Dark',
+      dark: true,
+    ),
+    'osm': (
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      name: '🌍 Standard',
+      dark: false,
+    ),
+  };
+
   final MapController _mapController = MapController();
   final RoutingService _routingService = RoutingService();
   final LocationService _locationService = const LocationService();
@@ -73,6 +99,7 @@ class _MapScreenState extends State<MapScreen>
   TravelMode _travelMode = TravelMode.driving;
   int _currentStepIndex = 0;
   String? _routeError;
+  String _tileStyle = 'voyager';
 
   @override
   void initState() {
@@ -82,6 +109,7 @@ class _MapScreenState extends State<MapScreen>
       duration: const Duration(milliseconds: 1500),
     )..repeat();
     unawaited(_loadOfflineTiles());
+    unawaited(_loadTileStyle());
   }
 
   @override
@@ -317,43 +345,15 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _handlePositionUpdate(Position position) {
-    final route = _activeRoute;
-    if (!mounted || route == null) return;
+    if (!mounted || _activeRoute == null) return;
 
     final location = LatLng(position.latitude, position.longitude);
-    var nextIndex = _currentStepIndex;
-
-    while (nextIndex < route.steps.length) {
-      final step = route.steps[nextIndex];
-      final distanceToStep = GeolocatorPlatform.instance.distanceBetween(
-        location.latitude,
-        location.longitude,
-        step.location.latitude,
-        step.location.longitude,
-      );
-      if (distanceToStep > 30) break;
-      nextIndex++;
-    }
-
-    final arrived = route.steps.isNotEmpty && nextIndex >= route.steps.length;
 
     setState(() {
       _currentLocation = location;
-      _currentStepIndex = arrived
-          ? route.steps.length - 1
-          : nextIndex > route.steps.length
-              ? route.steps.length
-              : nextIndex;
     });
 
     _recenterOn(location, heading: position.heading);
-
-    if (arrived) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Arrived at destination.')),
-      );
-      unawaited(_endNavigation());
-    }
   }
 
   void _recenterOn(LatLng location, {double? heading}) {
@@ -445,11 +445,69 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
+  Future<void> _loadTileStyle() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('map_tile_provider') ?? 'voyager';
+    if (!mounted || !_tileStyles.containsKey(saved)) return;
+    setState(() => _tileStyle = saved);
+  }
+
+  Future<void> _selectTileStyle(String style) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('map_tile_provider', style);
+    if (!mounted) return;
+    setState(() => _tileStyle = style);
+  }
+
+  Future<void> _showTileStyleSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+            children: [
+              Text(
+                'Map Style',
+                style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              ..._tileStyles.entries.map((entry) {
+                final selected = entry.key == _tileStyle;
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(entry.value.name),
+                  trailing: selected
+                      ? Icon(
+                          Icons.check_circle_rounded,
+                          color: Theme.of(sheetContext).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () async {
+                    await _selectTileStyle(entry.key);
+                    if (sheetContext.mounted) Navigator.pop(sheetContext);
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapped = _mappedDestinations;
     final cs = Theme.of(context).colorScheme;
     final usingOfflineTiles = _offlineTileProvider != null;
+    final tileStyle = _tileStyles[_tileStyle] ?? _tileStyles['voyager']!;
+    final pinBorderColor =
+        tileStyle.dark ? Colors.white : cs.surface.withValues(alpha: 0.95);
 
     return Scaffold(
       appBar: AppBar(
@@ -489,11 +547,12 @@ class _MapScreenState extends State<MapScreen>
                       TileLayer(tileProvider: _offlineTileProvider!)
                     else
                       TileLayer(
-                        urlTemplate:
-                            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+                        urlTemplate: tileStyle.url,
                         fallbackUrl:
                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        subdomains: const ['a', 'b', 'c', 'd'],
+                        subdomains: _tileStyle == 'osm'
+                            ? const []
+                            : const ['a', 'b', 'c', 'd'],
                         tileProvider: CancellableNetworkTileProvider(
                           silenceExceptions: true,
                         ),
@@ -538,6 +597,7 @@ class _MapScreenState extends State<MapScreen>
                                       : 'scenic',
                                   isSelected: _selectedDestination?.id ==
                                       destination.id,
+                                  borderColor: pinBorderColor,
                                 ),
                               ),
                             ),
@@ -561,6 +621,16 @@ class _MapScreenState extends State<MapScreen>
                           ),
                       ],
                     ),
+                    RichAttributionWidget(
+                      attributions: [
+                        TextSourceAttribution(
+                          '© CartoDB © OpenStreetMap contributors',
+                          onTap: () => launchUrl(
+                            Uri.parse('https://carto.com/attributions'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 if (!_navigationActive) ...[
@@ -579,6 +649,7 @@ class _MapScreenState extends State<MapScreen>
                       onZoomIn: () => _zoomBy(1),
                       onZoomOut: () => _zoomBy(-1),
                       onReset: () => _mapController.move(_center, 8.6),
+                      onLayers: () => unawaited(_showTileStyleSheet()),
                     ),
                   ),
                   Positioned(
@@ -610,8 +681,16 @@ class _MapScreenState extends State<MapScreen>
                 if (_navigationActive && _activeRoute != null)
                   NavigationOverlay(
                     route: _activeRoute!,
+                    steps: _activeRoute!.steps,
                     currentStepIndex: _currentStepIndex,
-                    currentLocation: _currentLocation,
+                    currentPosition: _currentLocation,
+                    destination: _destinationPoint(_routeDestination!)!,
+                    onStepAdvance: () => setState(() {
+                      if (_activeRoute != null &&
+                          _currentStepIndex < _activeRoute!.steps.length - 1) {
+                        _currentStepIndex++;
+                      }
+                    }),
                     onEndNavigation: () => unawaited(_endNavigation()),
                   ),
               ],
@@ -1021,9 +1100,11 @@ class _PulsingLocationMarker extends StatelessWidget {
 class _DestinationPin extends StatefulWidget {
   final String category;
   final bool isSelected;
+  final Color borderColor;
 
   const _DestinationPin({
     required this.category,
+    required this.borderColor,
     this.isSelected = false,
   });
 
@@ -1072,7 +1153,7 @@ class _DestinationPinState extends State<_DestinationPin>
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2.5),
+              border: Border.all(color: widget.borderColor, width: 2.5),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.45),
@@ -1119,11 +1200,13 @@ class _MapControls extends StatelessWidget {
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
   final VoidCallback onReset;
+  final VoidCallback onLayers;
 
   const _MapControls({
     required this.onZoomIn,
     required this.onZoomOut,
     required this.onReset,
+    required this.onLayers,
   });
 
   @override
@@ -1144,6 +1227,11 @@ class _MapControls extends StatelessWidget {
           Divider(color: cs.outlineVariant),
           _MapControlButton(
               icon: Icons.my_location_rounded, onPressed: onReset),
+          Divider(color: cs.outlineVariant),
+          _MapControlButton(
+            icon: Icons.layers_rounded,
+            onPressed: onLayers,
+          ),
         ],
       ),
     );

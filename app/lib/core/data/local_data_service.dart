@@ -5,10 +5,12 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'package:rural_tourism_app/core/data/offline_storage.dart';
 import 'package:rural_tourism_app/core/storage/database_factory_config.dart';
 import 'package:rural_tourism_app/core/utils/app_constants.dart';
 import 'package:rural_tourism_app/data/datasources/user_profile_local_datasource.dart';
 import 'package:rural_tourism_app/domain/entities/recommendation_result.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/user_preferences.dart';
 
@@ -140,6 +142,14 @@ class LocalDataService {
   }
 
   Database get database => _database;
+
+  Future<List<Destination>> loadLocalDestinations() {
+    return OfflineStorage.loadDestinations();
+  }
+
+  Future<List<Accommodation>> loadLocalAccommodations() {
+    return OfflineStorage.loadAccommodations();
+  }
 
   String buildRecommendationCacheKey(
     UserPreferences prefs, {

@@ -2,20 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:rural_tourism_app/core/navigation/models/route_result.dart';
+import 'package:rural_tourism_app/core/utils/haversine.dart';
 
-class NavigationOverlay extends StatelessWidget {
+class NavigationOverlay extends StatefulWidget {
   final RouteResult route;
+  final List<RouteStep> steps;
   final int currentStepIndex;
-  final LatLng? currentLocation;
+  final LatLng? currentPosition;
+  final LatLng destination;
+  final VoidCallback onStepAdvance;
   final VoidCallback onEndNavigation;
 
   const NavigationOverlay({
     super.key,
     required this.route,
+    required this.steps,
     required this.currentStepIndex,
-    required this.currentLocation,
+    required this.currentPosition,
+    required this.destination,
+    required this.onStepAdvance,
     required this.onEndNavigation,
   });
+
+  @override
+  State<NavigationOverlay> createState() => _NavigationOverlayState();
+}
+
+class _NavigationOverlayState extends State<NavigationOverlay> {
+  bool _arrivedShown = false;
+  bool _advanceQueued = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkStepAdvance());
+  }
+
+  @override
+  void didUpdateWidget(covariant NavigationOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentPosition != widget.currentPosition ||
+        oldWidget.currentStepIndex != widget.currentStepIndex ||
+        oldWidget.destination != widget.destination) {
+      _checkStepAdvance();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +72,11 @@ class NavigationOverlay extends StatelessWidget {
             Positioned(
               left: 16,
               right: 16,
-              bottom: 18,
+              bottom: 16,
               child: _NavigationInfoBar(
-                distanceText: _formatDistance(_remainingDistance),
-                arrivalText: _arrivalTime(context),
-                modeLabel: route.travelMode.label,
-                onEndNavigation: onEndNavigation,
+                summaryText: _remainingSummary(context),
+                modeLabel: widget.route.travelMode.label,
+                onEndNavigation: widget.onEndNavigation,
               ),
             ),
           ],
@@ -56,42 +86,101 @@ class NavigationOverlay extends StatelessWidget {
   }
 
   RouteStep? get _currentStep {
-    if (route.steps.isEmpty) return null;
-    final safeIndex = currentStepIndex < 0
-        ? 0
-        : currentStepIndex >= route.steps.length
-            ? route.steps.length - 1
-            : currentStepIndex;
-    return route.steps[safeIndex];
+    if (widget.steps.isEmpty) return null;
+    return widget.steps[_safeStepIndex];
+  }
+
+  int get _safeStepIndex {
+    if (widget.steps.isEmpty) return 0;
+    return widget.currentStepIndex.clamp(0, widget.steps.length - 1);
   }
 
   double get _remainingDistance {
-    if (route.steps.isEmpty) return route.distanceMeters;
-    return route.steps
-        .skip(currentStepIndex)
+    if (widget.steps.isEmpty) return widget.route.distanceMeters;
+    return widget.steps
+        .skip(_safeStepIndex)
         .fold<double>(0, (sum, step) => sum + step.distanceMeters);
   }
 
   double get _remainingDuration {
-    if (route.steps.isEmpty) return route.durationSeconds;
-    return route.steps
-        .skip(currentStepIndex)
+    if (widget.steps.isEmpty) return widget.route.durationSeconds;
+    return widget.steps
+        .skip(_safeStepIndex)
         .fold<double>(0, (sum, step) => sum + step.durationSeconds);
   }
 
-  double _distanceToStep(RouteStep step) {
-    final location = currentLocation;
-    if (location == null) return step.distanceMeters;
-    return const Distance().as(LengthUnit.Meter, location, step.location);
+  void _checkStepAdvance() {
+    final position = widget.currentPosition;
+    if (position == null) return;
+
+    final destinationDistance = _distanceMeters(position, widget.destination);
+    if (destinationDistance <= 50 && !_arrivedShown) {
+      _arrivedShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('You have arrived! 🎉'),
+            content: const Text('You have reached your destination.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  widget.onEndNavigation();
+                },
+                child: const Text('Done'),
+              ),
+            ],
+          ),
+        );
+      });
+      return;
+    }
+
+    if (widget.steps.isEmpty ||
+        widget.currentStepIndex < 0 ||
+        widget.currentStepIndex >= widget.steps.length - 1 ||
+        _advanceQueued) {
+      return;
+    }
+
+    final step = widget.steps[widget.currentStepIndex];
+    if (_distanceMeters(position, step.location) <= 30) {
+      _advanceQueued = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        widget.onStepAdvance();
+        _advanceQueued = false;
+      });
+    }
   }
 
-  String _arrivalTime(BuildContext context) {
+  double _distanceToStep(RouteStep step) {
+    final location = widget.currentPosition;
+    if (location == null) return step.distanceMeters;
+    return _distanceMeters(location, step.location);
+  }
+
+  double _distanceMeters(LatLng a, LatLng b) {
+    return haversineKm(
+          a.latitude,
+          a.longitude,
+          b.latitude,
+          b.longitude,
+        ) *
+        1000;
+  }
+
+  String _remainingSummary(BuildContext context) {
     final eta = DateTime.now().add(
       Duration(seconds: _remainingDuration.round()),
     );
-    return MaterialLocalizations.of(context).formatTimeOfDay(
+    final etaText = MaterialLocalizations.of(context).formatTimeOfDay(
       TimeOfDay.fromDateTime(eta),
     );
+    return '${_formatDistance(_remainingDistance)} · Arriving ~$etaText';
   }
 
   IconData _iconFor(RouteStep? step) {
@@ -190,14 +279,12 @@ class _InstructionCard extends StatelessWidget {
 }
 
 class _NavigationInfoBar extends StatelessWidget {
-  final String distanceText;
-  final String arrivalText;
+  final String summaryText;
   final String modeLabel;
   final VoidCallback onEndNavigation;
 
   const _NavigationInfoBar({
-    required this.distanceText,
-    required this.arrivalText,
+    required this.summaryText,
     required this.modeLabel,
     required this.onEndNavigation,
   });
@@ -213,80 +300,47 @@ class _NavigationInfoBar extends StatelessWidget {
       shadowColor: Colors.black.withValues(alpha: 0.24),
       borderRadius: BorderRadius.circular(18),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-        child: Row(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Row(
-                children: [
-                  _Metric(
-                    label: 'Remaining',
-                    value: distanceText,
-                  ),
-                  const SizedBox(width: 18),
-                  _Metric(
-                    label: 'ETA',
-                    value: arrivalText,
-                  ),
-                ],
+            Text(
+              summaryText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.titleMedium?.copyWith(
+                color: cs.onSurface,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            FilledButton.tonalIcon(
-              onPressed: onEndNavigation,
-              icon: const Icon(Icons.close_rounded, size: 18),
-              label: const Text('End'),
-              style: FilledButton.styleFrom(
-                foregroundColor: cs.error,
-                textStyle: textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
+            const SizedBox(height: 2),
+            Text(
+              modeLabel,
+              style: textTheme.labelMedium?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onEndNavigation,
+                icon: const Icon(Icons.close_rounded),
+                label: const Text('End Navigation'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: cs.error,
+                  foregroundColor: cs.onError,
+                  minimumSize: const Size.fromHeight(48),
+                  textStyle: textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Metric extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _Metric({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Flexible(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: cs.onSurface,
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
       ),
     );
   }

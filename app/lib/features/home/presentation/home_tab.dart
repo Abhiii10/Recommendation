@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:rural_tourism_app/core/data/local_data_service.dart';
+import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
 import 'package:rural_tourism_app/shared/theme/app_theme.dart';
@@ -78,11 +80,15 @@ class _HomeTabState extends State<HomeTab> {
   List<String> _recentSearches = [];
   Map<String, int> _recentSearchTimestamps = {};
   SharedPreferences? _prefs;
+  bool _isOffline = false;
+  bool _checkingHealth = false;
+  List<Destination> _localDestinations = const [];
 
   @override
   void initState() {
     super.initState();
     unawaited(_loadRecentSearches());
+    unawaited(_checkHealth());
   }
 
   @override
@@ -133,6 +139,27 @@ class _HomeTabState extends State<HomeTab> {
       _recentSearchTimestamps = activeTimestamps;
     });
   }
+
+  Future<void> _checkHealth() async {
+    if (_checkingHealth) return;
+    setState(() => _checkingHealth = true);
+    final result = await BackendConfig.checkBackendHealth(attempts: 1);
+    final localDestinations = result.reachable
+        ? const <Destination>[]
+        : await LocalDataService.instance.loadLocalDestinations();
+    if (mounted) {
+      setState(() {
+        _isOffline = !result.reachable;
+        _localDestinations = localDestinations;
+        _checkingHealth = false;
+      });
+    }
+  }
+
+  List<Destination> get _sourceDestinations =>
+      _isOffline && _localDestinations.isNotEmpty
+          ? _localDestinations
+          : widget.destinations;
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
@@ -214,7 +241,7 @@ class _HomeTabState extends State<HomeTab> {
 
   List<String> get _allCategories {
     final cats = <String>{};
-    for (final d in widget.destinations) {
+    for (final d in _sourceDestinations) {
       for (final c in d.category) {
         if (c.trim().isNotEmpty) cats.add(c);
       }
@@ -223,7 +250,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   List<Destination> get _featuredDestinations {
-    final sorted = [...widget.destinations];
+    final sorted = [..._sourceDestinations];
     sorted.sort((a, b) {
       final scoreCompare = _featuredScore(b).compareTo(_featuredScore(a));
       return scoreCompare != 0
@@ -254,7 +281,7 @@ class _HomeTabState extends State<HomeTab> {
 
   List<Destination> _bestThisSeasonDestinations(String season) {
     final lowerSeason = season.toLowerCase();
-    return widget.destinations
+    return _sourceDestinations
         .where(
           (destination) => destination.bestSeason.any(
             (value) => value.toLowerCase().contains(lowerSeason),
@@ -288,7 +315,7 @@ class _HomeTabState extends State<HomeTab> {
 
     final scored = <_ScoredDestination>[];
 
-    for (final d in widget.destinations) {
+    for (final d in _sourceDestinations) {
       final passesCategory = _activeCategory == null ||
           d.category.any(
             (c) => c.toLowerCase() == _activeCategory!.toLowerCase(),
@@ -408,317 +435,343 @@ class _HomeTabState extends State<HomeTab> {
 
     return DecoratedBox(
       decoration: AppTheme.scaffoldDecorationFor(context),
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            expandedHeight: 300,
-            backgroundColor: cs.surface,
-            actions: [
-              if (widget.onOpenAccount != null)
-                IconButton(
-                  tooltip: 'Account',
-                  icon: const Icon(Icons.account_circle_outlined),
-                  onPressed: widget.onOpenAccount,
-                ),
-              if (widget.onOpenAbout != null)
-                IconButton(
-                  tooltip: 'About',
-                  icon: const Icon(Icons.info_outline_rounded),
-                  onPressed: widget.onOpenAbout,
-                ),
-            ],
-            title: Row(
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: cs.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.landscape_rounded,
-                    color: cs.onPrimary,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'Paila Nepal',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+      child: Column(
+        children: [
+          if (_isOffline)
+            MaterialBanner(
+              content:
+                  const Text('Offline mode — showing local recommendations'),
+              leading: const Icon(
+                Icons.cloud_off_rounded,
+                color: Colors.orange,
+              ),
+              backgroundColor: Colors.orange.shade900.withValues(alpha: 0.15),
+              actions: [
+                TextButton(
+                  onPressed: _checkHealth,
+                  child: const Text('Retry'),
                 ),
               ],
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/pokhara_hero.webp',
-                    fit: BoxFit.cover,
-                    cacheWidth: 1600,
-                  ),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.0, 0.45, 1.0],
-                        colors: [
-                          Colors.black.withValues(alpha: 0.08),
-                          Colors.black.withValues(alpha: 0.30),
-                          Colors.black.withValues(alpha: 0.72),
-                        ],
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar.large(
+                  pinned: true,
+                  expandedHeight: 300,
+                  backgroundColor: cs.surface,
+                  actions: [
+                    if (widget.onOpenAccount != null)
+                      IconButton(
+                        tooltip: 'Account',
+                        icon: const Icon(Icons.account_circle_outlined),
+                        onPressed: widget.onOpenAccount,
                       ),
-                    ),
+                    if (widget.onOpenAbout != null)
+                      IconButton(
+                        tooltip: 'About',
+                        icon: const Icon(Icons.info_outline_rounded),
+                        onPressed: widget.onOpenAbout,
+                      ),
+                  ],
+                  title: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: cs.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.landscape_rounded,
+                          color: cs.onPrimary,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Paila Nepal',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 28,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+                  flexibleSpace: FlexibleSpaceBar(
+                    collapseMode: CollapseMode.parallax,
+                    background: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Text(
-                          'Discover Rural Nepal',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            fontFamily: 'Outfit',
-                            height: 1.15,
-                            letterSpacing: 0,
-                            shadows: [
-                              Shadow(color: Colors.black38, blurRadius: 12),
+                        Image.asset(
+                          'assets/images/pokhara_hero.webp',
+                          fit: BoxFit.cover,
+                          cacheWidth: 1600,
+                        ),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.0, 0.45, 1.0],
+                              colors: [
+                                Colors.black.withValues(alpha: 0.08),
+                                Colors.black.withValues(alpha: 0.30),
+                                Colors.black.withValues(alpha: 0.72),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const Positioned(
+                          left: 20,
+                          right: 20,
+                          bottom: 28,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Discover Rural Nepal',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: 'Outfit',
+                                  height: 1.15,
+                                  letterSpacing: 0,
+                                  shadows: [
+                                    Shadow(
+                                        color: Colors.black38, blurRadius: 12),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Hidden villages · Sacred trails · Authentic culture',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        SizedBox(height: 6),
-                        Text(
-                          'Hidden villages · Sacred trails · Authentic culture',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 720),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _SearchBar(
-                        controller: _controller,
-                        query: _query,
-                        onChanged: _onSearchChanged,
-                        onClear: _clearSearch,
-                      ),
-                      const SizedBox(height: 14),
-                      _CategoryStrip(
-                        categories: _allCategories,
-                        active: _activeCategory,
-                        onTap: (cat) => setState(() {
-                          _activeCategory = _activeCategory == cat ? null : cat;
-                        }),
-                      ),
-                      const SizedBox(height: 20),
-                      if (_query.isEmpty && _recentSearches.isNotEmpty) ...[
-                        _SectionLabel(text: 'Recent searches'),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _recentSearches.map((item) {
-                            return ActionChip(
-                              avatar: Icon(
-                                Icons.history_rounded,
-                                size: 16,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              label: Text(item),
-                              onPressed: () => _applySuggestion(item),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 22),
-                      ],
-                      if (!hasFilter) ...[
-                        _SectionLabel(text: 'Explore the app'),
-                        const SizedBox(height: 12),
-                        _QuickActionRow(
-                          onRecommend: widget.onOpenRecommend,
-                          onMap: widget.onOpenMap,
-                          onSaved: widget.onOpenSaved,
-                        ),
-                        const SizedBox(height: 28),
-                      ],
-                      if (!hasFilter) ...[
-                        _SectionLabel(text: 'Featured Destinations'),
-                        const SizedBox(height: 12),
-                        _FeaturedCarousel(
-                          destinations: featured,
-                          onTap: (d) => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailsScreen(
-                                destination: d,
-                                nearbyAccommodations:
-                                    accommodationsForDestination(
-                                  d,
-                                  widget.accommodations,
-                                ),
-                              ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 720),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _SearchBar(
+                              controller: _controller,
+                              query: _query,
+                              onChanged: _onSearchChanged,
+                              onClear: _clearSearch,
                             ),
-                          ),
-                        ),
-                        if (seasonalDestinations.isNotEmpty) ...[
-                          const SizedBox(height: 28),
-                          _SectionLabel(
-                            text: 'Best This Season',
-                            sub: 'Ideal for ${_seasonLabel(currentSeason)}',
-                            icon: _seasonIcon(currentSeason),
-                          ),
-                          const SizedBox(height: 12),
-                          _SeasonalDestinationRail(
-                            destinations: seasonalDestinations,
-                            onTap: (d) => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => DetailsScreen(
-                                  destination: d,
-                                  nearbyAccommodations:
-                                      accommodationsForDestination(
-                                    d,
-                                    widget.accommodations,
-                                  ),
-                                ),
-                              ),
+                            const SizedBox(height: 14),
+                            _CategoryStrip(
+                              categories: _allCategories,
+                              active: _activeCategory,
+                              onTap: (cat) => setState(() {
+                                _activeCategory =
+                                    _activeCategory == cat ? null : cat;
+                              }),
                             ),
-                          ),
-                        ],
-                        const SizedBox(height: 28),
-                        _SectionLabel(
-                          text:
-                              'All Destinations (${widget.destinations.length})',
-                        ),
-                        const SizedBox(height: 12),
-                      ] else if (rankedResults.isEmpty) ...[
-                        _EmptyResult(
-                          query: _debouncedQuery,
-                          category: _activeCategory,
-                          featured: featured,
-                          onTap: (d) => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailsScreen(
-                                destination: d,
-                                nearbyAccommodations:
-                                    accommodationsForDestination(
-                                  d,
-                                  widget.accommodations,
-                                ),
+                            const SizedBox(height: 20),
+                            if (_query.isEmpty &&
+                                _recentSearches.isNotEmpty) ...[
+                              _SectionLabel(text: 'Recent searches'),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _recentSearches.map((item) {
+                                  return ActionChip(
+                                    avatar: Icon(
+                                      Icons.history_rounded,
+                                      size: 16,
+                                      color: cs.onSurfaceVariant,
+                                    ),
+                                    label: Text(item),
+                                    onPressed: () => _applySuggestion(item),
+                                  );
+                                }).toList(),
                               ),
-                            ),
-                          ),
-                          onMap: widget.onOpenMap,
-                        ),
-                      ] else ...[
-                        _SectionLabel(
-                          text: 'Results (${rankedResults.length})',
-                          sub: _activeCategory != null
-                              ? 'Filtered by $_activeCategory'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        ...rankedResults.take(14).map((item) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _CompactDestinationCard(
-                              destination: item.destination,
-                              reason: _debouncedQuery.isNotEmpty
-                                  ? _matchReason(
-                                      item.destination,
-                                      _debouncedQuery,
-                                    )
-                                  : 'Filtered by $_activeCategory',
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => DetailsScreen(
-                                    destination: item.destination,
-                                    nearbyAccommodations:
-                                        accommodationsForDestination(
-                                      item.destination,
-                                      widget.accommodations,
+                              const SizedBox(height: 22),
+                            ],
+                            if (!hasFilter) ...[
+                              _SectionLabel(text: 'Explore the app'),
+                              const SizedBox(height: 12),
+                              _QuickActionRow(
+                                onRecommend: widget.onOpenRecommend,
+                                onMap: widget.onOpenMap,
+                                onSaved: widget.onOpenSaved,
+                              ),
+                              const SizedBox(height: 28),
+                            ],
+                            if (!hasFilter) ...[
+                              _SectionLabel(text: 'Featured Destinations'),
+                              const SizedBox(height: 12),
+                              _FeaturedCarousel(
+                                destinations: featured,
+                                onTap: (d) => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => DetailsScreen(
+                                      destination: d,
+                                      nearbyAccommodations:
+                                          accommodationsForDestination(
+                                        d,
+                                        widget.accommodations,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                              onMap: widget.onOpenMap,
-                            ),
-                          );
-                        }),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (!hasFilter)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-              sliver: SliverList.builder(
-                itemCount: widget.destinations.length,
-                itemBuilder: (context, index) {
-                  final destination = widget.destinations[index];
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 720),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _CompactDestinationCard(
-                          destination: destination,
-                          reason: 'Browse all destinations',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailsScreen(
-                                destination: destination,
-                                nearbyAccommodations:
-                                    accommodationsForDestination(
-                                  destination,
-                                  widget.accommodations,
+                              if (seasonalDestinations.isNotEmpty) ...[
+                                const SizedBox(height: 28),
+                                _SectionLabel(
+                                  text: 'Best This Season',
+                                  sub:
+                                      'Ideal for ${_seasonLabel(currentSeason)}',
+                                  icon: _seasonIcon(currentSeason),
                                 ),
+                                const SizedBox(height: 12),
+                                _SeasonalDestinationRail(
+                                  destinations: seasonalDestinations,
+                                  onTap: (d) => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => DetailsScreen(
+                                        destination: d,
+                                        nearbyAccommodations:
+                                            accommodationsForDestination(
+                                          d,
+                                          widget.accommodations,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 28),
+                              _SectionLabel(
+                                text:
+                                    'All Destinations (${_sourceDestinations.length})',
                               ),
-                            ),
-                          ),
-                          onMap: widget.onOpenMap,
+                              const SizedBox(height: 12),
+                            ] else if (rankedResults.isEmpty) ...[
+                              _EmptyResult(
+                                query: _debouncedQuery,
+                                category: _activeCategory,
+                                featured: featured,
+                                onTap: (d) => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => DetailsScreen(
+                                      destination: d,
+                                      nearbyAccommodations:
+                                          accommodationsForDestination(
+                                        d,
+                                        widget.accommodations,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                onMap: widget.onOpenMap,
+                              ),
+                            ] else ...[
+                              _SectionLabel(
+                                text: 'Results (${rankedResults.length})',
+                                sub: _activeCategory != null
+                                    ? 'Filtered by $_activeCategory'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              ...rankedResults.take(14).map((item) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _CompactDestinationCard(
+                                    destination: item.destination,
+                                    reason: _debouncedQuery.isNotEmpty
+                                        ? _matchReason(
+                                            item.destination,
+                                            _debouncedQuery,
+                                          )
+                                        : 'Filtered by $_activeCategory',
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => DetailsScreen(
+                                          destination: item.destination,
+                                          nearbyAccommodations:
+                                              accommodationsForDestination(
+                                            item.destination,
+                                            widget.accommodations,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    onMap: widget.onOpenMap,
+                                  ),
+                                );
+                              }),
+                            ],
+                          ],
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                ),
+                if (!hasFilter)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    sliver: SliverList.builder(
+                      itemCount: _sourceDestinations.length,
+                      itemBuilder: (context, index) {
+                        final destination = _sourceDestinations[index];
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 720),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _CompactDestinationCard(
+                                destination: destination,
+                                reason: 'Browse all destinations',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => DetailsScreen(
+                                      destination: destination,
+                                      nearbyAccommodations:
+                                          accommodationsForDestination(
+                                        destination,
+                                        widget.accommodations,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                onMap: widget.onOpenMap,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );

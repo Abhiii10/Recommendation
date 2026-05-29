@@ -1,6 +1,8 @@
+import secrets
+import sys
 from pathlib import Path
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,7 +15,8 @@ class Settings(BaseSettings):
     project_name: str    = "Nepal Rural Tourism Recommendation API"
     project_version: str = "3.3.0"
 
-    allowed_origins: list[str] = ["*"]
+    allowed_origins_raw: str = Field("*", validation_alias="ALLOWED_ORIGINS")
+    environment: str = Field("development", validation_alias="ENVIRONMENT")
 
     model_name: str = "all-MiniLM-L6-v2"
 
@@ -89,16 +92,37 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_auth_secret(self) -> "Settings":
         secret = self.auth_secret_key.strip()
+        is_placeholder = not secret or secret == AUTH_SECRET_PLACEHOLDER
 
-        if not secret or secret == AUTH_SECRET_PLACEHOLDER:
-            raise ValueError(
-                "AUTH_SECRET_KEY must be set to a secure random value before "
-                "starting the backend. Run `python scripts/setup_env.py` or "
-                "set AUTH_SECRET_KEY in backend/.env."
+        if is_placeholder:
+            if self.environment == "production":
+                raise ValueError(
+                    "AUTH_SECRET_KEY must be set in production. "
+                    "Run scripts/setup_env.py to generate one."
+                )
+
+            self.auth_secret_key = secrets.token_hex(32)
+            print(
+                "WARNING: AUTH_SECRET_KEY not set. "
+                "A temporary key has been generated for this session. "
+                "Set AUTH_SECRET_KEY in backend/.env for persistence.",
+                file=sys.stderr,
+                flush=True,
             )
+        else:
+            self.auth_secret_key = secret
 
-        self.auth_secret_key = secret
         return self
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        if self.allowed_origins_raw.strip() == "*":
+            return ["*"]
+        return [
+            origin.strip()
+            for origin in self.allowed_origins_raw.split(",")
+            if origin.strip()
+        ]
 
 
 settings = Settings()

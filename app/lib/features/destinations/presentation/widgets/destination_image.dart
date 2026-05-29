@@ -9,12 +9,14 @@ class DestinationImage extends StatefulWidget {
   final Destination destination;
   final double height;
   final BoxFit fit;
+  final String? category;
 
   const DestinationImage({
     super.key,
     required this.destination,
     required this.height,
     this.fit = BoxFit.cover,
+    this.category,
   });
 
   @override
@@ -109,11 +111,38 @@ class _DestinationImageState extends State<DestinationImage> {
 
   Widget _localFallback() {
     return Image.asset(
-      widget.destination.localFallbackAsset(),
+      _assetForCategory(widget.category ?? widget.destination.primaryCategory),
       fit: widget.fit,
       height: widget.height,
       width: double.infinity,
+      errorBuilder: (_, __, ___) => Image.asset(
+        'assets/images/cat_nature.jpg',
+        fit: widget.fit,
+        height: widget.height,
+        width: double.infinity,
+      ),
     );
+  }
+
+  String _assetForCategory(String? category) {
+    final c = category?.toLowerCase() ?? '';
+    if (c.contains('trek') || c.contains('adventure')) {
+      return 'assets/images/cat_trekking.jpg';
+    }
+    if (c.contains('cultur') || c.contains('histor')) {
+      return 'assets/images/cat_cultural.jpg';
+    }
+    if (c.contains('village')) return 'assets/images/cat_village.jpg';
+    if (c.contains('wild')) return 'assets/images/cat_wildlife.jpg';
+    if (c.contains('boat')) return 'assets/images/cat_boating.jpg';
+    if (c.contains('spirit') || c.contains('pilgrim')) {
+      return 'assets/images/cat_spiritual.jpg';
+    }
+    if (c.contains('relax')) return 'assets/images/cat_relaxation.jpg';
+    if (c.contains('nature') || c.contains('scenic')) {
+      return 'assets/images/cat_nature.jpg';
+    }
+    return 'assets/images/cat_nature.jpg';
   }
 
   Widget _shimmerPlaceholder() {

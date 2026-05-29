@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:rural_tourism_app/core/utils/backend_config.dart';
-import 'package:rural_tourism_app/main.dart' show userProfileService;
+import 'package:rural_tourism_app/core/utils/stable_user_id.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation_model.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/api_recommendation_item.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
@@ -137,11 +137,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   }
 
   Future<String> _currentUserId() async {
-    try {
-      return await userProfileService.stableUserId();
-    } catch (_) {
-      return 'anonymous';
-    }
+    return resolveStableUserId();
   }
 
   @override

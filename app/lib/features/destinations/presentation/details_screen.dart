@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:rural_tourism_app/core/utils/haversine.dart';
-import 'package:rural_tourism_app/main.dart' show userProfileService;
+import 'package:rural_tourism_app/core/utils/stable_user_id.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
 import 'package:rural_tourism_app/core/sync/interaction_sync_service.dart';
@@ -84,7 +84,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     double value = 1.0,
   }) async {
     try {
-      final userId = await userProfileService.stableUserId();
+      final userId = await resolveStableUserId();
 
       await InteractionSyncService.instance.recordInteraction(
         userId: userId,

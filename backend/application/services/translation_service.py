@@ -1,52 +1,82 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import urlencode
 
-from backend.core.config import settings
-
-
-SUPPORTED_PAIRS = {
-    ("en", "ne"): "Helsinki-NLP/opus-mt-en-ne",
-    ("ne", "en"): "Helsinki-NLP/opus-mt-ne-en",
-    ("en", "hi"): "Helsinki-NLP/opus-mt-en-hi",
-    ("hi", "en"): "Helsinki-NLP/opus-mt-hi-en",
-    ("en", "fr"): "Helsinki-NLP/opus-mt-en-fr",
-    ("fr", "en"): "Helsinki-NLP/opus-mt-fr-en",
-}
-
-_MODEL_CACHE: dict[str, object] = {}
+import httpx
 
 logger = logging.getLogger(__name__)
 
 
-class TranslationService:
-    def translate(self, text: str, src: str, tgt: str) -> str:
-        if src == tgt:
-            return text
+SUPPORTED_PAIRS = {
+    ("en", "ne"): ("en-US", "ne-NP"),
+    ("ne", "en"): ("ne-NP", "en-US"),
+    ("hi", "en"): ("hi", "en"),
+    ("en", "hi"): ("en", "hi"),
+}
 
-        model_id = SUPPORTED_PAIRS.get((src, tgt))
-        if not model_id:
+
+class TranslationService:
+    async def translate(self, text: str, src: str, tgt: str) -> tuple[str, float]:
+        if src == tgt:
+            return text, 1.0
+
+        langpair = SUPPORTED_PAIRS.get((src, tgt))
+        if not langpair:
             logger.warning("Unsupported translation pair: %s -> %s", src, tgt)
-            return text
+            return text, 0.0
+
+        query = urlencode(
+            {
+                "q": text,
+                "langpair": f"{langpair[0]}|{langpair[1]}",
+            },
+        )
+        url = f"https://api.mymemory.translated.net/get?{query}"
 
         try:
-            translator = _MODEL_CACHE.get(model_id)
-            if translator is None:
-                from transformers import pipeline
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+            payload = response.json()
+            response_data = payload.get("responseData")
+            if not isinstance(response_data, dict):
+                return text, 0.0
 
-                translator = pipeline(
-                    "translation",
-                    model=model_id,
-                    device=-1,
-                    cache_dir=settings.MODEL_DIR,
+            translated = str(response_data.get("translatedText") or "").strip()
+            match_score = _to_float(response_data.get("match"))
+
+            if not translated:
+                return text, 0.0
+
+            if match_score < 0.5:
+                logger.warning(
+                    "Low MyMemory translation match %.2f for pair %s -> %s",
+                    match_score,
+                    src,
+                    tgt,
                 )
-                _MODEL_CACHE[model_id] = translator
 
-            result = translator(text)
-            return result[0]["translation_text"]
-        except Exception:
-            logger.exception("Translation failed for pair: %s -> %s", src, tgt)
-            return text
+            return translated, match_score
+        except Exception as exc:
+            logger.warning(
+                "MyMemory translation failed for pair %s -> %s: %s",
+                src,
+                tgt,
+                exc,
+            )
+            return text, 0.0
 
     def is_supported(self, src: str, tgt: str) -> bool:
         return (src, tgt) in SUPPORTED_PAIRS
+
+
+def _to_float(value: object) -> float:
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return 0.0
+    return 0.0

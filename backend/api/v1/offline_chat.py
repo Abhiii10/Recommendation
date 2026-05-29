@@ -27,7 +27,7 @@ async def offline_chat(payload: ChatRequestDto) -> ChatResponseDto:
     translator = _get_translator()
 
     if payload.language != "en" and translator.is_supported(payload.language, "en"):
-        translated_question = translator.translate(
+        translated_question, _ = await translator.translate(
             payload.question,
             payload.language,
             "en",
@@ -37,7 +37,7 @@ async def offline_chat(payload: ChatRequestDto) -> ChatResponseDto:
     result = await _get_service().answer(payload)
 
     if payload.language != "en" and translator.is_supported("en", payload.language):
-        translated_answer = translator.translate(
+        translated_answer, _ = await translator.translate(
             result.answer,
             "en",
             payload.language,

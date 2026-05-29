@@ -7,6 +7,7 @@ import 'package:rural_tourism_app/features/destinations/domain/models/accommodat
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/unified_recommendation.dart';
 import 'package:rural_tourism_app/core/data/local_data_service.dart';
+import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/features/recommendations/data/services/recommendation_manager.dart';
 import 'package:rural_tourism_app/features/recommendations/data/services/recommender_service.dart';
 import 'package:rural_tourism_app/shared/theme/app_theme.dart';
@@ -105,7 +106,7 @@ class _RecommendTabState extends State<RecommendTab> {
   ];
 
   // ── state ─────────────────────────────────────────────────────────────────
-  late final RecommendationManager _manager;
+  late RecommendationManager _manager;
 
   String activity = 'trekking';
   String budget = 'medium';
@@ -118,8 +119,12 @@ class _RecommendTabState extends State<RecommendTab> {
   bool _busy = false;
   bool _checkingBackend = true;
   bool _backendAvailable = false;
+  bool _isOffline = false;
+  bool _checkingHealth = false;
   String? _error;
   UnifiedRecommendationResponse? _response;
+  List<Destination> _localDestinations = const [];
+  List<Accommodation> _localAccommodations = const [];
 
   // ── lifecycle ─────────────────────────────────────────────────────────────
   @override
@@ -127,10 +132,10 @@ class _RecommendTabState extends State<RecommendTab> {
     super.initState();
     _manager = RecommendationManager(
       offlineService: widget.service,
-      destinations: widget.destinations,
-      accommodations: widget.accommodations,
+      destinations: _recommendationDestinations,
+      accommodations: _recommendationAccommodations,
     );
-    unawaited(_refreshBackendStatus());
+    unawaited(_checkHealth());
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
@@ -145,6 +150,16 @@ class _RecommendTabState extends State<RecommendTab> {
         ? r.where((x) => widget.isSaved(x.destination)).toList()
         : r;
   }
+
+  List<Destination> get _recommendationDestinations =>
+      _isOffline && _localDestinations.isNotEmpty
+          ? _localDestinations
+          : widget.destinations;
+
+  List<Accommodation> get _recommendationAccommodations =>
+      _isOffline && _localAccommodations.isNotEmpty
+          ? _localAccommodations
+          : widget.accommodations;
 
   List<String> _badges(UnifiedRecommendationResult r, int idx) {
     final b = <String>[];
@@ -181,7 +196,10 @@ class _RecommendTabState extends State<RecommendTab> {
   }
 
   List<Accommodation> _staysFor(Destination destination) {
-    return accommodationsForDestination(destination, widget.accommodations);
+    return accommodationsForDestination(
+      destination,
+      _recommendationAccommodations,
+    );
   }
 
   IconData _modeIcon(RecommendationMode mode) {
@@ -197,12 +215,35 @@ class _RecommendTabState extends State<RecommendTab> {
 
   // ── actions ───────────────────────────────────────────────────────────────
   Future<void> _refreshBackendStatus() async {
-    setState(() => _checkingBackend = true);
-    final ok = await _manager.isBackendAvailable();
+    await _checkHealth();
+  }
+
+  Future<void> _checkHealth() async {
+    if (_checkingHealth) return;
+    setState(() {
+      _checkingHealth = true;
+      _checkingBackend = true;
+    });
+    final result = await BackendConfig.checkBackendHealth(attempts: 1);
+    final localDestinations = result.reachable
+        ? const <Destination>[]
+        : await LocalDataService.instance.loadLocalDestinations();
+    final localAccommodations = result.reachable
+        ? const <Accommodation>[]
+        : await LocalDataService.instance.loadLocalAccommodations();
     if (!mounted) return;
     setState(() {
-      _backendAvailable = ok;
+      _isOffline = !result.reachable;
+      _localDestinations = localDestinations;
+      _localAccommodations = localAccommodations;
+      _backendAvailable = result.reachable;
       _checkingBackend = false;
+      _checkingHealth = false;
+      _manager = RecommendationManager(
+        offlineService: widget.service,
+        destinations: _recommendationDestinations,
+        accommodations: _recommendationAccommodations,
+      );
     });
   }
 
@@ -212,15 +253,25 @@ class _RecommendTabState extends State<RecommendTab> {
       _error = null;
     });
     try {
-      final r = await _manager.recommend(
-        activity: activity,
-        budget: budget,
-        season: season,
-        vibe: vibe,
-        familyFriendly: familyFriendly,
-        adventureLevel: adventureLevel,
-        topK: 10,
-      );
+      final r = _isOffline
+          ? _manager.recommendOffline(
+              activity: activity,
+              budget: budget,
+              season: season,
+              vibe: vibe,
+              familyFriendly: familyFriendly,
+              adventureLevel: adventureLevel,
+              topK: 10,
+            )
+          : await _manager.recommend(
+              activity: activity,
+              budget: budget,
+              season: season,
+              vibe: vibe,
+              familyFriendly: familyFriendly,
+              adventureLevel: adventureLevel,
+              topK: 10,
+            );
       if (!mounted) return;
       setState(() {
         _response = r;
@@ -279,7 +330,7 @@ class _RecommendTabState extends State<RecommendTab> {
             ? 'Checking whether the AI backend is reachable.'
             : _backendAvailable
                 ? 'Online AI is ready. Offline semantic fallback is also available.'
-                : '${widget.destinations.length} Gandaki places and ${widget.accommodations.length} stays are ready offline.');
+                : '${_recommendationDestinations.length} Gandaki places and ${_recommendationAccommodations.length} stays are ready offline.');
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -650,7 +701,7 @@ class _RecommendTabState extends State<RecommendTab> {
                   destination: result.destination,
                   nearbyAccommodations: accommodationsForDestination(
                     result.destination,
-                    widget.accommodations,
+                    _recommendationAccommodations,
                   ),
                   isSaved: saved,
                   onToggleSaved: () => _toggleAndRefresh(result.destination),
@@ -821,40 +872,65 @@ class _RecommendTabState extends State<RecommendTab> {
       ),
       body: DecoratedBox(
         decoration: AppTheme.scaffoldDecorationFor(context),
-        child: RefreshIndicator(
-          onRefresh: _refreshResults,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-            children: [
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 860),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildModeBanner(),
-                        const SizedBox(height: 16),
-                        _buildFilterCard(),
-                        const SizedBox(height: 20),
-                        if (_response != null || _busy) ...[
-                          Row(children: [
-                            Text('Ranked destinations',
-                                style: theme.textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w800)),
-                            const Spacer(),
-                            Text('${_visible.length} results',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant)),
-                          ]),
-                          const SizedBox(height: 14),
-                        ],
-                        _buildResultsSection(),
-                      ]),
+        child: Column(
+          children: [
+            if (_isOffline)
+              MaterialBanner(
+                content:
+                    const Text('Offline mode — showing local recommendations'),
+                leading: const Icon(
+                  Icons.cloud_off_rounded,
+                  color: Colors.orange,
+                ),
+                backgroundColor: Colors.orange.shade900.withValues(alpha: 0.15),
+                actions: [
+                  TextButton(
+                    onPressed: _checkHealth,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _refreshResults,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                  children: [
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 860),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildModeBanner(),
+                              const SizedBox(height: 16),
+                              _buildFilterCard(),
+                              const SizedBox(height: 20),
+                              if (_response != null || _busy) ...[
+                                Row(children: [
+                                  Text('Ranked destinations',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.w800)),
+                                  const Spacer(),
+                                  Text('${_visible.length} results',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                              color: theme.colorScheme
+                                                  .onSurfaceVariant)),
+                                ]),
+                                const SizedBox(height: 14),
+                              ],
+                              _buildResultsSection(),
+                            ]),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

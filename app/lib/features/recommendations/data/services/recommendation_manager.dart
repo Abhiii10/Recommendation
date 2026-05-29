@@ -128,6 +128,26 @@ class RecommendationManager {
     }
   }
 
+  UnifiedRecommendationResponse recommendOffline({
+    required String activity,
+    required String budget,
+    required String season,
+    required String vibe,
+    required bool familyFriendly,
+    required int adventureLevel,
+    int topK = 10,
+  }) {
+    return _buildOfflineResponse(
+      activity: activity,
+      budget: budget,
+      season: season,
+      vibe: vibe,
+      familyFriendly: familyFriendly,
+      adventureLevel: adventureLevel,
+      topK: topK,
+    );
+  }
+
   Future<void> logSave(
     UnifiedRecommendationResult result, {
     String? userId,

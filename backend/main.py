@@ -14,6 +14,7 @@ from backend.api.v1.evaluate import router as evaluate_router
 from backend.api.v1.interactions import router as interactions_router
 from backend.api.v1.recommend import router as recommend_router
 from backend.api.v1.similar import router as similar_router
+from backend.api.v1.translate import router as translate_router
 from backend.core.config import settings
 
 
@@ -75,6 +76,11 @@ class ApplicationFactory:
         )
 
         application.include_router(
+            translate_router,
+            tags=["Translator"],
+        )
+
+        application.include_router(
             destinations_router,
             prefix="/destinations",
             tags=["Destinations"],
@@ -104,7 +110,7 @@ class ApplicationFactory:
 
         @application.get("/health", tags=["Health"])
         def health() -> dict[str, str]:
-            return {"status": "healthy"}
+            return {"status": "ok"}
 
         return application
 

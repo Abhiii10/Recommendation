@@ -552,7 +552,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ? 'Online LLM responses are available.'
         : _llmOnline == null
             ? 'Checking whether the AI server is reachable.'
-            : 'Offline fallback answers are active.';
+            : 'Backend is offline. Start FastAPI and check /health; offline fallback answers are active.';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),

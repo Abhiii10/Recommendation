@@ -115,6 +115,7 @@ class TranslationResult {
   final bool? isOfflineOverride;
   final List<String> alternatives;
   final String? romanized;
+  final String? warningMessage;
 
   const TranslationResult({
     required this.translatedText,
@@ -127,6 +128,7 @@ class TranslationResult {
     this.isOfflineOverride,
     this.alternatives = const [],
     this.romanized,
+    this.warningMessage,
   });
 
   bool get isSuccess =>

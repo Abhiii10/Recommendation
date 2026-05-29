@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../core/utils/backend_config.dart';
 import '../models/accommodation_model.dart';
 import '../models/api_recommendation_item.dart';
 import 'auth_session_service.dart';
@@ -223,7 +224,10 @@ class RecommendationApiService {
   }
 
   Future<bool> isHealthy() async {
-    final data = await _get('/health', requestTimeout: healthTimeout);
-    return data['status'] == 'healthy';
+    final result = await BackendConfig.checkBackendHealth(
+      baseUrl: baseUrl,
+      timeout: healthTimeout,
+    );
+    return result.reachable;
   }
 }

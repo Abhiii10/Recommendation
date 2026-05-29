@@ -10,3 +10,4 @@ httpx==0.28.1
 faiss-cpu
 sentencepiece
 psycopg[binary]==3.2.3
+anthropic>=0.39.0

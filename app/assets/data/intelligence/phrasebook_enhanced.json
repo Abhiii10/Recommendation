@@ -1,29 +1,352 @@
 {
+  "version": "3.0",
   "entries": [
-    {"id":"ph_001","category":"greetings","english":"Hello","nepali":"नमस्ते","romanized":["namaste"],"context":"Universal greeting","formality":"neutral"},
-    {"id":"ph_002","category":"greetings","english":"Thank you","nepali":"धन्यवाद","romanized":["dhanyabad"],"context":"Polite expression","formality":"neutral"},
-    {"id":"ph_003","category":"homestay","english":"I would like to stay here tonight","nepali":"म आज रात यहाँ बस्न चाहन्छु","romanized":["ma aaj raat yaha basna chahanchu"],"context":"Asking for accommodation","formality":"polite"},
-    {"id":"ph_004","category":"homestay","english":"Do you have a room available?","nepali":"कोठा खाली छ?","romanized":["kotha khali cha"],"context":"Room availability","formality":"polite"},
-    {"id":"ph_005","category":"homestay","english":"Is dinner included?","nepali":"रातिको खाना समावेश छ?","romanized":["raat ko khana samabesh cha"],"context":"Meal inclusion","formality":"polite"},
-    {"id":"ph_006","category":"food","english":"I am vegetarian","nepali":"म शाकाहारी हुँ","romanized":["ma shakahari hu"],"context":"Dietary need","formality":"neutral"},
-    {"id":"ph_007","category":"food","english":"I need drinking water","nepali":"मलाई पिउने पानी चाहिन्छ","romanized":["malai piune pani chahincha"],"context":"Water request","formality":"polite"},
-    {"id":"ph_008","category":"food","english":"How spicy is this?","nepali":"यो कति पिरो छ?","romanized":["yo kati piro cha"],"context":"Food spice","formality":"neutral"},
-    {"id":"ph_009","category":"transport","english":"Where is the bus stop?","nepali":"बस स्टप कहाँ छ?","romanized":["bus stop kaha cha"],"context":"Transport","formality":"neutral"},
-    {"id":"ph_010","category":"transport","english":"When does the jeep leave?","nepali":"जीप कहिले छुट्छ?","romanized":["jeep kahile chhutchha"],"context":"Transport schedule","formality":"neutral"},
-    {"id":"ph_011","category":"directions","english":"Where is the trail?","nepali":"बाटो कहाँ छ?","romanized":["bato kaha cha"],"context":"Directions","formality":"neutral"},
-    {"id":"ph_012","category":"directions","english":"Is it far from here?","nepali":"यहाँबाट टाढा छ?","romanized":["yahabata tadha cha"],"context":"Distance","formality":"neutral"},
-    {"id":"ph_013","category":"price","english":"How much does it cost?","nepali":"कति पर्छ?","romanized":["kati parchha"],"context":"Price","formality":"neutral"},
-    {"id":"ph_014","category":"price","english":"Can you make it cheaper?","nepali":"अलि सस्तो गर्न सक्नुहुन्छ?","romanized":["ali sasto garna saknuhunchha"],"context":"Bargaining","formality":"polite"},
-    {"id":"ph_015","category":"emergency","english":"I need help urgently","nepali":"मलाई तुरुन्त मद्दत चाहियो","romanized":["malai turunta madat chahiyo"],"context":"Emergency","formality":"urgent","urgent":true},
-    {"id":"ph_016","category":"emergency","english":"Call the police","nepali":"प्रहरीलाई बोलाउनुहोस्","romanized":["prahari lai bolaunuhos"],"context":"Emergency","formality":"urgent","urgent":true},
-    {"id":"ph_017","category":"emergency","english":"I need an ambulance","nepali":"मलाई एम्बुलेन्स चाहियो","romanized":["malai ambulance chahiyo"],"context":"Emergency","formality":"urgent","urgent":true},
-    {"id":"ph_018","category":"health","english":"I feel sick","nepali":"मलाई बिरामी महसुस भयो","romanized":["malai birami mahasus bhayo"],"context":"Health","formality":"neutral"},
-    {"id":"ph_019","category":"trekking","english":"Is this trail safe?","nepali":"यो बाटो सुरक्षित छ?","romanized":["yo bato surakshit cha"],"context":"Trekking safety","formality":"neutral"},
-    {"id":"ph_020","category":"trekking","english":"Do I need a guide?","nepali":"मलाई गाइड चाहिन्छ?","romanized":["malai guide chahincha"],"context":"Trekking","formality":"neutral"},
-    {"id":"ph_021","category":"culture","english":"May I take a photo?","nepali":"के म फोटो खिच्न सक्छु?","romanized":["ke ma photo khichna sakchu"],"context":"Cultural etiquette","formality":"polite"},
-    {"id":"ph_022","category":"culture","english":"Where should I remove my shoes?","nepali":"जुत्ता कहाँ खोल्ने?","romanized":["jutta kaha kholne"],"context":"Temple etiquette","formality":"polite"},
-    {"id":"ph_023","category":"weather","english":"Will it rain today?","nepali":"आज पानी पर्छ?","romanized":["aaj pani parchha"],"context":"Weather","formality":"neutral"},
-    {"id":"ph_024","category":"shopping","english":"Do you accept cash only?","nepali":"नगद मात्र चल्छ?","romanized":["nagad matra chalchha"],"context":"Payment","formality":"neutral"},
-    {"id":"ph_025","category":"time","english":"What time should I leave?","nepali":"म कति बजे निस्किनुपर्छ?","romanized":["ma kati baje niskinu parchha"],"context":"Schedule","formality":"neutral"}
+    {
+      "id": "fix_need_apple",
+      "english": "I need apple",
+      "nepali": "मलाई स्याउ चाहिन्छ।",
+      "romanNepali": "Malai syau chaincha",
+      "romanized": ["malai syau chaincha", "malai syau chahincha", "syau chahincha", "apple chahincha"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_need_room",
+      "english": "I need a room",
+      "nepali": "मलाई कोठा चाहिन्छ।",
+      "romanNepali": "Malai kotha chaincha",
+      "romanized": ["malai kotha chaincha", "malai kotha chahincha", "malai kotha chahiye", "kotha chahincha"],
+      "category": "accommodation",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_cost",
+      "english": "How much does it cost?",
+      "nepali": "कति पर्छ?",
+      "romanNepali": "Kati parcha?",
+      "romanized": ["kati parcha", "kati parchha", "kati ho", "kati paisa"],
+      "category": "shopping",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_toilet",
+      "english": "Where is the toilet?",
+      "nepali": "शौचालय कहाँ छ?",
+      "romanNepali": "Shauchalaya kaha cha?",
+      "romanized": ["shauchalaya kaha cha", "toilet kaha cha", "bathroom kata cha", "toilet kata cha"],
+      "category": "directions",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_hungry",
+      "english": "I am hungry",
+      "nepali": "मलाई भोक लाग्यो।",
+      "romanNepali": "Malai bhok lagyo",
+      "romanized": ["malai bhok lagyo", "ma bhokai chu", "malai bhok lagcha"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_help_me",
+      "english": "Help me",
+      "nepali": "मलाई मद्दत गर्नुहोस्।",
+      "romanNepali": "Malai maddat garnuhos",
+      "romanized": ["malai maddat garnuhos", "malai madat garnus", "help me", "maddat garnus"],
+      "category": "emergency",
+      "context": "tourism",
+      "urgent": true
+    },
+    {
+      "id": "fix_call_doctor",
+      "english": "Call a doctor",
+      "nepali": "डाक्टरलाई बोलाउनुहोस्।",
+      "romanNepali": "Doctorlai bolaunuhos",
+      "romanized": ["doctorlai bolaunuhos", "doctor bolaunus", "doctor call garnus"],
+      "category": "emergency",
+      "context": "tourism",
+      "urgent": true
+    },
+    {
+      "id": "fix_thank_you",
+      "english": "Thank you",
+      "nepali": "धन्यवाद।",
+      "romanNepali": "Dhanyabad",
+      "romanized": ["dhanyabad", "dhanyavaad", "dhanyavad", "thanks"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_how_are_you",
+      "english": "How are you?",
+      "nepali": "तपाईंलाई कस्तो छ?",
+      "romanNepali": "Tapailai kasto cha?",
+      "romanized": ["tapailai kasto cha", "tapai kasto cha", "sanchai hunuhuncha"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "fix_good_morning",
+      "english": "Good morning",
+      "nepali": "शुभ प्रभात।",
+      "romanNepali": "Shubha prabhat",
+      "romanized": ["shubha prabhat", "subha prabhat", "good morning"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_hello",
+      "english": "Hello",
+      "nepali": "नमस्ते।",
+      "romanNepali": "Namaste",
+      "romanized": ["namaste", "namaskar"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_good_evening",
+      "english": "Good evening",
+      "nepali": "शुभ सन्ध्या।",
+      "romanNepali": "Shubha sandhya",
+      "romanized": ["shubha sandhya", "subha sandhya"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_sorry",
+      "english": "Sorry",
+      "nepali": "माफ गर्नुहोस्।",
+      "romanNepali": "Maaf garnuhos",
+      "romanized": ["maaf garnuhos", "maaf garnus", "sorry"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_speak_slowly",
+      "english": "Please speak slowly",
+      "nepali": "कृपया बिस्तारै बोल्नुहोस्।",
+      "romanNepali": "Kripaya bistaarai bolnuhos",
+      "romanized": ["bistaarai bolnuhos", "bistari bolnus", "slowly bolnus"],
+      "category": "greeting",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_water",
+      "english": "I need drinking water",
+      "nepali": "मलाई पिउने पानी चाहिन्छ।",
+      "romanNepali": "Malai piune paani chahincha",
+      "romanized": ["malai piune paani chahincha", "malai paani chahiyo", "paani chahiyo"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_vegetarian",
+      "english": "I am vegetarian",
+      "nepali": "म शाकाहारी हुँ।",
+      "romanNepali": "Ma shakahari hu",
+      "romanized": ["ma shakahari hu", "ma sakahari ho", "vegetarian khana"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_not_spicy",
+      "english": "Not too spicy please",
+      "nepali": "कृपया धेरै पिरो नगर्नुहोस्।",
+      "romanNepali": "Kripaya dherai piro nagarnuhos",
+      "romanized": ["piro nagarnuhos", "kam piro", "not spicy"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_bill",
+      "english": "The bill please",
+      "nepali": "बिल दिनुहोस्।",
+      "romanNepali": "Bill dinuhos",
+      "romanized": ["bill dinus", "bill dinuhos", "bill please"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_tea",
+      "english": "I would like tea",
+      "nepali": "मलाई चिया चाहिन्छ।",
+      "romanNepali": "Malai chiya chahincha",
+      "romanized": ["malai chiya chahincha", "chiya dinus", "ek cup chiya"],
+      "category": "food",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_room_available",
+      "english": "Is a room available?",
+      "nepali": "कोठा खाली छ?",
+      "romanNepali": "Kotha khali cha?",
+      "romanized": ["kotha khali cha", "room cha", "kotha cha"],
+      "category": "accommodation",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_room_price",
+      "english": "How much is the room per night?",
+      "nepali": "एक रातको कोठा कति पर्छ?",
+      "romanNepali": "Ek raatko kotha kati parcha?",
+      "romanized": ["room kati ho", "kotha kati parcha", "ek raat ko kati ho"],
+      "category": "accommodation",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_hot_water",
+      "english": "Hot water please",
+      "nepali": "तातो पानी दिनुहोस्।",
+      "romanNepali": "Taato paani dinuhos",
+      "romanized": ["taato paani dinus", "hot water chahiyo", "garam pani dinus"],
+      "category": "accommodation",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_wifi",
+      "english": "Is there Wi-Fi?",
+      "nepali": "वाइफाइ छ?",
+      "romanNepali": "Wi-Fi cha?",
+      "romanized": ["wifi cha", "internet cha", "wifi available cha"],
+      "category": "accommodation",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_bus_stop",
+      "english": "Where is the bus stop?",
+      "nepali": "बस स्टप कहाँ छ?",
+      "romanNepali": "Bus stop kaha cha?",
+      "romanized": ["bus stop kaha cha", "bus stop kata cha", "bus station kaha cha"],
+      "category": "transport",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_jeep_leave",
+      "english": "When does the jeep leave?",
+      "nepali": "जिप कहिले छुट्छ?",
+      "romanNepali": "Jeep kahile chhutchha?",
+      "romanized": ["jeep kahile chhutchha", "jeep kahile chutcha"],
+      "category": "transport",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_go_pokhara",
+      "english": "I want to go to Pokhara",
+      "nepali": "म पोखरा जान चाहन्छु।",
+      "romanNepali": "Ma Pokhara jana chahanchu",
+      "romanized": ["pokhara jana chahanchu", "pokhara jaanu cha"],
+      "category": "transport",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_trail",
+      "english": "Where is the trail?",
+      "nepali": "बाटो कहाँ छ?",
+      "romanNepali": "Bato kaha cha?",
+      "romanized": ["bato kaha cha", "trail kaha cha", "trek kata cha"],
+      "category": "directions",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_turn_left",
+      "english": "Turn left",
+      "nepali": "बायाँ मोड्नुहोस्।",
+      "romanNepali": "Baya modnuhos",
+      "romanized": ["baya modnuhos", "left janu", "baya modnus"],
+      "category": "directions",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_turn_right",
+      "english": "Turn right",
+      "nepali": "दायाँ मोड्नुहोस्।",
+      "romanNepali": "Daya modnuhos",
+      "romanized": ["daya modnuhos", "right janu", "daya modnus"],
+      "category": "directions",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_go_straight",
+      "english": "Go straight",
+      "nepali": "सिधा जानुहोस्।",
+      "romanNepali": "Sidha januhos",
+      "romanized": ["sidha januhos", "sidha janus", "straight janus"],
+      "category": "directions",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_need_guide",
+      "english": "I need a guide",
+      "nepali": "मलाई गाइड चाहिन्छ।",
+      "romanNepali": "Malai guide chahincha",
+      "romanized": ["malai guide chahincha", "guide chahiyo", "local guide chahiyo"],
+      "category": "trekking",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_path_safe",
+      "english": "Is the path safe?",
+      "nepali": "बाटो सुरक्षित छ?",
+      "romanNepali": "Bato surakshit cha?",
+      "romanized": ["bato surakshit cha", "trail safe cha", "bato theek cha"],
+      "category": "trekking",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_tired",
+      "english": "I am tired",
+      "nepali": "म थाकेँ।",
+      "romanNepali": "Ma thake",
+      "romanized": ["ma thake", "ma thakai chu", "malai thakayo"],
+      "category": "trekking",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_hospital",
+      "english": "Where is the hospital?",
+      "nepali": "अस्पताल कहाँ छ?",
+      "romanNepali": "Aspatal kaha cha?",
+      "romanized": ["aspatal kaha cha", "hospital kaha cha", "clinic kata cha"],
+      "category": "emergency",
+      "context": "tourism",
+      "urgent": true
+    },
+    {
+      "id": "ph_medicine",
+      "english": "I need medicine",
+      "nepali": "मलाई औषधि चाहिन्छ।",
+      "romanNepali": "Malai ausadhi chahincha",
+      "romanized": ["malai ausadhi chahincha", "medicine chahiyo", "ausadhi chahiyo"],
+      "category": "emergency",
+      "context": "tourism",
+      "urgent": true
+    },
+    {
+      "id": "ph_ambulance",
+      "english": "Call an ambulance",
+      "nepali": "एम्बुलेन्स बोलाउनुहोस्।",
+      "romanNepali": "Ambulance bolaunuhos",
+      "romanized": ["ambulance bolaunuhos", "ambulance call garnus", "ambulance chahiyo"],
+      "category": "emergency",
+      "context": "tourism",
+      "urgent": true
+    },
+    {
+      "id": "ph_photo",
+      "english": "May I take a photo?",
+      "nepali": "के म फोटो खिच्न सक्छु?",
+      "romanNepali": "Ke ma photo khichna sakchu?",
+      "romanized": ["photo khichna sakchu", "photo lina milcha", "photo khichna milcha"],
+      "category": "culture",
+      "context": "tourism"
+    },
+    {
+      "id": "ph_remove_shoes",
+      "english": "Where should I remove my shoes?",
+      "nepali": "जुत्ता कहाँ फुकाल्ने?",
+      "romanNepali": "Jutta kaha fukalne?",
+      "romanized": ["jutta kaha fukalne", "jutta kaha kholne", "shoes kaha remove garne"],
+      "category": "culture",
+      "context": "tourism"
+    }
   ]
 }

@@ -54,6 +54,10 @@ class Settings(BaseSettings):
     gemini_max_output_tokens:  int = 600
     gemini_temperature:        float = 0.4
 
+    # Premium translator fallback. Disabled when ANTHROPIC_API_KEY is blank.
+    anthropic_api_key: str = ""
+    anthropic_model:   str = "claude-3-5-haiku-latest"
+
     root_dir: Path = ROOT_DIR
     data_dir: Path = ROOT_DIR / "data"
 

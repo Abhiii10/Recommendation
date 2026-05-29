@@ -49,10 +49,12 @@ class LlmChatApiService {
           .timeout(timeout);
 
       debugPrint('🔵 Chat response status → ${response.statusCode}');
-      debugPrint('🔵 Chat response body → ${response.body.substring(0, response.body.length.clamp(0, 300))}');
+      debugPrint(
+          '🔵 Chat response body → ${response.body.substring(0, response.body.length.clamp(0, 300))}');
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('LLM chat failed: ${response.statusCode} ${response.body}');
+        throw Exception(
+            'LLM chat failed: ${response.statusCode} ${response.body}');
       }
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -65,9 +67,9 @@ class LlmChatApiService {
       _history.add({'role': 'user', 'text': question});
       _history.add({'role': 'model', 'text': answer});
 
-      debugPrint('✅ Chat success → ${answer.substring(0, answer.length.clamp(0, 100))}');
+      debugPrint(
+          '✅ Chat success → ${answer.substring(0, answer.length.clamp(0, 100))}');
       return answer;
-
     } catch (e, stack) {
       debugPrint('🔴 Chat POST failed → $e');
       debugPrint('🔴 Stack → $stack');
@@ -78,15 +80,12 @@ class LlmChatApiService {
   void clearHistory() => _history.clear();
 
   Future<bool> isHealthy() async {
-    try {
-      final url = _uri('/health');
-      debugPrint('🔵 Chat health check → $url');
-      final response = await http.get(url).timeout(healthTimeout);
-      debugPrint('🔵 Chat health response → ${response.statusCode} ${response.body}');
-      return response.statusCode >= 200 && response.statusCode < 300;
-    } catch (e) {
-      debugPrint('🔴 Chat health check failed → $e');
-      return false;
+    final result = await BackendConfig.checkBackendHealth(
+      timeout: healthTimeout,
+    );
+    if (!result.reachable) {
+      debugPrint('Chat backend offline -> ${result.userMessage}');
     }
+    return result.reachable;
   }
 }

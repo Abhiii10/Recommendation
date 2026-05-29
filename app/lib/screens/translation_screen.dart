@@ -34,6 +34,7 @@ class _TranslationScreenState extends State<TranslationScreen>
   bool _speechReady = false;
   bool _listening = false;
   bool _nepaliTtsAvailable = true;
+  bool _showNepaliHelper = false;
 
   String? _error;
 
@@ -156,6 +157,10 @@ class _TranslationScreenState extends State<TranslationScreen>
     if (result.isSuccess) {
       await _speakResult(result);
     }
+
+    if (result.warningMessage != null) {
+      _showSnack(result.warningMessage!);
+    }
   }
 
   Future<void> _sendConversationMessage() async {
@@ -188,6 +193,10 @@ class _TranslationScreenState extends State<TranslationScreen>
 
     _refreshHistory();
     _scrollConversationToBottom();
+
+    if (result.warningMessage != null) {
+      _showSnack(result.warningMessage!);
+    }
 
     if (result.isSuccess) {
       final lang = result.strategy == TranslationStrategy.phrasebookMatch ||
@@ -297,6 +306,19 @@ class _TranslationScreenState extends State<TranslationScreen>
   Future<void> _share(String text) async {
     if (text.trim().isEmpty) return;
     await SharePlus.instance.share(ShareParams(text: text));
+  }
+
+  void _insertNepaliCharacter(String value) {
+    final selection = _inputController.selection;
+    final start =
+        selection.start < 0 ? _inputController.text.length : selection.start;
+    final end =
+        selection.end < 0 ? _inputController.text.length : selection.end;
+    final text = _inputController.text.replaceRange(start, end, value);
+    _inputController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: start + value.length),
+    );
   }
 
   void _loadCategory(String category) {
@@ -504,6 +526,38 @@ class _TranslationScreenState extends State<TranslationScreen>
               icon: Icon(_listening ? Icons.mic : Icons.mic_none),
             ),
           ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () {
+              setState(() => _showNepaliHelper = !_showNepaliHelper);
+            },
+            icon: const Icon(Icons.keyboard_alt_outlined, size: 18),
+            label: const Text('नेपाली'),
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: !_showNepaliHelper
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        const ['्', 'ं', 'ः', 'ञ', 'ङ', 'ऋ', 'ॠ', 'ऌ', 'ॡ', 'ँ']
+                            .map(
+                              (value) => ActionChip(
+                                label: Text(value),
+                                onPressed: () => _insertNepaliCharacter(value),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ),
         ),
         const SizedBox(height: 12),
         FilledButton.icon(

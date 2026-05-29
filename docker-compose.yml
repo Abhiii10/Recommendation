@@ -22,9 +22,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: nepal-tourism-backend
-    restart: unless-stopped
+    restart: on-failure
     env_file:
-      - backend/.env
+      - ./backend/.env
     depends_on:
       postgres:
         condition: service_healthy

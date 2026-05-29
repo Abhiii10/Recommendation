@@ -1,17 +1,6 @@
-import 'dart:convert';
-import 'dart:math' as math;
-
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../features/intelligence/models/translation_request.dart' as ai;
-import '../features/intelligence/models/translation_response.dart' as ai;
-import '../features/intelligence/services/translation_service_advanced.dart';
-import '../translation/roman_nepali_normalizer.dart';
-import '../translation/translation_intent_model.dart';
+import '../features/translator/services/translation_service.dart' as tourism;
 import '../translation/translation_models.dart';
 
 export '../translation/translation_models.dart';
@@ -20,26 +9,20 @@ class TranslationService {
   TranslationService._();
   static final TranslationService instance = TranslationService._();
 
-  static const String _googleTranslateUrl =
-      'https://translate.googleapis.com/translate_a/single';
-  static const String _myMemoryBaseUrl = 'https://api.mymemory.translated.net';
-  static const Duration _onlineTimeout = Duration(seconds: 10);
-  static const double _phraseThreshold = 0.46; // was 0.58 — too strict
-  static const String _historyKey = 'translation_history_v3';
+  static const String _historyKey = 'translation_history_v4';
   static const int _maxHistoryEntries = 100;
+
+  final tourism.TranslationService _translator = tourism.TranslationService();
+  final List<TranslationHistoryEntry> _history = [];
 
   bool _isInitialized = false;
   List<PhrasebookEntry> _phrasebook = [];
-  final List<TranslationHistoryEntry> _history = [];
-  final TranslationServiceAdvanced _advanced = TranslationServiceAdvanced();
 
   Future<void> initialize() async {
     if (_isInitialized) return;
-    await Future.wait([
-      _loadPhrasebook(),
-      TranslationIntentModel.instance.initialize(),
-      _loadHistory(),
-    ]);
+    await _translator.initialize();
+    _phrasebook = _translator.phrasebookEntries.map(_toLegacyEntry).toList();
+    await _loadHistory();
     _isInitialized = true;
   }
 
@@ -55,411 +38,44 @@ class TranslationService {
       return const TranslationResult(
         translatedText: '',
         strategy: TranslationStrategy.noResult,
-        confidence: 0.0,
-        errorMessage: 'Empty input',
+        confidence: 0,
+        errorMessage: 'Enter text to translate.',
       );
     }
 
-    final effectiveMode = _resolveMode(trimmed, mode);
+    if (!allowOnline) {
+      final offline = await _translator.translateText(
+        trimmed,
+        _toTourismDirection(mode),
+      );
+      if (offline.source != tourism.TranslationSource.phrasebook) {
+        return const TranslationResult(
+          translatedText: '',
+          strategy: TranslationStrategy.noResult,
+          confidence: 0,
+          errorMessage:
+              'Translation unavailable offline. Please check your connection.',
+        );
+      }
+      final legacyOffline = _toLegacyResult(offline);
+      await _addToHistory(trimmed, legacyOffline, mode);
+      return legacyOffline;
+    }
 
-    final advancedResult = await _tryAdvancedTranslate(
+    final result = await _translator.translateText(
       trimmed,
-      effectiveMode,
-      allowOnline,
+      _toTourismDirection(mode),
     );
-    if (advancedResult != null &&
-        advancedResult.isSuccess &&
-        advancedResult.confidence >= 0.55) {
-      await _addToHistory(trimmed, advancedResult, effectiveMode);
-      return advancedResult;
-    }
-
-    // 1. Phrasebook exact / fuzzy
-    final phraseResult = _tryPhrasebook(trimmed, effectiveMode);
-    if (phraseResult != null && phraseResult.confidence >= _phraseThreshold) {
-      await _addToHistory(trimmed, phraseResult, effectiveMode);
-      return phraseResult;
-    }
-
-    // 2. TF-IDF intent model
-    final intentResult = _tryIntentModel(trimmed, effectiveMode);
-    if (intentResult != null) {
-      await _addToHistory(trimmed, intentResult, effectiveMode);
-      return intentResult;
-    }
-
-    var isOnline = true;
-    try {
-      final results = await Connectivity().checkConnectivity();
-      isOnline = results.any((result) => result != ConnectivityResult.none);
-    } catch (_) {
-      isOnline = true;
-    }
-
-    // 3. Online: Google Translate first (better Nepali quality)
-    if (allowOnline && isOnline) {
-      final googleResult = await _tryGoogleTranslate(trimmed, effectiveMode);
-      if (googleResult != null) {
-        await _addToHistory(trimmed, googleResult, effectiveMode);
-        return googleResult;
-      }
-
-      // 4. Online: MyMemory fallback
-      final myMemoryResult = await _tryMyMemory(trimmed, effectiveMode);
-      if (myMemoryResult != null) {
-        await _addToHistory(trimmed, myMemoryResult, effectiveMode);
-        return myMemoryResult;
-      }
-    }
-
-    // 5. Groq AI translation (last resort)
-    if (allowOnline && isOnline) {
-      final groqResult = await _tryGroqTranslate(trimmed, effectiveMode);
-      if (groqResult != null) {
-        await _addToHistory(trimmed, groqResult, effectiveMode);
-        return groqResult;
-      }
-    }
-
-    // 6. Return best offline match even if below threshold (better than nothing)
-    if (phraseResult != null && phraseResult.confidence > 0.20) {
-      await _addToHistory(trimmed, phraseResult, effectiveMode);
-      return phraseResult;
-    }
-
-    return TranslationResult(
-      translatedText: '',
-      strategy: TranslationStrategy.noResult,
-      confidence: 0.0,
-      errorMessage: allowOnline
-          ? 'No translation found. Check your internet connection or try a simpler phrase.'
-          : 'No offline match. Try phrases about food, water, hotels, transport, directions, or emergencies.',
-    );
+    final legacy = _toLegacyResult(result);
+    await _addToHistory(trimmed, legacy, mode);
+    return legacy;
   }
 
-  Future<TranslationResult?> _tryAdvancedTranslate(
-    String input,
-    TranslationMode mode,
-    bool allowOnline,
-  ) async {
-    try {
-      await _advanced.init();
-      final result = await _advanced.translate(
-        ai.TranslationRequest(
-          text: input,
-          direction: _toAdvancedDirection(mode),
-          allowOnline: allowOnline,
-          allowNeural: allowOnline,
-        ),
-      );
-      if (!result.isSuccess) return null;
-      return TranslationResult(
-        translatedText: result.translatedText,
-        strategy: _toLegacyStrategy(result.method),
-        confidence: result.confidence,
-        intent: result.matchedId,
-        methodLabelOverride: result.methodLabel,
-        isOfflineOverride: result.isOffline,
-        alternatives: result.alternatives,
-        romanized: result.romanized,
-      );
-    } catch (_) {
-      return null;
-    }
+  List<PhrasebookEntry> entriesByCategory(String category) {
+    return _phrasebook.where((entry) => entry.category == category).toList();
   }
-
-  ai.IntelligenceTranslationDirection _toAdvancedDirection(
-    TranslationMode mode,
-  ) {
-    switch (mode) {
-      case TranslationMode.englishToNepali:
-        return ai.IntelligenceTranslationDirection.englishToNepali;
-      case TranslationMode.nepaliToEnglish:
-        return ai.IntelligenceTranslationDirection.nepaliToEnglish;
-      case TranslationMode.autoDetect:
-        return ai.IntelligenceTranslationDirection.auto;
-    }
-  }
-
-  TranslationStrategy _toLegacyStrategy(ai.TranslationMethod method) {
-    switch (method) {
-      case ai.TranslationMethod.exactPhrasebook:
-      case ai.TranslationMethod.fuzzyPhrasebook:
-        return TranslationStrategy.phrasebookMatch;
-      case ai.TranslationMethod.template:
-      case ai.TranslationMethod.glossary:
-      case ai.TranslationMethod.neural:
-        return TranslationStrategy.intentModel;
-      case ai.TranslationMethod.online:
-        return TranslationStrategy.onlineFallback;
-      case ai.TranslationMethod.noResult:
-        return TranslationStrategy.noResult;
-    }
-  }
-
-  // ── Phrasebook ──────────────────────────────────────────────────────────
-
-  List<PhrasebookEntry> entriesByCategory(String category) =>
-      _phrasebook.where((e) => e.category == category).toList();
 
   List<PhrasebookEntry> get allEntries => List.unmodifiable(_phrasebook);
-
-  TranslationResult? _tryPhrasebook(String input, TranslationMode mode) {
-    final scored = _phrasebook
-        .map((e) => _Score(entry: e, score: _scoreEntry(input, e, mode)))
-        .toList()
-      ..sort((a, b) => b.score.compareTo(a.score));
-
-    if (scored.isEmpty || scored.first.score <= 0.0) return null;
-    final best = scored.first;
-    final text = mode == TranslationMode.nepaliToEnglish
-        ? best.entry.english
-        : best.entry.nepali;
-    return TranslationResult(
-      translatedText: text,
-      strategy: TranslationStrategy.phrasebookMatch,
-      confidence: best.score.clamp(0.0, 1.0),
-      matchedEntry: best.entry,
-      intent: best.entry.id,
-    );
-  }
-
-  double _scoreEntry(
-      String input, PhrasebookEntry entry, TranslationMode mode) {
-    final inputLower = input.toLowerCase().trim();
-    final inputNorm = RomanNepaliNormalizer.normalize(input);
-    final inputTokens = RomanNepaliNormalizer.tokenize(inputNorm).toSet();
-    final inputIsDev = RomanNepaliNormalizer.isDevanagari(input);
-
-    if (mode == TranslationMode.englishToNepali) {
-      final engNorm = RomanNepaliNormalizer.normalize(entry.english);
-      if (entry.english.toLowerCase().trim() == inputLower) return 1.0;
-      if (engNorm == inputNorm) return 0.98;
-
-      // Romanized exact then fuzzy
-      for (final alias in entry.romanized) {
-        if (alias.toLowerCase().trim() == inputLower) return 0.97;
-        if (RomanNepaliNormalizer.normalize(alias) == inputNorm) return 0.95;
-      }
-      for (final alias in entry.romanized) {
-        final an = RomanNepaliNormalizer.normalize(alias);
-        if (inputNorm.contains(an) || an.contains(inputNorm)) {
-          final ratio = math.min(inputNorm.length, an.length) /
-              math.max(inputNorm.length, an.length);
-          if (ratio > 0.65) return 0.80 * ratio;
-        }
-      }
-
-      var bestRom = 0.0;
-      for (final alias in entry.romanized) {
-        final at = RomanNepaliNormalizer.tokenize(alias).toSet();
-        final s = _tok(inputTokens, at);
-        if (s > bestRom) bestRom = s;
-      }
-      if (bestRom > 0) return bestRom * 0.88;
-
-      final engTokens = RomanNepaliNormalizer.tokenize(engNorm).toSet();
-      return _tok(inputTokens, engTokens) * 0.85;
-    }
-
-    // Nepali → English
-    if (inputIsDev) {
-      final neNorm = RomanNepaliNormalizer.normalize(entry.nepali);
-      if (neNorm == inputNorm) return 1.0;
-      if (inputNorm.length >= 3 &&
-          (neNorm.contains(inputNorm) || inputNorm.contains(neNorm))) {
-        return 0.82;
-      }
-      return 0.0;
-    }
-
-    // Romanized Nepali input
-    for (final alias in entry.romanized) {
-      if (alias.toLowerCase().trim() == inputLower) return 0.97;
-      if (RomanNepaliNormalizer.normalize(alias) == inputNorm) return 0.95;
-    }
-    var best = 0.0;
-    for (final alias in entry.romanized) {
-      final at = RomanNepaliNormalizer.tokenize(alias).toSet();
-      final s = _tok(inputTokens, at);
-      if (s > best) best = s;
-    }
-    return best * 0.88;
-  }
-
-  double _tok(Set<String> a, Set<String> b) {
-    if (a.isEmpty || b.isEmpty) return 0.0;
-    final inter = a.intersection(b).length;
-    if (inter == 0) return 0.0;
-    final union = a.union(b).length;
-    return (inter / union) * 0.40 +
-        (inter / math.min(a.length, b.length)) * 0.60;
-  }
-
-  // ── Intent model ────────────────────────────────────────────────────────
-
-  TranslationResult? _tryIntentModel(String input, TranslationMode mode) {
-    final r = TranslationIntentModel.instance.classify(input);
-    if (r == null) return null;
-    return TranslationResult(
-      translatedText: r.outputForMode(mode),
-      strategy: TranslationStrategy.intentModel,
-      confidence: r.confidence,
-      intent: r.intentId,
-    );
-  }
-
-  // ── Google Translate (unofficial, free, no key) ─────────────────────────
-
-  Future<TranslationResult?> _tryGoogleTranslate(
-      String input, TranslationMode mode) async {
-    try {
-      final uri = Uri.parse(_googleTranslateUrl).replace(
-        queryParameters: {
-          'client': 'gtx',
-          'sl': mode.sourceLang,
-          'tl': mode.targetLang,
-          'dt': 't',
-          'q': input,
-        },
-      );
-
-      final response = await http.get(uri,
-          headers: {'User-Agent': 'Mozilla/5.0'}).timeout(_onlineTimeout);
-
-      if (response.statusCode != 200) return null;
-
-      final decoded = jsonDecode(response.body);
-      if (decoded is! List || decoded.isEmpty) return null;
-
-      final chunks = decoded[0];
-      if (chunks is! List) return null;
-
-      final buf = StringBuffer();
-      for (final c in chunks) {
-        if (c is List && c.isNotEmpty && c[0] is String) buf.write(c[0]);
-      }
-
-      final translated = buf.toString().trim();
-      if (translated.isEmpty) return null;
-      if (translated.toUpperCase() == input.toUpperCase()) return null;
-
-      final ni = RomanNepaliNormalizer.normalize(input);
-      final no = RomanNepaliNormalizer.normalize(translated);
-      if (ni == no) return null;
-
-      return TranslationResult(
-        translatedText: translated,
-        strategy: TranslationStrategy.onlineFallback,
-        confidence: 0.90,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  // ── MyMemory fallback ───────────────────────────────────────────────────
-
-  Future<TranslationResult?> _tryMyMemory(
-      String input, TranslationMode mode) async {
-    try {
-      final uri = Uri.parse('$_myMemoryBaseUrl/get').replace(
-        queryParameters: {
-          'q': input,
-          'langpair': '${mode.sourceLang}|${mode.targetLang}',
-        },
-      );
-
-      final response = await http.get(uri).timeout(_onlineTimeout);
-      if (response.statusCode != 200) return null;
-
-      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-      final rd = decoded['responseData'] as Map?;
-      final translated = rd?['translatedText']?.toString().trim();
-
-      if (translated == null || translated.isEmpty) return null;
-      if (translated.startsWith('MYMEMORY WARNING')) return null;
-      if (translated.toUpperCase() == input.toUpperCase()) return null;
-
-      final ni = RomanNepaliNormalizer.normalize(input);
-      final no = RomanNepaliNormalizer.normalize(translated);
-      if (ni == no) return null;
-
-      final matchRaw = rd?['match'];
-      final confidence =
-          matchRaw is num ? matchRaw.toDouble().clamp(0.0, 1.0) : 0.65;
-
-      return TranslationResult(
-        translatedText: translated,
-        strategy: TranslationStrategy.onlineFallback,
-        confidence: confidence,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<TranslationResult?> _tryGroqTranslate(
-      String input, TranslationMode mode) async {
-    try {
-      final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-      final targetLang = mode == TranslationMode.englishToNepali
-          ? 'Nepali (Devanagari script)'
-          : 'English';
-      final response = await http
-          .post(
-            url,
-            headers: {
-              'Authorization':
-                  'Bearer ${dotenv.maybeGet("GROQ_API_KEY") ?? ""}',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode({
-              'model': 'llama-3.1-8b-instant',
-              'messages': [
-                {
-                  'role': 'system',
-                  'content':
-                      'You are a translator. Translate the given text to $targetLang. '
-                          'Reply with ONLY the translated text, nothing else. '
-                          'No explanations, no quotes, no punctuation changes.',
-                },
-                {'role': 'user', 'content': input},
-              ],
-              'max_tokens': 200,
-              'temperature': 0.1,
-            }),
-          )
-          .timeout(_onlineTimeout);
-
-      if (response.statusCode != 200) return null;
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final translated =
-          data['choices']?[0]?['message']?['content']?.toString().trim() ?? '';
-      if (translated.isEmpty) return null;
-
-      return TranslationResult(
-        translatedText: translated,
-        strategy: TranslationStrategy.onlineFallback,
-        confidence: 0.85,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  // ── Auto-detect ─────────────────────────────────────────────────────────
-
-  TranslationMode _resolveMode(String input, TranslationMode requested) {
-    if (requested != TranslationMode.autoDetect) return requested;
-    final script = RomanNepaliNormalizer.detectScript(input);
-    if (script == 'devanagari' || script == 'roman_nepali') {
-      return TranslationMode.nepaliToEnglish;
-    }
-    return TranslationMode.englishToNepali;
-  }
-
-  // ── History ─────────────────────────────────────────────────────────────
 
   List<TranslationHistoryEntry> get history =>
       List.unmodifiable(_history.reversed.toList());
@@ -468,6 +84,79 @@ class TranslationService {
     _history.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_historyKey);
+  }
+
+  TranslationResult _toLegacyResult(tourism.TranslationResult result) {
+    if (result.source == tourism.TranslationSource.fallback &&
+        result.confidence <= 0) {
+      return TranslationResult(
+        translatedText: '',
+        strategy: TranslationStrategy.noResult,
+        confidence: 0,
+        errorMessage: result.translatedText,
+        methodLabelOverride: 'No match',
+        isOfflineOverride: false,
+        warningMessage: result.warningMessage,
+      );
+    }
+
+    final strategy = switch (result.source) {
+      tourism.TranslationSource.phrasebook =>
+        TranslationStrategy.phrasebookMatch,
+      tourism.TranslationSource.online => TranslationStrategy.onlineFallback,
+      tourism.TranslationSource.fallback => TranslationStrategy.onlineFallback,
+    };
+
+    final methodLabel = switch (result.source) {
+      tourism.TranslationSource.phrasebook => 'Offline phrasebook',
+      tourism.TranslationSource.online => 'MyMemory ne-NP',
+      tourism.TranslationSource.fallback => 'Claude fallback',
+    };
+
+    return TranslationResult(
+      translatedText: result.translatedText,
+      strategy: strategy,
+      confidence: result.confidence,
+      intent: result.matchedCategory,
+      matchedEntry: _findLegacyMatch(result.matchedEnglish),
+      methodLabelOverride: methodLabel,
+      isOfflineOverride: result.isOffline,
+      romanized: result.romanized,
+      warningMessage: result.warningMessage,
+    );
+  }
+
+  PhrasebookEntry? _findLegacyMatch(String? english) {
+    if (english == null || english.isEmpty) return null;
+    final normalized = english.toLowerCase().trim();
+    for (final entry in _phrasebook) {
+      if (entry.english.toLowerCase().trim() == normalized) return entry;
+    }
+    return null;
+  }
+
+  PhrasebookEntry _toLegacyEntry(tourism.TourismPhrasebookEntry entry) {
+    return PhrasebookEntry(
+      id: entry.id,
+      category: entry.category,
+      english: entry.english,
+      nepali: entry.nepali,
+      romanized: [
+        if (entry.romanNepali.isNotEmpty) entry.romanNepali,
+        ...entry.aliases,
+      ],
+      isUrgent: entry.urgent,
+    );
+  }
+
+  tourism.TranslationDirection _toTourismDirection(TranslationMode mode) {
+    return switch (mode) {
+      TranslationMode.autoDetect => tourism.TranslationDirection.autoDetect,
+      TranslationMode.englishToNepali =>
+        tourism.TranslationDirection.englishToNepali,
+      TranslationMode.nepaliToEnglish =>
+        tourism.TranslationDirection.nepaliToEnglish,
+    };
   }
 
   Future<void> _loadHistory() async {
@@ -482,41 +171,30 @@ class TranslationService {
   }
 
   Future<void> _addToHistory(
-      String input, TranslationResult result, TranslationMode mode) async {
+    String input,
+    TranslationResult result,
+    TranslationMode mode,
+  ) async {
     if (!result.isSuccess) return;
-    _history.add(TranslationHistoryEntry(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      inputText: input,
-      outputText: result.translatedText,
-      mode: mode,
-      strategy: result.strategy,
-      timestamp: DateTime.now(),
-    ));
+    _history.add(
+      TranslationHistoryEntry(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        inputText: input,
+        outputText: result.translatedText,
+        mode: mode,
+        strategy: result.strategy,
+        timestamp: DateTime.now(),
+      ),
+    );
+
     if (_history.length > _maxHistoryEntries) {
       _history.removeRange(0, _history.length - _maxHistoryEntries);
     }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-        _historyKey, TranslationHistoryEntry.encodeList(_history));
+      _historyKey,
+      TranslationHistoryEntry.encodeList(_history),
+    );
   }
-
-  // ── Loader ──────────────────────────────────────────────────────────────
-
-  Future<void> _loadPhrasebook() async {
-    final raw = await rootBundle.loadString('assets/data/phrasebook.json');
-    final decoded = jsonDecode(raw) as Map<String, dynamic>;
-    final entries = decoded['entries'] as List? ?? [];
-    _phrasebook = entries
-        .whereType<Map>()
-        .map((e) => PhrasebookEntry.fromJson(Map<String, dynamic>.from(e)))
-        .where((e) =>
-            e.id.isNotEmpty && e.english.isNotEmpty && e.nepali.isNotEmpty)
-        .toList();
-  }
-}
-
-class _Score {
-  final PhrasebookEntry entry;
-  final double score;
-  const _Score({required this.entry, required this.score});
 }

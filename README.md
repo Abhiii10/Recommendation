@@ -260,6 +260,70 @@ This improves reliability during demos and real-world usage.
 
 ## ▶️ How to Run
 
+## Local Setup: Windows
+
+From a fresh clone:
+
+```powershell
+git clone <repo-url>
+cd Recommendation
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python scripts/setup_env.py
+docker compose up --build
+```
+
+To run the backend directly on Windows, use the helper script. It checks port
+`8000`, kills the conflicting process if needed, and starts uvicorn:
+
+```powershell
+.\scripts\start_backend.ps1
+```
+
+In another terminal, run Flutter:
+
+```powershell
+cd app
+flutter pub get
+flutter run
+```
+
+Do not commit machine-specific `app/.env` changes. Set
+`AI_BACKEND_BASE_URL=http://<your-laptop-ip>:8000` per developer machine.
+
+## Local Setup: Mac/Linux
+
+From a fresh clone:
+
+```bash
+git clone <repo-url>
+cd Recommendation
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/setup_env.py
+docker compose up --build
+```
+
+To run the backend directly on Mac/Linux, use the helper script. It checks port
+`8000`, kills the conflicting process if needed, and starts uvicorn:
+
+```bash
+bash scripts/start_backend.sh
+```
+
+In another terminal, run Flutter:
+
+```bash
+cd app
+flutter pub get
+flutter run
+```
+
+Keep `app/.env` local to each machine and set `AI_BACKEND_BASE_URL` to the URL
+reachable from your emulator or phone.
+
 ## Backend
 
 From the project root:
@@ -269,12 +333,12 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python scripts/setup_env.py
-python -m backend.main --host 0.0.0.0 --port 8000
+.\scripts\start_backend.ps1
 ```
 
-If port `8000` is already occupied, the backend launcher tries `8001` through
-`8010` and prints the selected port. You can still override the first attempted
-port with `--port`.
+If port `8000` is already occupied, `scripts/start_backend.ps1` kills the
+conflicting Windows process before starting uvicorn. On Mac/Linux, use
+`bash scripts/start_backend.sh`.
 
 Backend health check:
 
@@ -286,7 +350,7 @@ Expected response:
 
 ```json
 {
-  "status": "healthy"
+  "status": "ok"
 }
 ```
 
@@ -386,7 +450,7 @@ python -m compileall backend
 ### Run Backend
 
 ```powershell
-python -m backend.main --host 0.0.0.0 --port 8000
+.\scripts\start_backend.ps1
 ```
 
 ### Run Flutter

@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
-import '../core/intelligence_constants.dart';
-import '../core/intelligence_logger.dart';
-import '../models/embedding_vector.dart';
-import '../models/knowledge_entry.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_constants.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_logger.dart';
+import 'package:rural_tourism_app/features/intelligence/models/embedding_vector.dart';
+import 'package:rural_tourism_app/features/intelligence/models/knowledge_entry.dart';
 
 class PrecomputedEmbeddingsLoader {
   final IntelligenceLogger logger;

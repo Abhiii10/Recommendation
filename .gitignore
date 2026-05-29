@@ -17,16 +17,25 @@ env/
 .packages
 build/
 coverage/
+app/test/widget/failures/
 
 # IDE
 .vscode/*
 !.vscode/settings.json
 .idea/
 *.iml
+.claude/
 
 # Environment files
 .env
 .env.local
+
+# Runtime logs / local audit output
+*.log
+backend_server*.log
+STARTUP_AUDIT.md
+evaluation/*.json
+evaluation/*.md
 
 # Local runtime databases
 *.sqlite3

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:rural_tourism_app/models/destination.dart';
-import 'package:rural_tourism_app/services/offline_semantic_encoder.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/recommendations/data/services/offline_semantic_encoder.dart';
 
 void main() {
   final destinations =

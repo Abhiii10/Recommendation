@@ -1,5 +1,5 @@
-import 'entity_mention.dart';
-import 'language_detection_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/entity_mention.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
 
 class NlpProcessingResult {
   final String originalText;

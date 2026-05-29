@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
-import '../core/intelligence_constants.dart';
-import '../models/knowledge_entry.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_constants.dart';
+import 'package:rural_tourism_app/features/intelligence/models/knowledge_entry.dart';
 
 class KnowledgeRepository {
   final List<KnowledgeEntry> _entries = [];

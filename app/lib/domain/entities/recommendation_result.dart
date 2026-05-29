@@ -1,5 +1,5 @@
-import '../../models/destination.dart';
-import '../../models/recommendation_components.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/recommendations/domain/models/recommendation_components.dart';
 
 class RecommendationResult {
   final Destination destination;

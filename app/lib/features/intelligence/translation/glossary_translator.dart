@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
-import '../core/intelligence_constants.dart';
-import '../models/translation_request.dart';
-import '../models/translation_response.dart';
-import '../utils/text_utils.dart';
-import 'translation_engine.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_constants.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_request.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_response.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/translation/translation_engine.dart';
 
 class GlossaryTranslator implements TranslationEngine {
   final List<GlossaryTerm> _terms = [];

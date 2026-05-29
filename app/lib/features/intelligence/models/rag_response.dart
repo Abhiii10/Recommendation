@@ -1,4 +1,4 @@
-import 'retrieved_context.dart';
+import 'package:rural_tourism_app/features/intelligence/models/retrieved_context.dart';
 
 class RagResponse {
   final String text;

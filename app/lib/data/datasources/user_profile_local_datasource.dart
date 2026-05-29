@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 
-import '../../core/errors/failure.dart';
-import '../../domain/entities/user_interaction.dart';
-import '../../domain/entities/user_profile.dart';
+import 'package:rural_tourism_app/core/errors/failure.dart';
+import 'package:rural_tourism_app/domain/entities/user_interaction.dart';
+import 'package:rural_tourism_app/domain/entities/user_profile.dart';
 
 class UserProfileLocalDatasource {
   final Database db;

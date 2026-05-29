@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:rural_tourism_app/models/accommodation.dart';
-import 'package:rural_tourism_app/models/destination.dart';
-import 'package:rural_tourism_app/models/user_preferences.dart';
-import 'package:rural_tourism_app/services/recommender_service.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/recommendations/domain/models/user_preferences.dart';
+import 'package:rural_tourism_app/features/recommendations/data/services/recommender_service.dart';
 
 const int defaultK = 10;
 const double defaultMinimumNdcg = 0.90;

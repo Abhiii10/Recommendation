@@ -1,7 +1,7 @@
-import '../core/intelligence_constants.dart';
-import '../models/embedding_vector.dart';
-import '../utils/text_utils.dart';
-import 'embedding_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_constants.dart';
+import 'package:rural_tourism_app/features/intelligence/models/embedding_vector.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/embeddings/embedding_utils.dart';
 
 class EmbeddingEncoder {
   final int dimension;

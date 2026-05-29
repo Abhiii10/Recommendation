@@ -1,6 +1,6 @@
-import '../../core/errors/failure.dart';
-import '../entities/user_interaction.dart';
-import '../entities/user_profile.dart';
+import 'package:rural_tourism_app/core/errors/failure.dart';
+import 'package:rural_tourism_app/domain/entities/user_interaction.dart';
+import 'package:rural_tourism_app/domain/entities/user_profile.dart';
 
 abstract interface class UserProfileRepository {
   Future<Result<UserProfile>> getProfile();

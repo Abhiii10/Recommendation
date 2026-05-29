@@ -6,18 +6,18 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/observability/app_telemetry.dart';
-import 'data/datasources/user_profile_local_datasource.dart';
-import 'data/repositories/shared_preferences_user_profile_repository.dart';
-import 'data/repositories/user_profile_repository_impl.dart';
-import 'l10n/app_localizations.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/onboarding_screen.dart';
-import 'services/auth_session_service.dart';
-import 'services/interaction_sync_service.dart';
-import 'services/local_data_service.dart';
-import 'services/user_profile_service.dart';
-import 'theme/app_theme.dart';
+import 'package:rural_tourism_app/core/observability/app_telemetry.dart';
+import 'package:rural_tourism_app/data/datasources/user_profile_local_datasource.dart';
+import 'package:rural_tourism_app/data/repositories/shared_preferences_user_profile_repository.dart';
+import 'package:rural_tourism_app/data/repositories/user_profile_repository_impl.dart';
+import 'package:rural_tourism_app/l10n/app_localizations.dart';
+import 'package:rural_tourism_app/features/shell/presentation/dashboard_screen.dart';
+import 'package:rural_tourism_app/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:rural_tourism_app/features/auth/data/services/auth_session_service.dart';
+import 'package:rural_tourism_app/core/sync/interaction_sync_service.dart';
+import 'package:rural_tourism_app/core/data/local_data_service.dart';
+import 'package:rural_tourism_app/features/profile/application/user_profile_service.dart';
+import 'package:rural_tourism_app/shared/theme/app_theme.dart';
 
 late final UserProfileService userProfileService;
 

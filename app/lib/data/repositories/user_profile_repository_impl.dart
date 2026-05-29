@@ -1,9 +1,9 @@
-import '../../core/errors/failure.dart';
-import '../../core/utils/app_constants.dart';
-import '../../domain/entities/user_interaction.dart';
-import '../../domain/entities/user_profile.dart';
-import '../../domain/repositories/user_profile_repository.dart';
-import '../datasources/user_profile_local_datasource.dart';
+import 'package:rural_tourism_app/core/errors/failure.dart';
+import 'package:rural_tourism_app/core/utils/app_constants.dart';
+import 'package:rural_tourism_app/domain/entities/user_interaction.dart';
+import 'package:rural_tourism_app/domain/entities/user_profile.dart';
+import 'package:rural_tourism_app/domain/repositories/user_profile_repository.dart';
+import 'package:rural_tourism_app/data/datasources/user_profile_local_datasource.dart';
 
 class UserProfileRepositoryImpl implements UserProfileRepository {
   final UserProfileLocalDatasource _datasource;
@@ -84,8 +84,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
           e.key: e.value * decay,
       },
       tagAffinity: {
-        for (final e in profile.tagAffinity.entries)
-          e.key: e.value * decay,
+        for (final e in profile.tagAffinity.entries) e.key: e.value * decay,
       },
       interactionCount: profile.interactionCount,
     );

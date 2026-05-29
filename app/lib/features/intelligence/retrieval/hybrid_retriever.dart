@@ -1,7 +1,7 @@
-import '../core/intelligence_config.dart';
-import '../embeddings/semantic_retriever.dart';
-import 'bm25_retriever.dart';
-import 'retrieval_result.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_config.dart';
+import 'package:rural_tourism_app/features/intelligence/embeddings/semantic_retriever.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/bm25_retriever.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/retrieval_result.dart';
 
 class HybridRetriever {
   final SemanticRetriever semanticRetriever;

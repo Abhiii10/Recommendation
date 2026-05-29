@@ -1,5 +1,5 @@
-import '../models/entity_mention.dart';
-import '../utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/models/entity_mention.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
 
 class NamedEntityRecognizer {
   final Map<String, String> destinationGazetteer;

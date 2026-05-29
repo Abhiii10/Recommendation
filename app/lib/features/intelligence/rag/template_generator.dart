@@ -1,6 +1,6 @@
-import '../models/dialogue_state.dart';
-import '../models/language_detection_result.dart';
-import '../models/retrieved_context.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_state.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/retrieved_context.dart';
 
 class TemplateGenerator {
   const TemplateGenerator();

@@ -1,4 +1,4 @@
-import 'knowledge_entry.dart';
+import 'package:rural_tourism_app/features/intelligence/models/knowledge_entry.dart';
 
 class RetrievedContext {
   final KnowledgeEntry entry;

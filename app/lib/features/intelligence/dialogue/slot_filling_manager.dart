@@ -1,7 +1,7 @@
-import '../models/dialogue_slot.dart';
-import '../models/entity_mention.dart';
-import '../models/nlp_processing_result.dart';
-import '../utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_slot.dart';
+import 'package:rural_tourism_app/features/intelligence/models/entity_mention.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
 
 class SlotFillingManager {
   final Map<String, List<String>> requiredSlotsByIntent;

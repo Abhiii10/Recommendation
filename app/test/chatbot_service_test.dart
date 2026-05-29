@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rural_tourism_app/models/destination.dart';
-import 'package:rural_tourism_app/services/chatbot_service.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/chatbot/data/services/chatbot_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +20,8 @@ void main() {
       final cases = <_IntentCase>[
         _IntentCase('hello', 'greeting'),
         _IntentCase('namaste can you help me', 'greeting'),
-        _IntentCase('when is the best time to visit Ghandruk', 'best_time_to_visit'),
+        _IntentCase(
+            'when is the best time to visit Ghandruk', 'best_time_to_visit'),
         _IntentCase('is autumn good for trekking', 'best_time_to_visit'),
         _IntentCase('can I visit during monsoon', 'best_time_to_visit'),
         _IntentCase('how do I reach Sikles from Pokhara', 'transport'),
@@ -30,7 +31,8 @@ void main() {
         _IntentCase('tell me about homestays', 'homestay'),
         _IntentCase('what food can I try', 'food'),
         _IntentCase('is vegetarian food available', 'food'),
-        _IntentCase('what cultural etiquette should I follow', 'culture_etiquette'),
+        _IntentCase(
+            'what cultural etiquette should I follow', 'culture_etiquette'),
         _IntentCase('can I take photos of local people', 'culture_etiquette'),
         _IntentCase('is it safe to trek alone', 'safety'),
         _IntentCase('is rural Nepal safe for tourists', 'safety'),
@@ -47,7 +49,8 @@ void main() {
         _IntentCase('I am injured and need help', 'emergency_help'),
         _IntentCase('can I use this app offline', 'offline_help'),
         _IntentCase('does the app work without internet', 'offline_help'),
-        _IntentCase('can you translate this answer to Nepali', 'translation_help'),
+        _IntentCase(
+            'can you translate this answer to Nepali', 'translation_help'),
       ];
 
       var correct = 0;
@@ -104,7 +107,8 @@ List<Destination> _fakeDestinations() {
       adventureLevel: 3,
       cultureLevel: 5,
       natureLevel: 5,
-      shortDescription: 'A Gurung village known for mountain views and homestays.',
+      shortDescription:
+          'A Gurung village known for mountain views and homestays.',
       fullDescription:
           'Ghandruk is a popular rural tourism village with Gurung culture, Annapurna views, and trekking routes.',
       latitude: 28.3772,
@@ -128,7 +132,8 @@ List<Destination> _fakeDestinations() {
       adventureLevel: 3,
       cultureLevel: 5,
       natureLevel: 5,
-      shortDescription: 'A traditional village with mountain scenery and rural culture.',
+      shortDescription:
+          'A traditional village with mountain scenery and rural culture.',
       fullDescription:
           'Sikles is a scenic village offering local culture, mountain views, and trekking routes.',
       latitude: 28.4037,
@@ -176,7 +181,8 @@ List<Destination> _fakeDestinations() {
       adventureLevel: 2,
       cultureLevel: 4,
       natureLevel: 5,
-      shortDescription: 'A beginner-friendly hiking village with Himalayan views.',
+      shortDescription:
+          'A beginner-friendly hiking village with Himalayan views.',
       fullDescription:
           'Dhampus is popular for short hikes, mountain views, and village tourism.',
       latitude: 28.3069,

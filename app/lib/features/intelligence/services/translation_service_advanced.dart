@@ -1,7 +1,7 @@
-import '../core/intelligence_config.dart';
-import '../models/translation_request.dart';
-import '../models/translation_response.dart';
-import 'intelligence_orchestrator.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_config.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_request.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_response.dart';
+import 'package:rural_tourism_app/features/intelligence/services/intelligence_orchestrator.dart';
 
 class TranslationServiceAdvanced {
   final IntelligenceOrchestrator orchestrator;

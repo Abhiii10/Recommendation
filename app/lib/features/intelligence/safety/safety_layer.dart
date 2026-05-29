@@ -1,7 +1,7 @@
-import '../models/chatbot_response.dart';
-import '../models/language_detection_result.dart';
-import 'emergency_detector.dart';
-import 'emergency_response_repository.dart';
+import 'package:rural_tourism_app/features/intelligence/models/chatbot_response.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
+import 'package:rural_tourism_app/features/intelligence/safety/emergency_detector.dart';
+import 'package:rural_tourism_app/features/intelligence/safety/emergency_response_repository.dart';
 
 class SafetyLayer {
   final EmergencyDetector detector;

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rural_tourism_app/models/accommodation.dart';
-import 'package:rural_tourism_app/models/destination.dart';
-import 'package:rural_tourism_app/models/user_preferences.dart';
-import 'package:rural_tourism_app/services/offline_semantic_encoder.dart';
-import 'package:rural_tourism_app/services/recommender_service.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/recommendations/domain/models/user_preferences.dart';
+import 'package:rural_tourism_app/features/recommendations/data/services/offline_semantic_encoder.dart';
+import 'package:rural_tourism_app/features/recommendations/data/services/recommender_service.dart';
 
 void main() {
   group('RecommenderService', () {

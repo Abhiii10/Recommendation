@@ -1,11 +1,11 @@
-import '../models/conversation_turn.dart';
-import '../models/dialogue_state.dart';
-import '../models/intent_classification_result.dart';
-import '../models/nlp_processing_result.dart';
-import 'clarification_generator.dart';
-import 'conversation_memory.dart';
-import 'dialogue_state_tracker.dart';
-import 'slot_filling_manager.dart';
+import 'package:rural_tourism_app/features/intelligence/models/conversation_turn.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_state.dart';
+import 'package:rural_tourism_app/features/intelligence/models/intent_classification_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/dialogue/clarification_generator.dart';
+import 'package:rural_tourism_app/features/intelligence/dialogue/conversation_memory.dart';
+import 'package:rural_tourism_app/features/intelligence/dialogue/dialogue_state_tracker.dart';
+import 'package:rural_tourism_app/features/intelligence/dialogue/slot_filling_manager.dart';
 
 class DialogueManager {
   final ConversationMemory memory;

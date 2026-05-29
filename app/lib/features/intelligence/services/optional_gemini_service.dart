@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../core/intelligence_config.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_config.dart';
 
 /// Production LLM service — tries Claude first, falls back to Groq, then Gemini.
 /// This is the PRIMARY response path, not a fallback.

@@ -1,4 +1,4 @@
-import '../models/language_detection_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
 
 class EmergencyResponseRepository {
   const EmergencyResponseRepository();

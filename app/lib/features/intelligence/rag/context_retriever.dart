@@ -1,7 +1,7 @@
-import '../models/nlp_processing_result.dart';
-import '../retrieval/hybrid_retriever.dart';
-import '../retrieval/retrieval_reranker.dart';
-import '../retrieval/retrieval_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/hybrid_retriever.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/retrieval_reranker.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/retrieval_result.dart';
 
 class ContextRetriever {
   final HybridRetriever hybridRetriever;

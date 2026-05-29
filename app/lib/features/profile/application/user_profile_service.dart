@@ -1,0 +1,129 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:rural_tourism_app/core/errors/failure.dart';
+import 'package:rural_tourism_app/core/utils/app_constants.dart';
+import 'package:rural_tourism_app/domain/entities/user_interaction.dart';
+import 'package:rural_tourism_app/domain/entities/user_profile.dart';
+import 'package:rural_tourism_app/domain/repositories/user_profile_repository.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/auth/data/services/auth_session_service.dart';
+import 'package:rural_tourism_app/features/recommendations/data/services/destination_affinity_provider.dart';
+
+class UserProfileService implements DestinationAffinityProvider {
+  final UserProfileRepository _repository;
+
+  UserProfile _cachedProfile = UserProfile.empty();
+  bool _isWarm = false;
+
+  UserProfileService(this._repository);
+
+  Future<void> initOnLaunch() async {
+    final Result<UserProfile> result = await _repository.applyDecay();
+
+    result.fold(
+      onOk: (profile) {
+        _cachedProfile = profile;
+        _isWarm = true;
+      },
+      onErr: (_) {
+        _cachedProfile = UserProfile.empty();
+        _isWarm = true;
+      },
+    );
+  }
+
+  UserProfile get profile => _cachedProfile;
+
+  bool get isColdStart =>
+      _cachedProfile.interactionCount < AppConstants.coldStartThreshold;
+
+  Future<String> stableUserId() async {
+    try {
+      final authenticatedUserId =
+          await AuthSessionService.instance.currentUserId();
+      if (authenticatedUserId != null && authenticatedUserId.isNotEmpty) {
+        return authenticatedUserId;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      var id = prefs.getString('stable_user_id');
+
+      if (id == null || id.isEmpty) {
+        id = const Uuid().v4();
+        await prefs.setString('stable_user_id', id);
+      }
+
+      return id;
+    } catch (_) {
+      return 'anonymous';
+    }
+  }
+
+  Future<void> recordClick(Destination dest) async {
+    await _record(dest, InteractionType.click);
+  }
+
+  Future<void> recordBookmark(Destination dest) async {
+    await _record(dest, InteractionType.bookmark);
+  }
+
+  Future<void> recordDwell(Destination dest) async {
+    await _record(dest, InteractionType.dwell);
+  }
+
+  Future<void> _record(Destination dest, InteractionType type) async {
+    final interaction = UserInteraction(
+      destinationId: dest.id,
+      type: type,
+      categories: dest.category,
+      tags: dest.tags,
+      timestamp: DateTime.now(),
+    );
+
+    final Result<UserProfile> result =
+        await _repository.recordInteraction(interaction);
+
+    result.fold(
+      onOk: (profile) {
+        _cachedProfile = profile;
+      },
+      onErr: (_) {},
+    );
+  }
+
+  @override
+  double affinityBoostFor(Destination dest) {
+    if (!_isWarm || isColdStart) return 0.0;
+
+    double raw = 0.0;
+
+    for (final category in dest.category) {
+      raw += _cachedProfile.categoryAffinity[category.toLowerCase()] ?? 0.0;
+    }
+
+    for (final tag in dest.tags) {
+      raw += _cachedProfile.tagAffinity[tag.toLowerCase()] ?? 0.0;
+    }
+
+    final double maxPossible = _maxObservedAffinity();
+    if (maxPossible <= 0) return 0.0;
+
+    final double normalized = (raw / maxPossible).clamp(0.0, 1.0);
+    return normalized * AppConstants.maxAffinityBoost;
+  }
+
+  double _maxObservedAffinity() {
+    final double catMax = _cachedProfile.categoryAffinity.values.fold(
+      0.0,
+      (previous, value) => value > previous ? value : previous,
+    );
+
+    final double tagMax = _cachedProfile.tagAffinity.values.fold(
+      0.0,
+      (previous, value) => value > previous ? value : previous,
+    );
+
+    return (catMax * 3 + tagMax * 4).clamp(1.0, double.infinity);
+  }
+}

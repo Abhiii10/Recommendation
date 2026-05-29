@@ -1,13 +1,13 @@
-import '../models/nlp_processing_result.dart';
-import '../utils/cache_manager.dart';
-import 'advanced_tokenizer.dart';
-import 'devanagari_normalizer.dart';
-import 'language_detector.dart';
-import 'named_entity_recognizer.dart';
-import 'nepali_stemmer.dart';
-import 'romanized_nepali_normalizer.dart';
-import 'stopword_remover.dart';
-import 'synonym_expander.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/cache_manager.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/advanced_tokenizer.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/devanagari_normalizer.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/language_detector.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/named_entity_recognizer.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/nepali_stemmer.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/romanized_nepali_normalizer.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/stopword_remover.dart';
+import 'package:rural_tourism_app/features/intelligence/nlp/synonym_expander.dart';
 
 class NlpPipeline {
   final LanguageDetector languageDetector;

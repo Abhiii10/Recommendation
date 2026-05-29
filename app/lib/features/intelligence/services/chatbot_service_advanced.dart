@@ -1,7 +1,7 @@
-import '../core/intelligence_config.dart';
-import '../models/chatbot_request.dart';
-import '../models/chatbot_response.dart';
-import 'intelligence_orchestrator.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_config.dart';
+import 'package:rural_tourism_app/features/intelligence/models/chatbot_request.dart';
+import 'package:rural_tourism_app/features/intelligence/models/chatbot_response.dart';
+import 'package:rural_tourism_app/features/intelligence/services/intelligence_orchestrator.dart';
 
 class ChatbotServiceAdvanced {
   final IntelligenceOrchestrator orchestrator;

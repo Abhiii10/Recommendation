@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rural_tourism_app/models/destination.dart';
-import 'package:rural_tourism_app/services/image_cache_service.dart';
-import 'package:rural_tourism_app/theme/app_theme.dart';
-import 'package:rural_tourism_app/widgets/destination_card.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/core/media/image_cache_service.dart';
+import 'package:rural_tourism_app/shared/theme/app_theme.dart';
+import 'package:rural_tourism_app/features/destinations/presentation/widgets/destination_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeImageCacheService extends Fake implements ImageCacheService {

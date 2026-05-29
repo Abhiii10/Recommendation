@@ -1,6 +1,6 @@
-import 'intent_classification_result.dart';
-import 'language_detection_result.dart';
-import 'retrieved_context.dart';
+import 'package:rural_tourism_app/features/intelligence/models/intent_classification_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/retrieved_context.dart';
 
 enum ChatbotResponseSource {
   emergencyProtocol,

@@ -1,9 +1,9 @@
-import '../models/dialogue_state.dart';
-import '../models/nlp_processing_result.dart';
-import '../models/rag_response.dart';
-import '../models/retrieved_context.dart';
-import 'context_retriever.dart';
-import 'response_generator.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_state.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/rag_response.dart';
+import 'package:rural_tourism_app/features/intelligence/models/retrieved_context.dart';
+import 'package:rural_tourism_app/features/intelligence/rag/context_retriever.dart';
+import 'package:rural_tourism_app/features/intelligence/rag/response_generator.dart';
 
 class RagPipeline {
   final ContextRetriever contextRetriever;

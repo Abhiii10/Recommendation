@@ -1,2 +1,2 @@
-export 'database_factory_config_stub.dart'
+export 'package:rural_tourism_app/core/storage/database_factory_config_stub.dart'
     if (dart.library.io) 'database_factory_config_io.dart';

@@ -1,5 +1,5 @@
-import '../models/language_detection_result.dart';
-import '../utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
 
 class LanguageDetector {
   final Set<String> romanizedDictionary;

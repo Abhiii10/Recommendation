@@ -1,7 +1,7 @@
-import '../models/embedding_vector.dart';
-import '../models/knowledge_entry.dart';
-import '../utils/similarity_metrics.dart';
-import 'embedding_encoder.dart';
+import 'package:rural_tourism_app/features/intelligence/models/embedding_vector.dart';
+import 'package:rural_tourism_app/features/intelligence/models/knowledge_entry.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/similarity_metrics.dart';
+import 'package:rural_tourism_app/features/intelligence/embeddings/embedding_encoder.dart';
 
 class EmbeddingIndex {
   final EmbeddingEncoder encoder;

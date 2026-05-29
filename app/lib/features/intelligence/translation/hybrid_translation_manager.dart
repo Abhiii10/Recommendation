@@ -1,9 +1,9 @@
-import '../models/translation_request.dart';
-import '../models/translation_response.dart';
-import 'glossary_translator.dart';
-import 'neural_translation_adapter.dart';
-import 'phrasebook_translator.dart';
-import 'template_translator.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_request.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_response.dart';
+import 'package:rural_tourism_app/features/intelligence/translation/glossary_translator.dart';
+import 'package:rural_tourism_app/features/intelligence/translation/neural_translation_adapter.dart';
+import 'package:rural_tourism_app/features/intelligence/translation/phrasebook_translator.dart';
+import 'package:rural_tourism_app/features/intelligence/translation/template_translator.dart';
 
 class HybridTranslationManager {
   final PhrasebookTranslator phrasebookTranslator;

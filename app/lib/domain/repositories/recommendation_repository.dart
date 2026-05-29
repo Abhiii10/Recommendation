@@ -1,7 +1,7 @@
-import '../../models/destination.dart';
-import '../../models/user_preferences.dart';
-import '../entities/recommendation_result.dart';
-import '../../core/errors/failure.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/recommendations/domain/models/user_preferences.dart';
+import 'package:rural_tourism_app/domain/entities/recommendation_result.dart';
+import 'package:rural_tourism_app/core/errors/failure.dart';
 
 /// Abstract interface for the recommendation engine.
 /// The concrete implementation in data/repositories/ wires TF-IDF + numeric

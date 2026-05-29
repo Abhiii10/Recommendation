@@ -1,4 +1,4 @@
-import '../models/knowledge_entry.dart';
+import 'package:rural_tourism_app/features/intelligence/models/knowledge_entry.dart';
 
 class RetrievalResult {
   final KnowledgeEntry entry;

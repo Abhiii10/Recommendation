@@ -1,4 +1,4 @@
-import '../utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
 
 class RomanizedNepaliNormalizer {
   final Map<String, String> mappings;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rural_tourism_app/models/accommodation.dart';
-import 'package:rural_tourism_app/models/destination.dart';
-import 'package:rural_tourism_app/screens/recommend_tab.dart';
-import 'package:rural_tourism_app/services/recommender_service.dart';
-import 'package:rural_tourism_app/theme/app_theme.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
+import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
+import 'package:rural_tourism_app/features/recommendations/presentation/recommend_tab.dart';
+import 'package:rural_tourism_app/features/recommendations/data/services/recommender_service.dart';
+import 'package:rural_tourism_app/shared/theme/app_theme.dart';
 
 void main() {
   testWidgets('RecommendTab shows filters and action button', (tester) async {

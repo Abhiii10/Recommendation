@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/errors/failure.dart';
-import '../../core/utils/app_constants.dart';
-import '../../domain/entities/user_interaction.dart';
-import '../../domain/entities/user_profile.dart';
-import '../../domain/repositories/user_profile_repository.dart';
+import 'package:rural_tourism_app/core/errors/failure.dart';
+import 'package:rural_tourism_app/core/utils/app_constants.dart';
+import 'package:rural_tourism_app/domain/entities/user_interaction.dart';
+import 'package:rural_tourism_app/domain/entities/user_profile.dart';
+import 'package:rural_tourism_app/domain/repositories/user_profile_repository.dart';
 
 class SharedPreferencesUserProfileRepository implements UserProfileRepository {
   static const String _profileKey = 'web_user_profile';

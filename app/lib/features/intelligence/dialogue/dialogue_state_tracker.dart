@@ -1,6 +1,6 @@
-import '../models/conversation_turn.dart';
-import '../models/dialogue_slot.dart';
-import '../models/dialogue_state.dart';
+import 'package:rural_tourism_app/features/intelligence/models/conversation_turn.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_slot.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_state.dart';
 
 class DialogueStateTracker {
   const DialogueStateTracker();

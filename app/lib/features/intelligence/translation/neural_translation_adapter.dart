@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../models/translation_request.dart';
-import '../models/translation_response.dart';
-import 'translation_engine.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_request.dart';
+import 'package:rural_tourism_app/features/intelligence/models/translation_response.dart';
+import 'package:rural_tourism_app/features/intelligence/translation/translation_engine.dart';
 
 /// LLM-powered translation: tries Claude → Groq → Gemini in order.
 /// Handles English↔Nepali including Roman Nepali input.

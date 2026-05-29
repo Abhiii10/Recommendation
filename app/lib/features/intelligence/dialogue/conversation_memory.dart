@@ -1,6 +1,6 @@
-import '../core/intelligence_config.dart';
-import '../models/conversation_turn.dart';
-import '../models/dialogue_state.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_config.dart';
+import 'package:rural_tourism_app/features/intelligence/models/conversation_turn.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_state.dart';
 
 class ConversationMemory {
   final IntelligenceConfig config;

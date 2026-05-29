@@ -1,6 +1,6 @@
-import '../retrieval/retrieval_result.dart';
-import 'embedding_encoder.dart';
-import 'embedding_index.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/retrieval_result.dart';
+import 'package:rural_tourism_app/features/intelligence/embeddings/embedding_encoder.dart';
+import 'package:rural_tourism_app/features/intelligence/embeddings/embedding_index.dart';
 
 class SemanticRetriever {
   final EmbeddingEncoder encoder;

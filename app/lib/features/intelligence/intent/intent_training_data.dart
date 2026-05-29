@@ -1,5 +1,5 @@
-import '../core/intelligence_constants.dart';
-import '../utils/json_loader.dart';
+import 'package:rural_tourism_app/features/intelligence/core/intelligence_constants.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/json_loader.dart';
 
 class IntentTrainingData {
   final Map<String, IntentDefinition> intents;

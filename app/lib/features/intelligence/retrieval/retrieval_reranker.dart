@@ -1,5 +1,5 @@
-import '../models/nlp_processing_result.dart';
-import 'retrieval_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/retrieval_result.dart';
 
 class RetrievalReranker {
   const RetrievalReranker();

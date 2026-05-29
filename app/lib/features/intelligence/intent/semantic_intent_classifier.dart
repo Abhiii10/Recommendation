@@ -1,9 +1,9 @@
-import '../embeddings/embedding_encoder.dart';
-import '../models/intent_classification_result.dart';
-import '../models/nlp_processing_result.dart';
-import '../utils/similarity_metrics.dart';
-import 'intent_classifier_base.dart';
-import 'intent_training_data.dart';
+import 'package:rural_tourism_app/features/intelligence/embeddings/embedding_encoder.dart';
+import 'package:rural_tourism_app/features/intelligence/models/intent_classification_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/similarity_metrics.dart';
+import 'package:rural_tourism_app/features/intelligence/intent/intent_classifier_base.dart';
+import 'package:rural_tourism_app/features/intelligence/intent/intent_training_data.dart';
 
 class SemanticIntentClassifier implements IntentClassifierBase {
   final EmbeddingEncoder encoder;

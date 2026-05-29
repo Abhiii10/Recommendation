@@ -1,10 +1,10 @@
-import '../models/entity_mention.dart';
-import '../models/intent_classification_result.dart';
-import '../models/nlp_processing_result.dart';
-import '../utils/text_utils.dart';
-import 'intent_classifier_base.dart';
-import 'intent_training_data.dart';
-import 'semantic_intent_classifier.dart';
+import 'package:rural_tourism_app/features/intelligence/models/entity_mention.dart';
+import 'package:rural_tourism_app/features/intelligence/models/intent_classification_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/nlp_processing_result.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/intent/intent_classifier_base.dart';
+import 'package:rural_tourism_app/features/intelligence/intent/intent_training_data.dart';
+import 'package:rural_tourism_app/features/intelligence/intent/semantic_intent_classifier.dart';
 
 class HybridIntentClassifier implements IntentClassifierBase {
   final SemanticIntentClassifier semanticClassifier;

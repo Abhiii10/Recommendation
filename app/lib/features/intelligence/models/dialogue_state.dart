@@ -1,5 +1,5 @@
-import 'conversation_turn.dart';
-import 'dialogue_slot.dart';
+import 'package:rural_tourism_app/features/intelligence/models/conversation_turn.dart';
+import 'package:rural_tourism_app/features/intelligence/models/dialogue_slot.dart';
 
 class DialogueState {
   final String conversationId;

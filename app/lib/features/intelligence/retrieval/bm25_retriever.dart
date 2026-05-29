@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import '../models/knowledge_entry.dart';
-import '../utils/text_utils.dart';
-import 'retrieval_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/knowledge_entry.dart';
+import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
+import 'package:rural_tourism_app/features/intelligence/retrieval/retrieval_result.dart';
 
 class BM25Retriever {
   final double k1;

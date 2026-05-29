@@ -59,6 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         OfflineStorage.loadDestinations(),
         OfflineStorage.loadAccommodations(),
         OfflineStorage.loadSimilarPlaces(),
+        OfflineStorage.loadDestinationEmbeddings(),
         LocalDataService.instance.getSavedDestinations(),
       ]);
 
@@ -66,7 +67,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final accommodations = loaded[1] as List<Accommodation>;
       final similarPlaces =
           loaded[2] as Map<String, List<Map<String, dynamic>>>;
-      final saved = loaded[3] as List<Destination>;
+      final embeddings = loaded[3] as Map<String, List<double>>;
+      final saved = loaded[4] as List<Destination>;
 
       if (!mounted) return;
 
@@ -76,6 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _service = RecommenderService(
           similarPlaces,
           userProfileService: userProfileService,
+          destinationEmbeddings: embeddings,
         );
         _savedDestinations = saved;
         _loading = false;

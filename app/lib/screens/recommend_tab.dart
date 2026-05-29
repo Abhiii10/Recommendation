@@ -149,8 +149,15 @@ class _RecommendTabState extends State<RecommendTab> {
   List<String> _badges(UnifiedRecommendationResult r, int idx) {
     final b = <String>[];
     final c = r.components;
+    final stayCount = _staysFor(r.destination).length;
     if (idx == 0 || r.score >= 0.82) {
       b.add('Best Match');
+    }
+    if (r.mode == RecommendationMode.offline) {
+      b.add('Offline Ready');
+    }
+    if (c.semantic >= 0.78) {
+      b.add('Semantic Match');
     }
     if (c.budgetMatch >= 0.9) {
       b.add('Budget Friendly');
@@ -164,10 +171,28 @@ class _RecommendTabState extends State<RecommendTab> {
     if (c.accommodationFit >= 0.75) {
       b.add('Has Accommodation');
     }
+    if (stayCount > 0) {
+      b.add('$stayCount Stays Nearby');
+    }
     if (c.semantic >= 0.7 && c.collaborative < 0.1) {
       b.add('Hidden Gem');
     }
     return b.take(4).toList();
+  }
+
+  List<Accommodation> _staysFor(Destination destination) {
+    return accommodationsForDestination(destination, widget.accommodations);
+  }
+
+  IconData _modeIcon(RecommendationMode mode) {
+    switch (mode) {
+      case RecommendationMode.ai:
+        return Icons.auto_awesome_rounded;
+      case RecommendationMode.cached:
+        return Icons.history_rounded;
+      case RecommendationMode.offline:
+        return Icons.offline_bolt_rounded;
+    }
   }
 
   // ── actions ───────────────────────────────────────────────────────────────
@@ -245,7 +270,7 @@ class _RecommendTabState extends State<RecommendTab> {
     final icon = isAI ? Icons.auto_awesome_rounded : Icons.offline_bolt_rounded;
     final label = _response?.indicatorLabel ??
         (_checkingBackend
-            ? 'Checking backend…'
+            ? 'Checking backend...'
             : _backendAvailable
                 ? 'AI Online Mode Ready'
                 : 'Advanced Offline Mode Ready');
@@ -253,8 +278,8 @@ class _RecommendTabState extends State<RecommendTab> {
         (_checkingBackend
             ? 'Checking whether the AI backend is reachable.'
             : _backendAvailable
-                ? 'AI pipeline: retrieve → score → rerank → explain.'
-                : 'Backend unreachable. Advanced offline recommender is ready.');
+                ? 'Online AI is ready. Offline semantic fallback is also available.'
+                : '${widget.destinations.length} Gandaki places and ${widget.accommodations.length} stays are ready offline.');
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -580,6 +605,7 @@ class _RecommendTabState extends State<RecommendTab> {
 
   Widget _buildResultCard(UnifiedRecommendationResult result, int idx) {
     final saved = widget.isSaved(result.destination);
+    final stays = _staysFor(result.destination);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -588,11 +614,17 @@ class _RecommendTabState extends State<RecommendTab> {
         reasons: result.reasons,
         scoreLabel: '${(result.score * 100).round()}%',
         modeLabel: result.modeLabel,
-        modeIcon: result.mode == RecommendationMode.ai
-            ? Icons.auto_awesome_rounded
-            : Icons.offline_bolt_rounded,
+        modeIcon: _modeIcon(result.mode),
         badges: _badges(result, idx),
         trailing: _buildScoreRing(result.score),
+        insight: _RecommendationInsightStrip(
+          result: result,
+          accommodations: stays,
+          color: AppTheme.categoryColourFor(
+            context,
+            result.destination.primaryCategory,
+          ),
+        ),
         isSaved: saved,
         onToggleSaved: () => _saveResult(result),
         footer: ScoreBreakdownWidget(
@@ -692,8 +724,8 @@ class _RecommendTabState extends State<RecommendTab> {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: const [
-                _InfoPill(label: 'Retrieve'),
-                _InfoPill(label: 'Score'),
+                _InfoPill(label: 'Semantic'),
+                _InfoPill(label: 'Stays'),
                 _InfoPill(label: 'Rerank'),
                 _InfoPill(label: 'Explain'),
               ]),
@@ -742,7 +774,7 @@ class _RecommendTabState extends State<RecommendTab> {
       if (response.usedFallback) ...[
         _FallbackBanner(
             message:
-                'Using advanced offline recommendations — AI backend was unavailable.'),
+                'Using semantic offline recommendations from local destination and stay data.'),
         const SizedBox(height: 14),
       ],
       _buildSummaryRow(),
@@ -1008,6 +1040,220 @@ class _FallbackBanner extends StatelessWidget {
                     color: cs.onTertiaryContainer,
                     fontWeight: FontWeight.w600))),
       ]),
+    );
+  }
+}
+
+class _RecommendationInsightStrip extends StatelessWidget {
+  final UnifiedRecommendationResult result;
+  final List<Accommodation> accommodations;
+  final Color color;
+
+  const _RecommendationInsightStrip({
+    required this.result,
+    required this.accommodations,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final topSignals = [...result.components.signals()]
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final visibleSignals = topSignals.take(3).toList();
+    final topStay = accommodations.isEmpty ? null : accommodations.first;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.7)),
+          bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.7)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _InsightMetric(
+                icon: Icons.percent_rounded,
+                label: 'Match',
+                value: '${(result.score * 100).round()}%',
+                color: color,
+              ),
+              _InsightMetric(
+                icon: result.mode == RecommendationMode.offline
+                    ? Icons.offline_bolt_rounded
+                    : result.mode == RecommendationMode.cached
+                        ? Icons.history_rounded
+                        : Icons.auto_awesome_rounded,
+                label: 'Mode',
+                value: _modeLabel(result.mode),
+                color: color,
+              ),
+              _InsightMetric(
+                icon: Icons.bed_rounded,
+                label: 'Stays',
+                value: accommodations.isEmpty
+                    ? 'None listed'
+                    : '${accommodations.length} nearby',
+                color: color,
+              ),
+            ],
+          ),
+          if (topStay != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.hotel_rounded, size: 17, color: color),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Best nearby stay: ${topStay.name}${_stayMeta(topStay)}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          height: 1.35,
+                          color: cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (visibleSignals.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: visibleSignals.map((signal) {
+                return _SignalChip(
+                  label: signal.label,
+                  value: signal.value,
+                  color: color,
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _modeLabel(RecommendationMode mode) {
+    switch (mode) {
+      case RecommendationMode.ai:
+        return 'AI';
+      case RecommendationMode.cached:
+        return 'Cached';
+      case RecommendationMode.offline:
+        return 'Offline';
+    }
+  }
+
+  String _stayMeta(Accommodation stay) {
+    final parts = [
+      stay.type,
+      stay.priceRange,
+    ]
+        .where((value) => value != null && value.trim().isNotEmpty)
+        .cast<String>()
+        .map(_titleCase)
+        .toList();
+    return parts.isEmpty ? '' : ' - ${parts.join(', ')}';
+  }
+
+  String _titleCase(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return trimmed;
+    return trimmed[0].toUpperCase() + trimmed.substring(1).toLowerCase();
+  }
+}
+
+class _InsightMetric extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _InsightMetric({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Text(
+            '$label: ',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignalChip extends StatelessWidget {
+  final String label;
+  final double value;
+  final Color color;
+
+  const _SignalChip({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$label ${(value * 100).round()}%',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+      ),
     );
   }
 }

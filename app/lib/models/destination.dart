@@ -23,6 +23,7 @@ class Destination {
   final double? longitude;
 
   final List<String> tags;
+  final List<String> images;
   final String source;
   final String confidence;
 
@@ -46,6 +47,7 @@ class Destination {
     this.latitude,
     this.longitude,
     required this.tags,
+    this.images = const [],
     required this.source,
     required this.confidence,
   });
@@ -96,6 +98,14 @@ class Destination {
           .toList();
     }
 
+    final parsedImages = toStringList(json['images']);
+    final legacyImage = (json['image'] ?? '').toString().trim();
+    final images = parsedImages.isNotEmpty
+        ? parsedImages
+        : legacyImage.isNotEmpty
+            ? [legacyImage]
+            : <String>[];
+
     return Destination(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] ?? '').toString(),
@@ -118,6 +128,7 @@ class Destination {
       latitude: toDouble(json['latitude']),
       longitude: toDouble(json['longitude']),
       tags: toStringList(json['tags']),
+      images: images,
       source: (json['source'] ?? '').toString(),
       confidence: (json['confidence'] ?? '').toString(),
     );
@@ -144,6 +155,7 @@ class Destination {
       'latitude': latitude,
       'longitude': longitude,
       'tags': tags,
+      'images': images,
       'source': source,
       'confidence': confidence,
     };
@@ -205,6 +217,7 @@ class Destination {
     double? latitude,
     double? longitude,
     List<String>? tags,
+    List<String>? images,
     String? source,
     String? confidence,
   }) {
@@ -228,6 +241,7 @@ class Destination {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       tags: tags ?? this.tags,
+      images: images ?? this.images,
       source: source ?? this.source,
       confidence: confidence ?? this.confidence,
     );

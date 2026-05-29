@@ -233,7 +233,7 @@ class RecommendationManager {
           offlineResults.map(UnifiedRecommendationResult.fromOffline).toList(),
       indicatorLabel: 'Advanced Offline Mode',
       message:
-          'Using local TF-IDF recommendations with contextual scoring and local user personalization.',
+          'Using offline semantic embeddings, contextual scoring, nearby stays, and local personalization.',
       usedFallback: true,
     );
   }

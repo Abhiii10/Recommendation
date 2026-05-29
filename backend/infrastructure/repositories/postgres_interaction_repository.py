@@ -38,13 +38,15 @@ class PostgresInteractionRepository(InteractionRepository):
 
     def get_all(self) -> List[Interaction]:
         with self._connect() as connection:
-            rows = connection.execute(
-                """
-                SELECT user_id, destination_id, event_type, value, event_timestamp
-                FROM interactions
-                ORDER BY id ASC
-                """
-            ).fetchall()
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT user_id, destination_id, event_type, value, event_timestamp
+                    FROM interactions
+                    ORDER BY id ASC
+                    """
+                )
+                rows = cur.fetchall()
 
         return [
             Interaction(
@@ -61,21 +63,22 @@ class PostgresInteractionRepository(InteractionRepository):
         event_timestamp = interaction.timestamp or datetime.now(timezone.utc).isoformat()
 
         with self._connect() as connection:
-            connection.execute(
-                """
-                INSERT INTO interactions (
-                    user_id, destination_id, event_type, value, event_timestamp
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO interactions (
+                        user_id, destination_id, event_type, value, event_timestamp
+                    )
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        interaction.user_id,
+                        interaction.destination_id,
+                        interaction.event_type,
+                        float(interaction.value),
+                        event_timestamp,
+                    ),
                 )
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (
-                    interaction.user_id,
-                    interaction.destination_id,
-                    interaction.event_type,
-                    float(interaction.value),
-                    event_timestamp,
-                ),
-            )
             connection.commit()
 
     def _connect(self) -> Any:
@@ -92,94 +95,95 @@ class PostgresInteractionRepository(InteractionRepository):
 
     def _ensure_schema(self) -> None:
         with self._connect() as connection:
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS destinations (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    district TEXT,
-                    province TEXT,
-                    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS destinations (
+                        id TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        district TEXT,
+                        province TEXT,
+                        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS accommodations (
-                    id TEXT PRIMARY KEY,
-                    destination_id TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS accommodations (
+                        id TEXT PRIMARY KEY,
+                        destination_id TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users (
-                    id TEXT PRIMARY KEY,
-                    username TEXT NOT NULL,
-                    email TEXT,
-                    is_synthetic BOOLEAN NOT NULL DEFAULT FALSE,
-                    preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS users (
+                        id TEXT PRIMARY KEY,
+                        username TEXT NOT NULL,
+                        email TEXT,
+                        is_synthetic BOOLEAN NOT NULL DEFAULT FALSE,
+                        preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS interactions (
-                    id BIGSERIAL PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    destination_id TEXT NOT NULL,
-                    event_type TEXT NOT NULL,
-                    value DOUBLE PRECISION NOT NULL DEFAULT 1.0,
-                    event_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS interactions (
+                        id BIGSERIAL PRIMARY KEY,
+                        user_id TEXT NOT NULL,
+                        destination_id TEXT NOT NULL,
+                        event_type TEXT NOT NULL,
+                        value DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+                        event_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
-            connection.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_interactions_user_destination
-                ON interactions(user_id, destination_id)
-                """
-            )
-            connection.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_interactions_destination_event
-                ON interactions(destination_id, event_type)
-                """
-            )
-            connection.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_interactions_event_timestamp
-                ON interactions(event_type, event_timestamp DESC)
-                """
-            )
-            connection.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_interactions_user_timestamp
-                ON interactions(user_id, event_timestamp DESC)
-                """
-            )
-            connection.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_interactions_destination_timestamp
-                ON interactions(destination_id, event_timestamp DESC)
-                """
-            )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_interactions_user_destination
+                    ON interactions(user_id, destination_id)
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_interactions_destination_event
+                    ON interactions(destination_id, event_type)
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_interactions_event_timestamp
+                    ON interactions(event_type, event_timestamp DESC)
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_interactions_user_timestamp
+                    ON interactions(user_id, event_timestamp DESC)
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_interactions_destination_timestamp
+                    ON interactions(destination_id, event_timestamp DESC)
+                    """
+                )
             connection.commit()
 
     def _seed_from_json_if_empty(self) -> None:
         with self._connect() as connection:
-            row = connection.execute(
-                "SELECT COUNT(*) AS count FROM interactions"
-            ).fetchone()
+            with connection.cursor() as cur:
+                cur.execute("SELECT COUNT(*) AS count FROM interactions")
+                row = cur.fetchone()
 
             if row["count"]:
                 return
@@ -189,27 +193,31 @@ class PostgresInteractionRepository(InteractionRepository):
             if not seed_items:
                 return
 
-            connection.executemany(
-                """
-                INSERT INTO interactions (
-                    user_id, destination_id, event_type, value, event_timestamp
-                )
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                [
-                    (
-                        item.get("user_id", ""),
-                        item.get("destination_id", ""),
-                        item.get("event_type", ""),
-                        float(item.get("value", 1.0) or 1.0),
-                        item.get("timestamp") or datetime.now(timezone.utc).isoformat(),
+            
+            with connection.cursor() as cur:
+                cur.executemany(
+                    """
+                    INSERT INTO interactions (
+                        user_id, destination_id, event_type, value, event_timestamp
                     )
-                    for item in seed_items
-                    if item.get("user_id")
-                    and item.get("destination_id")
-                    and item.get("event_type")
-                ],
-            )
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    
+            
+                    [
+                        (
+                            item.get("user_id", ""),
+                            item.get("destination_id", ""),
+                            item.get("event_type", ""),
+                            float(item.get("value", 1.0) or 1.0),
+                            item.get("timestamp") or datetime.now(timezone.utc).isoformat(),
+                        )
+                        for item in seed_items
+                        if item.get("user_id")
+                        and item.get("destination_id")
+                        and item.get("event_type")
+                    ],
+                )
             connection.commit()
 
     def _timestamp_to_string(self, value: Any) -> str | None:

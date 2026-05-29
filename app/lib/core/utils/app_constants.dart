@@ -6,7 +6,7 @@ abstract final class AppConstants {
   static const String accommodationsAsset = 'assets/data/accommodations.json';
   static const String similarPlacesAsset = 'assets/data/recommendations.json';
 
-  static const int offlineRetrieveTopK = 20;
+  static const int offlineRetrieveTopK = 60;
 
   static const double retrievalTextWeight = 0.70;
   static const double retrievalNumericWeight = 0.30;

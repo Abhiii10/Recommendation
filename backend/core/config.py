@@ -1,10 +1,12 @@
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+AUTH_SECRET_PLACEHOLDER = "change-this-auth-secret-in-production"
 
 
 class Settings(BaseSettings):
@@ -62,7 +64,7 @@ class Settings(BaseSettings):
     interaction_storage_backend: str = "sqlite"
     database_url: str = ""
     auth_users_file: Path = data_dir / "auth_users.json"
-    auth_secret_key: str = "change-this-auth-secret-in-production"
+    auth_secret_key: str = AUTH_SECRET_PLACEHOLDER
     auth_access_token_expire_minutes: int = 60 * 24 * 30
 
     # ── ML ranker settings ────────────────────────────────────────────────────
@@ -79,6 +81,20 @@ class Settings(BaseSettings):
         env_prefix="",
         extra="ignore",
     )
+
+    @model_validator(mode="after")
+    def validate_auth_secret(self) -> "Settings":
+        secret = self.auth_secret_key.strip()
+
+        if not secret or secret == AUTH_SECRET_PLACEHOLDER:
+            raise ValueError(
+                "AUTH_SECRET_KEY must be set to a secure random value before "
+                "starting the backend. Run `python scripts/setup_env.py` or "
+                "set AUTH_SECRET_KEY in backend/.env."
+            )
+
+        self.auth_secret_key = secret
+        return self
 
 
 settings = Settings()

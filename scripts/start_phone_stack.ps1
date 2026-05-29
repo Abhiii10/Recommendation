@@ -80,6 +80,56 @@ function Set-EnvValue {
   Set-Content -LiteralPath $Path -Value $lines
 }
 
+function Test-PortAvailable {
+  param([Parameter(Mandatory = $true)][int] $Port)
+
+  $listener = $null
+  try {
+    $listener = [System.Net.Sockets.TcpListener]::new(
+      [System.Net.IPAddress]::Any,
+      $Port
+    )
+    $listener.Start()
+    return $true
+  } catch {
+    return $false
+  } finally {
+    if ($listener) {
+      $listener.Stop()
+    }
+  }
+}
+
+function Test-BackendHealth {
+  param([Parameter(Mandatory = $true)][int] $Port)
+
+  try {
+    Invoke-WebRequest -Uri "http://127.0.0.1:$Port/health" -UseBasicParsing -TimeoutSec 2 | Out-Null
+    return $true
+  } catch {
+    return $false
+  }
+}
+
+if (-not (Test-PortAvailable -Port $BackendPort) -and -not (Test-BackendHealth -Port $BackendPort)) {
+  $requestedPort = $BackendPort
+  $fallbackPort = $null
+
+  foreach ($candidate in 8001..8010) {
+    if (Test-PortAvailable -Port $candidate) {
+      $fallbackPort = $candidate
+      break
+    }
+  }
+
+  if (-not $fallbackPort) {
+    throw "No free backend port found from $requestedPort, 8001-8010."
+  }
+
+  $BackendPort = $fallbackPort
+  Write-Host "Port $requestedPort in use, starting on port $BackendPort" -ForegroundColor Yellow
+}
+
 if (-not $BackendUrl.Trim()) {
   $BackendUrl = "http://$(Get-LanIPv4):$BackendPort"
 }
@@ -103,7 +153,7 @@ try {
 if (-not $backendReady) {
   Write-Host "Starting backend on 0.0.0.0:$BackendPort..." -ForegroundColor Cyan
   $arguments = @(
-    '-m', 'uvicorn', 'backend.main:app',
+    '-m', 'backend.main',
     '--host', '0.0.0.0',
     '--port', $BackendPort.ToString()
   )

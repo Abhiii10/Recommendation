@@ -8,8 +8,9 @@ import '../domain/entities/user_profile.dart';
 import '../domain/repositories/user_profile_repository.dart';
 import '../models/destination.dart';
 import 'auth_session_service.dart';
+import 'destination_affinity_provider.dart';
 
-class UserProfileService {
+class UserProfileService implements DestinationAffinityProvider {
   final UserProfileRepository _repository;
 
   UserProfile _cachedProfile = UserProfile.empty();
@@ -91,6 +92,7 @@ class UserProfileService {
     );
   }
 
+  @override
   double affinityBoostFor(Destination dest) {
     if (!_isWarm || isColdStart) return 0.0;
 

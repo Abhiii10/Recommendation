@@ -36,7 +36,9 @@ class _DestinationImageState extends State<DestinationImage> {
   void didUpdateWidget(covariant DestinationImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.destination.id != widget.destination.id ||
-        oldWidget.destination.name != widget.destination.name) {
+        oldWidget.destination.name != widget.destination.name ||
+        _imagesChanged(
+            oldWidget.destination.images, widget.destination.images)) {
       _resolveImage();
     }
   }
@@ -67,6 +69,16 @@ class _DestinationImageState extends State<DestinationImage> {
       _networkUrl = null;
     });
 
+    final configuredUrl = _firstConfiguredImage();
+    if (configuredUrl != null) {
+      if (!mounted || requestId != _requestId) return;
+      setState(() {
+        _networkUrl = configuredUrl;
+        _loading = false;
+      });
+      return;
+    }
+
     final url = await ImageCacheService.instance.resolveNetworkUrl(
       widget.destination.name,
       destinationId: widget.destination.id,
@@ -77,6 +89,22 @@ class _DestinationImageState extends State<DestinationImage> {
       _networkUrl = url;
       _loading = false;
     });
+  }
+
+  String? _firstConfiguredImage() {
+    for (final url in widget.destination.images) {
+      final trimmed = url.trim();
+      if (trimmed.isNotEmpty) return trimmed;
+    }
+    return null;
+  }
+
+  bool _imagesChanged(List<String> oldImages, List<String> newImages) {
+    if (oldImages.length != newImages.length) return true;
+    for (var index = 0; index < oldImages.length; index++) {
+      if (oldImages[index] != newImages[index]) return true;
+    }
+    return false;
   }
 
   Widget _localFallback() {

@@ -51,6 +51,7 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   TileProvider? _offlineTileProvider;
   bool _offlineTileLoadAttempted = false;
+  bool _offlineTilesUnavailableNoticeShown = false;
   Destination? _selectedDestination;
 
   @override
@@ -139,6 +140,15 @@ class _MapScreenState extends State<MapScreen> {
       _offlineTileProvider = provider;
       _offlineTileLoadAttempted = true;
     });
+
+    if (provider == null && !_offlineTilesUnavailableNoticeShown) {
+      _offlineTilesUnavailableNoticeShown = true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Offline maps unavailable — using online tiles'),
+        ),
+      );
+    }
   }
 
   @override

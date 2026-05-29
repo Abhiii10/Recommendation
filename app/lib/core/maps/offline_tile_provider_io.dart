@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
@@ -16,6 +17,14 @@ Future<TileProvider?> createOfflineTileProvider() async {
   final mbtilesPath = await _ensureMbTilesFile();
 
   if (mbtilesPath == null) {
+    return null;
+  }
+
+  final mbtilesFile = File(mbtilesPath);
+  if (!mbtilesFile.existsSync() || mbtilesFile.lengthSync() == 0) {
+    debugPrint(
+      'WARNING: Offline MBTiles file is empty or missing; using online tiles.',
+    );
     return null;
   }
 

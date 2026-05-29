@@ -1,0 +1,8 @@
+{
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "[dotenv]": {
+    "files.encoding": "utf8",
+    "files.eol": "\n"
+  }
+}

@@ -268,8 +268,13 @@ From the project root:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+python scripts/setup_env.py
+python -m backend.main --host 0.0.0.0 --port 8000
 ```
+
+If port `8000` is already occupied, the backend launcher tries `8001` through
+`8010` and prints the selected port. You can still override the first attempted
+port with `--port`.
 
 Backend health check:
 
@@ -381,7 +386,7 @@ python -m compileall backend
 ### Run Backend
 
 ```powershell
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+python -m backend.main --host 0.0.0.0 --port 8000
 ```
 
 ### Run Flutter
@@ -557,6 +562,49 @@ AUTH_USERS_FILE=data/auth_users.json
 
 ---
 
+## Windows Setup Note
+
+Docker Compose can fail on Windows when `.env` files are saved as UTF-8 with a
+BOM or with CRLF line endings. The first hidden BOM character can make Compose
+read the first key as something like `\ufeffAI_BACKEND_BASE_URL`, which produces:
+
+```text
+line 1: unexpected character "\ufeff" in variable name
+```
+
+Before running Docker Compose on Windows, normalize all `.env` files:
+
+```powershell
+.\scripts\fix_env.ps1
+docker compose up --build
+```
+
+Developers not using PowerShell can run the Python version:
+
+```bash
+python scripts/fix_env.py
+docker compose up --build
+```
+
+VS Code is configured in `.vscode/settings.json` to save files as UTF-8 without
+BOM and with LF endings:
+
+```json
+{
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "[dotenv]": {
+    "files.encoding": "utf8",
+    "files.eol": "\n"
+  }
+}
+```
+
+The repository also includes `.gitattributes` rules so Git keeps env and config
+files LF-normalized.
+
+---
+
 ## Docker Runtime
 
 Phase 4 adds a Docker Compose runtime for the production-style backend stack:
@@ -571,6 +619,7 @@ FastAPI backend
 Start the backend and database:
 
 ```bash
+python scripts/setup_env.py
 docker compose up --build
 ```
 

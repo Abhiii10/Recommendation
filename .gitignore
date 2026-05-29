@@ -19,7 +19,8 @@ build/
 coverage/
 
 # IDE
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 *.iml
 

@@ -12,6 +12,8 @@ class OfflineStorage {
   static const String legacyDestinationsPath = 'assets/data/destinations.json';
   static const String accommodationsPath = 'assets/data/accommodations.json';
   static const String similarPlacesPath = 'assets/data/recommendations.json';
+  static const String destinationEmbeddingsPath =
+      'assets/embeddings/destination_embeddings.json';
 
   static Future<List<Destination>> loadDestinations() async {
     String raw;
@@ -36,6 +38,15 @@ class OfflineStorage {
       loadSimilarPlaces() async {
     final raw = await rootBundle.loadString(similarPlacesPath);
     return compute(_parseSimilarPlacesJson, raw);
+  }
+
+  static Future<Map<String, List<double>>> loadDestinationEmbeddings() async {
+    try {
+      final raw = await rootBundle.loadString(destinationEmbeddingsPath);
+      return compute(_parseDestinationEmbeddingsJson, raw);
+    } catch (_) {
+      return const {};
+    }
   }
 }
 
@@ -64,6 +75,31 @@ Map<String, List<Map<String, dynamic>>> _parseSimilarPlacesJson(String raw) {
     out[key.toString()] = value is List
         ? value.map((item) => Map<String, dynamic>.from(item as Map)).toList()
         : <Map<String, dynamic>>[];
+  });
+
+  return out;
+}
+
+Map<String, List<double>> _parseDestinationEmbeddingsJson(String raw) {
+  final decoded = jsonDecode(raw);
+
+  if (decoded is! Map) {
+    throw Exception('Unexpected destination embeddings JSON format.');
+  }
+
+  final entries = decoded['entries'];
+  if (entries is! Map) {
+    throw Exception('Destination embeddings JSON is missing entries.');
+  }
+
+  final out = <String, List<double>>{};
+  entries.forEach((key, value) {
+    if (value is List) {
+      out[key.toString()] = value
+          .whereType<num>()
+          .map((item) => item.toDouble())
+          .toList(growable: false);
+    }
   });
 
   return out;

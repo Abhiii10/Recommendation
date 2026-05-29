@@ -82,7 +82,7 @@ class RecommendationComponents {
     final items = <RecommendationSignal>[
       RecommendationSignal(
         key: 'semantic',
-        label: 'Semantic / Text',
+        label: 'Semantic Intent',
         value: semantic,
       ),
       if (includeCollaborative && hasCollaborativeSignal)

@@ -1,0 +1,25 @@
+* text=auto
+
+# Env files must stay UTF-8 without BOM and LF-only for Docker Compose.
+.env text eol=lf
+.env.* text eol=lf
+**/.env text eol=lf
+**/.env.* text eol=lf
+
+# Common config files.
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+*.properties text eol=lf
+*.dockerignore text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+
+# Scripts used by setup/deployment should also stay LF-normalized.
+*.py text eol=lf
+*.ps1 text eol=lf
+*.sh text eol=lf

@@ -39,6 +39,7 @@ class DestinationCard extends StatefulWidget {
   final String? modeLabel;
   final IconData? modeIcon;
   final Widget? trailing;
+  final Widget? insight;
   final Widget? footer;
   final List<String> badges;
   final bool? isSaved;
@@ -53,6 +54,7 @@ class DestinationCard extends StatefulWidget {
     this.modeLabel,
     this.modeIcon,
     this.trailing,
+    this.insight,
     this.footer,
     this.badges = const [],
     this.isSaved,
@@ -243,6 +245,10 @@ class _DestinationCardState extends State<DestinationCard>
                     if (widget.reasons.isNotEmpty) ...[
                       const SizedBox(height: 14),
                       _ReasonsPanel(reasons: widget.reasons, color: catColor),
+                    ],
+                    if (widget.insight != null) ...[
+                      const SizedBox(height: 14),
+                      widget.insight!,
                     ],
                     if (widget.scoreLabel != 'Saved') ...[
                       const SizedBox(height: 12),
@@ -659,16 +665,10 @@ class _ReasonsPanel extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                      Icon(
+                        _iconForReason(reason),
+                        size: 15,
+                        color: color,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -685,6 +685,29 @@ class _ReasonsPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  IconData _iconForReason(String reason) {
+    final value = reason.toLowerCase();
+    if (value.contains('embedding') || value.contains('semantic')) {
+      return Icons.psychology_alt_rounded;
+    }
+    if (value.contains('accommodation')) {
+      return Icons.bed_rounded;
+    }
+    if (value.contains('season')) {
+      return Icons.event_available_rounded;
+    }
+    if (value.contains('family')) {
+      return Icons.family_restroom_rounded;
+    }
+    if (value.contains('budget')) {
+      return Icons.savings_rounded;
+    }
+    if (value.contains('quality')) {
+      return Icons.verified_rounded;
+    }
+    return Icons.check_circle_rounded;
   }
 }
 
@@ -722,11 +745,16 @@ class _ScorePromptRow extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              'Why this? >',
+              'View score details',
               style: TextStyle(
                 fontSize: 11,
                 color: cs.primary.withValues(alpha: 0.7),
               ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_up_rounded,
+              size: 16,
+              color: cs.primary.withValues(alpha: 0.7),
             ),
           ],
         ),

@@ -11,7 +11,7 @@ import '../models/destination.dart';
 import '../services/interaction_sync_service.dart';
 import '../services/local_data_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/destination_gallery.dart';
+import '../widgets/destination_image_gallery.dart';
 import '../widgets/rating_widget.dart';
 import '../widgets/review_bottom_sheet.dart';
 
@@ -148,8 +148,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
         children: [
           Hero(
             tag: 'dest-image-${destination.id}',
-            child: DestinationGallery(
-              destination: destination,
+            child: DestinationImageGallery(
+              images: destination.images,
               height: 300,
             ),
           ),

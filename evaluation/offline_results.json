@@ -1,0 +1,1529 @@
+{
+  "generated_at": "2026-05-28T19:55:28.446432Z",
+  "k": 10,
+  "dataset": {
+    "destinations": 300,
+    "accommodations": 771,
+    "destination_embeddings": 300,
+    "province": "Gandaki"
+  },
+  "engine": {
+    "name": "Advanced Offline Hybrid Recommender",
+    "retrieval": "TF-IDF + BM25 + offline semantic embeddings + numeric profile + quality/accommodation priors",
+    "ranking": "contextual scoring + embedding similarity + quality/popularity + local personalization + diversity",
+    "baseline": "basic exact keyword and filter matcher"
+  },
+  "aggregate": {
+    "destination_count": 300,
+    "accommodation_count": 771,
+    "profile_count": 8,
+    "catalog_coverage": 0.23,
+    "district_coverage": 1.0,
+    "category_coverage": 0.875,
+    "baseline_catalog_coverage": 0.2033,
+    "baseline_district_coverage": 1.0,
+    "baseline_category_coverage": 1.0,
+    "average_metrics": {
+      "precision": 1.0,
+      "recall": 0.0387,
+      "ndcg": 0.9252,
+      "mrr": 1.0
+    },
+    "average_baseline_metrics": {
+      "precision": 1.0,
+      "recall": 0.0387,
+      "ndcg": 0.8376,
+      "mrr": 1.0
+    }
+  },
+  "profiles": [
+    {
+      "profile": {
+        "key": "family_lake_escape",
+        "name": "Family lake escape",
+        "activity": "boating",
+        "budget": "budget",
+        "season": "spring",
+        "vibe": "family",
+        "family_friendly": true,
+        "adventure_level": 1,
+        "description": "Low-cost, easy, family-friendly lakeside recommendation.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.034,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.034,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 10
+      },
+      "baseline_top_ids": [
+        "dest_054",
+        "dest_117",
+        "dest_048",
+        "dest_053",
+        "dest_055",
+        "dest_115",
+        "dest_049",
+        "dest_007",
+        "dest_272",
+        "dest_190"
+      ],
+      "top_results": [
+        {
+          "id": "dest_115",
+          "name": "Bahunthan Hill",
+          "district": "Syangja",
+          "category": "boating",
+          "score": 0.8101,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (19%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_007",
+          "name": "Rupa Lake",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.777,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_179",
+          "name": "Dudhpokhari",
+          "district": "Lamjung",
+          "category": "boating",
+          "score": 0.775,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_053",
+          "name": "Phewa Lake",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.7726,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_049",
+          "name": "Davis Falls (Patale Chhango)",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.7653,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_006",
+          "name": "Begnas Lake",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.7648,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_076",
+          "name": "Dhumba Lake",
+          "district": "Mustang",
+          "category": "boating",
+          "score": 0.7621,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_048",
+          "name": "World Peace Pagoda",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.7613,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_190",
+          "name": "Ilam Pokhari Lamjung",
+          "district": "Lamjung",
+          "category": "boating",
+          "score": 0.7613,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_117",
+          "name": "Suntalabari",
+          "district": "Syangja",
+          "category": "boating",
+          "score": 0.7612,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "high_adventure_trek",
+        "name": "High adventure trek",
+        "activity": "trekking",
+        "budget": "medium",
+        "season": "autumn",
+        "vibe": "adventure",
+        "family_friendly": false,
+        "adventure_level": 5,
+        "description": "Demanding mountain routes for adventure travelers.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0383,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0383,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 10
+      },
+      "baseline_top_ids": [
+        "dest_041",
+        "dest_082",
+        "dest_025",
+        "dest_071",
+        "dest_012",
+        "dest_008",
+        "dest_042",
+        "dest_122",
+        "dest_271",
+        "dest_231"
+      ],
+      "top_results": [
+        {
+          "id": "dest_042",
+          "name": "Larkya La Pass",
+          "district": "Gorkha",
+          "category": "trekking",
+          "score": 0.7784,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (17%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (16%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_241",
+          "name": "Devchuli Trail",
+          "district": "Nawalpur",
+          "category": "trekking",
+          "score": 0.7732,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_239",
+          "name": "Gaindakot",
+          "district": "Nawalpur",
+          "category": "trekking",
+          "score": 0.7584,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_235",
+          "name": "Hupsekot",
+          "district": "Nawalpur",
+          "category": "trekking",
+          "score": 0.758,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_197",
+          "name": "Thorong La Pass",
+          "district": "Manang",
+          "category": "trekking",
+          "score": 0.7571,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_183",
+          "name": "Bahundanda",
+          "district": "Lamjung",
+          "category": "trekking",
+          "score": 0.7569,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_298",
+          "name": "Bhanu Danda",
+          "district": "Tanahun",
+          "category": "trekking",
+          "score": 0.7567,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_287",
+          "name": "Mirlungkot",
+          "district": "Tanahun",
+          "category": "trekking",
+          "score": 0.7564,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_301",
+          "name": "Kotre",
+          "district": "Tanahun",
+          "category": "trekking",
+          "score": 0.7558,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_131",
+          "name": "Hemjakot",
+          "district": "Kaski",
+          "category": "trekking",
+          "score": 0.7542,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "cultural_homestay",
+        "name": "Cultural homestay",
+        "activity": "culture",
+        "budget": "budget",
+        "season": "spring",
+        "vibe": "cultural",
+        "family_friendly": true,
+        "adventure_level": 2,
+        "description": "Village culture, homestay, food, and accessible local life.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0346,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0346,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 10
+      },
+      "baseline_top_ids": [
+        "dest_107",
+        "dest_054",
+        "dest_057",
+        "dest_061",
+        "dest_002",
+        "dest_023",
+        "dest_024",
+        "dest_027",
+        "dest_029",
+        "dest_036"
+      ],
+      "top_results": [
+        {
+          "id": "dest_101",
+          "name": "Khasur Village",
+          "district": "Lamjung",
+          "category": "village",
+          "score": 0.804,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_058",
+          "name": "International Mountain Museum",
+          "district": "Kaski",
+          "category": "cultural",
+          "score": 0.7991,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_009",
+          "name": "Marpha",
+          "district": "Mustang",
+          "category": "pilgrimage",
+          "score": 0.7455,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_024",
+          "name": "Laprak",
+          "district": "Gorkha",
+          "category": "village",
+          "score": 0.7643,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_094",
+          "name": "Maharajathan Temple",
+          "district": "Nawalpur",
+          "category": "pilgrimage",
+          "score": 0.7454,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_001",
+          "name": "Ghandruk",
+          "district": "Kaski",
+          "category": "trekking",
+          "score": 0.7401,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_015",
+          "name": "Ghalegaun",
+          "district": "Lamjung",
+          "category": "cultural",
+          "score": 0.7701,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_100",
+          "name": "Kaulepani",
+          "district": "Lamjung",
+          "category": "village",
+          "score": 0.759,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_223",
+          "name": "Shikha Village",
+          "district": "Myagdi",
+          "category": "village",
+          "score": 0.7576,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_224",
+          "name": "Dagnam Village",
+          "district": "Myagdi",
+          "category": "village",
+          "score": 0.7576,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "pilgrimage_route",
+        "name": "Pilgrimage route",
+        "activity": "pilgrimage",
+        "budget": "budget",
+        "season": "winter",
+        "vibe": "spiritual",
+        "family_friendly": true,
+        "adventure_level": 1,
+        "description": "Budget spiritual sites with family-friendly access.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0463,
+        "ndcg": 1.0,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0463,
+        "ndcg": 0.9621,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 10
+      },
+      "baseline_top_ids": [
+        "dest_054",
+        "dest_057",
+        "dest_061",
+        "dest_107",
+        "dest_002",
+        "dest_027",
+        "dest_029",
+        "dest_030",
+        "dest_043",
+        "dest_086"
+      ],
+      "top_results": [
+        {
+          "id": "dest_091",
+          "name": "Matepani Gumba",
+          "district": "Kaski",
+          "category": "pilgrimage",
+          "score": 0.8391,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (18%)",
+            "Feature profile matches your preferred trip style (17%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_173",
+          "name": "Ramrekha Dham",
+          "district": "Baglung",
+          "category": "pilgrimage",
+          "score": 0.817,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (18%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_158",
+          "name": "Jaimini Dham",
+          "district": "Baglung",
+          "category": "pilgrimage",
+          "score": 0.8151,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (18%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_096",
+          "name": "Shashwat Dham",
+          "district": "Nawalpur",
+          "category": "pilgrimage",
+          "score": 0.8104,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_061",
+          "name": "Galeshwor Dham",
+          "district": "Myagdi",
+          "category": "pilgrimage",
+          "score": 0.8089,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_237",
+          "name": "Maulakalika Temple",
+          "district": "Nawalpur",
+          "category": "pilgrimage",
+          "score": 0.8065,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (17%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_030",
+          "name": "Devghat Dham",
+          "district": "Tanahun",
+          "category": "pilgrimage",
+          "score": 0.8057,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_095",
+          "name": "Triveni Dham (Nawalpur)",
+          "district": "Nawalpur",
+          "category": "pilgrimage",
+          "score": 0.8054,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_029",
+          "name": "Baglung Kalika Temple",
+          "district": "Baglung",
+          "category": "pilgrimage",
+          "score": 0.8039,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_098",
+          "name": "Daunne Devi Temple",
+          "district": "Nawalpur",
+          "category": "pilgrimage",
+          "score": 0.7982,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "wildlife_nature",
+        "name": "Wildlife and nature",
+        "activity": "wildlife",
+        "budget": "budget",
+        "season": "autumn",
+        "vibe": "nature",
+        "family_friendly": false,
+        "adventure_level": 2,
+        "description": "Community forests, birding, river plains, and lowland nature.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0442,
+        "ndcg": 0.9535,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0442,
+        "ndcg": 0.8637,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 2,
+        "3": 8
+      },
+      "baseline_top_ids": [
+        "dest_092",
+        "dest_248",
+        "dest_247",
+        "dest_097",
+        "dest_037",
+        "dest_114",
+        "dest_007",
+        "dest_026",
+        "dest_044",
+        "dest_122"
+      ],
+      "top_results": [
+        {
+          "id": "dest_248",
+          "name": "Namuna Community Forest",
+          "district": "Nawalpur",
+          "category": "wildlife",
+          "score": 0.8197,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (21%)",
+            "Feature profile matches your preferred trip style (16%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_037",
+          "name": "Landruk",
+          "district": "Kaski",
+          "category": "wildlife",
+          "score": 0.7995,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (18%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_247",
+          "name": "Kumarwarti Buffer Zone",
+          "district": "Nawalpur",
+          "category": "wildlife",
+          "score": 0.8105,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (20%)",
+            "Feature profile matches your preferred trip style (17%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_097",
+          "name": "Devchuli Hill",
+          "district": "Nawalpur",
+          "category": "wildlife",
+          "score": 0.7929,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (18%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_114",
+          "name": "Dhyanakyu Village",
+          "district": "Manang",
+          "category": "wildlife",
+          "score": 0.7859,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (18%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_007",
+          "name": "Rupa Lake",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.7414,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_122",
+          "name": "Khumai Danda",
+          "district": "Kaski",
+          "category": "wildlife",
+          "score": 0.7538,
+          "grade": 3,
+          "reasons": [
+            "Strong offline semantic match to your travel profile (19%)",
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_031",
+          "name": "Amaltari Homestay",
+          "district": "Nawalpur",
+          "category": "wildlife",
+          "score": 0.7378,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_044",
+          "name": "Khopra Danda",
+          "district": "Myagdi",
+          "category": "wildlife",
+          "score": 0.7317,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (18%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_182",
+          "name": "Marsyangdi Valley",
+          "district": "Lamjung",
+          "category": "nature",
+          "score": 0.6922,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "scenic_photography",
+        "name": "Scenic photography",
+        "activity": "photography",
+        "budget": "medium",
+        "season": "autumn",
+        "vibe": "scenic",
+        "family_friendly": true,
+        "adventure_level": 2,
+        "description": "Viewpoints, sunrise, ridges, and photo-friendly landscapes.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0369,
+        "ndcg": 0.7672,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0369,
+        "ndcg": 0.7275,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 4,
+        "3": 6
+      },
+      "baseline_top_ids": [
+        "dest_033",
+        "dest_122",
+        "dest_067",
+        "dest_068",
+        "dest_105",
+        "dest_102",
+        "dest_120",
+        "dest_065",
+        "dest_113",
+        "dest_056"
+      ],
+      "top_results": [
+        {
+          "id": "dest_035",
+          "name": "Poon Hill",
+          "district": "Myagdi",
+          "category": "trekking",
+          "score": 0.8036,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_038",
+          "name": "Sarangkot",
+          "district": "Kaski",
+          "category": "trekking",
+          "score": 0.77,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_070",
+          "name": "Todke Hill",
+          "district": "Myagdi",
+          "category": "trekking",
+          "score": 0.7561,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_125",
+          "name": "Mohare Danda",
+          "district": "Myagdi",
+          "category": "trekking",
+          "score": 0.7533,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_183",
+          "name": "Bahundanda",
+          "district": "Lamjung",
+          "category": "trekking",
+          "score": 0.7412,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_134",
+          "name": "Ajirkot",
+          "district": "Gorkha",
+          "category": "trekking",
+          "score": 0.7394,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (10%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_135",
+          "name": "Sirandanda",
+          "district": "Gorkha",
+          "category": "trekking",
+          "score": 0.739,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (10%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_301",
+          "name": "Kotre",
+          "district": "Tanahun",
+          "category": "trekking",
+          "score": 0.7383,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_239",
+          "name": "Gaindakot",
+          "district": "Nawalpur",
+          "category": "trekking",
+          "score": 0.7374,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_129",
+          "name": "Manung Kot",
+          "district": "Tanahun",
+          "category": "trekking",
+          "score": 0.7374,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (16%)",
+            "Strong offline semantic match to your travel profile (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "budget_relaxation",
+        "name": "Budget relaxation",
+        "activity": "relaxation",
+        "budget": "budget",
+        "season": "winter",
+        "vibe": "peaceful",
+        "family_friendly": true,
+        "adventure_level": 1,
+        "description": "Quiet low-cost rural stays with soft nature access.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0398,
+        "ndcg": 0.8017,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0398,
+        "ndcg": 0.4286,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 4,
+        "3": 6
+      },
+      "baseline_top_ids": [
+        "dest_067",
+        "dest_068",
+        "dest_105",
+        "dest_004",
+        "dest_024",
+        "dest_036",
+        "dest_115",
+        "dest_048",
+        "dest_101",
+        "dest_053"
+      ],
+      "top_results": [
+        {
+          "id": "dest_089",
+          "name": "Pame",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.7332,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_225",
+          "name": "Chimkhola",
+          "district": "Myagdi",
+          "category": "nature",
+          "score": 0.7102,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_117",
+          "name": "Suntalabari",
+          "district": "Syangja",
+          "category": "boating",
+          "score": 0.7192,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "High quality local catalogue data (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_178",
+          "name": "Tarkughat",
+          "district": "Lamjung",
+          "category": "nature",
+          "score": 0.7027,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_268",
+          "name": "Bihadi",
+          "district": "Parbat",
+          "category": "village",
+          "score": 0.6634,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (21%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "High quality local catalogue data (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_229",
+          "name": "Singa Hot Spring",
+          "district": "Myagdi",
+          "category": "village",
+          "score": 0.6984,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_007",
+          "name": "Rupa Lake",
+          "district": "Kaski",
+          "category": "boating",
+          "score": 0.713,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_227",
+          "name": "Begkhola",
+          "district": "Myagdi",
+          "category": "nature",
+          "score": 0.709,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_273",
+          "name": "Rangkhola",
+          "district": "Syangja",
+          "category": "nature",
+          "score": 0.7032,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_282",
+          "name": "Phedikhola",
+          "district": "Syangja",
+          "category": "nature",
+          "score": 0.7013,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "key": "heritage_market_culture",
+        "name": "Heritage and market culture",
+        "activity": "culture",
+        "budget": "medium",
+        "season": "autumn",
+        "vibe": "historic",
+        "family_friendly": true,
+        "adventure_level": 1,
+        "description": "Historic towns, local markets, temples, and easy cultural walks.",
+        "top_k": 10
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.0353,
+        "ndcg": 0.8787,
+        "mrr": 1.0
+      },
+      "baseline_metrics": {
+        "precision": 1.0,
+        "recall": 0.0353,
+        "ndcg": 0.7186,
+        "mrr": 1.0
+      },
+      "grade_distribution_top_k": {
+        "0": 0,
+        "1": 0,
+        "2": 2,
+        "3": 8
+      },
+      "baseline_top_ids": [
+        "dest_058",
+        "dest_134",
+        "dest_135",
+        "dest_098",
+        "dest_017",
+        "dest_128",
+        "dest_136",
+        "dest_138",
+        "dest_139",
+        "dest_140"
+      ],
+      "top_results": [
+        {
+          "id": "dest_058",
+          "name": "International Mountain Museum",
+          "district": "Kaski",
+          "category": "cultural",
+          "score": 0.8217,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (18%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_009",
+          "name": "Marpha",
+          "district": "Mustang",
+          "category": "pilgrimage",
+          "score": 0.7448,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_128",
+          "name": "Tanahunsur",
+          "district": "Tanahun",
+          "category": "trekking",
+          "score": 0.7411,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (16%)",
+            "Offline embedding match understands related travel intent (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_101",
+          "name": "Khasur Village",
+          "district": "Lamjung",
+          "category": "village",
+          "score": 0.7328,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Offline embedding match understands related travel intent (16%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_051",
+          "name": "Gorkha Durbar",
+          "district": "Gorkha",
+          "category": "cultural",
+          "score": 0.7567,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (15%)",
+            "Offline embedding match understands related travel intent (14%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_106",
+          "name": "Bhirkot Palace",
+          "district": "Syangja",
+          "category": "trekking",
+          "score": 0.7389,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_029",
+          "name": "Baglung Kalika Temple",
+          "district": "Baglung",
+          "category": "pilgrimage",
+          "score": 0.7204,
+          "grade": 2,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (13%)",
+            "High quality local catalogue data (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_001",
+          "name": "Ghandruk",
+          "district": "Kaski",
+          "category": "trekking",
+          "score": 0.7357,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (13%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_057",
+          "name": "Bindhyabasini Temple",
+          "district": "Kaski",
+          "category": "pilgrimage",
+          "score": 0.7356,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (20%)",
+            "Strong offline semantic match to your travel profile (14%)",
+            "Offline embedding match understands related travel intent (11%)",
+            "Has multiple nearby accommodation options"
+          ]
+        },
+        {
+          "id": "dest_201",
+          "name": "Ghyaru",
+          "district": "Manang",
+          "category": "village",
+          "score": 0.7084,
+          "grade": 3,
+          "reasons": [
+            "Feature profile matches your preferred trip style (19%)",
+            "Offline embedding match understands related travel intent (15%)",
+            "Strong offline semantic match to your travel profile (12%)",
+            "Has multiple nearby accommodation options"
+          ]
+        }
+      ]
+    }
+  ]
+}

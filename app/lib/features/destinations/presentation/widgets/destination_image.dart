@@ -25,6 +25,38 @@ class DestinationImage extends StatefulWidget {
 }
 
 class _DestinationImageState extends State<DestinationImage> {
+  static const _categoryFallbacks = {
+    'trekking':
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+    'adventure':
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+    'cultural':
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+    'culture':
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+    'historic':
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+    'village':
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    'wildlife':
+        'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&q=80',
+    'boating':
+        'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=800&q=80',
+    'spiritual':
+        'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=800&q=80',
+    'pilgrimage':
+        'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=800&q=80',
+    'relaxation':
+        'https://images.unsplash.com/photo-1540206395-68808572332f?w=800&q=80',
+    'nature':
+        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+    'scenic':
+        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+  };
+
+  static const _defaultFallback =
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80';
+
   String? _assetPath;
   String? _networkUrl;
   bool _loading = true;
@@ -47,17 +79,17 @@ class _DestinationImageState extends State<DestinationImage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isWidgetTest) return _localFallback();
+    if (_isWidgetTest) return _fallbackIcon();
     if (_loading) return _shimmerPlaceholder();
 
     final assetPath = _assetPath;
     if (assetPath != null && assetPath.isNotEmpty) {
-      return Image.asset(
-        assetPath,
+      return Image(
+        image: AssetImage(assetPath),
         fit: widget.fit,
         height: widget.height,
         width: double.infinity,
-        errorBuilder: (_, __, ___) => _localFallback(),
+        errorBuilder: (_, __, ___) => _ultimateFallback(),
       );
     }
 
@@ -68,12 +100,12 @@ class _DestinationImageState extends State<DestinationImage> {
         fit: widget.fit,
         height: widget.height,
         width: double.infinity,
-        errorWidget: (_, __, ___) => _networkFallback(networkUrl),
+        errorWidget: (_, __, ___) => _ultimateFallback(),
         placeholder: (_, __) => _shimmerPlaceholder(),
       );
     }
 
-    return _networkFallback(null);
+    return _ultimateFallback();
   }
 
   Future<void> _resolveImage() async {
@@ -115,54 +147,38 @@ class _DestinationImageState extends State<DestinationImage> {
     });
   }
 
-  Widget _networkFallback(String? failedUrl) {
-    final fallbackUrl = WikiImageService.categoryFallbackUrl(widget.category);
-    if (failedUrl == fallbackUrl) return _localFallback();
-
+  Widget _ultimateFallback() {
     return CachedNetworkImage(
-      imageUrl: fallbackUrl,
+      imageUrl: _urlForCategory(widget.category),
       fit: widget.fit,
       height: widget.height,
       width: double.infinity,
       placeholder: (_, __) => _shimmerPlaceholder(),
-      errorWidget: (_, __, ___) => _localFallback(),
+      errorWidget: (_, __, ___) => _fallbackIcon(),
     );
   }
 
-  Widget _localFallback() {
-    return Image.asset(
-      _assetForCategory(widget.category),
-      fit: widget.fit,
+  Widget _fallbackIcon() {
+    return Container(
       height: widget.height,
       width: double.infinity,
-      errorBuilder: (_, __, ___) => Image.asset(
-        'assets/images/cat_nature.jpg',
-        fit: widget.fit,
-        height: widget.height,
-        width: double.infinity,
+      color: const Color(0xFF1E3A2F),
+      child: const Center(
+        child: Icon(
+          Icons.landscape_rounded,
+          color: Colors.white54,
+          size: 48,
+        ),
       ),
     );
   }
 
-  String _assetForCategory(String? category) {
+  static String _urlForCategory(String? category) {
     final c = category?.toLowerCase() ?? '';
-    if (c.contains('trek') || c.contains('adventure')) {
-      return 'assets/images/cat_trekking.jpg';
+    for (final entry in _categoryFallbacks.entries) {
+      if (c.contains(entry.key)) return entry.value;
     }
-    if (c.contains('cultur') || c.contains('histor')) {
-      return 'assets/images/cat_cultural.jpg';
-    }
-    if (c.contains('village')) return 'assets/images/cat_village.jpg';
-    if (c.contains('wild')) return 'assets/images/cat_wildlife.jpg';
-    if (c.contains('boat')) return 'assets/images/cat_boating.jpg';
-    if (c.contains('spirit') || c.contains('pilgrim')) {
-      return 'assets/images/cat_spiritual.jpg';
-    }
-    if (c.contains('relax')) return 'assets/images/cat_relaxation.jpg';
-    if (c.contains('nature') || c.contains('scenic')) {
-      return 'assets/images/cat_nature.jpg';
-    }
-    return 'assets/images/cat_nature.jpg';
+    return _defaultFallback;
   }
 
   Widget _shimmerPlaceholder() {

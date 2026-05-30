@@ -54,6 +54,28 @@ services:
       retries: 5
       start_period: 90s
 
+  image-prefetch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nepal-tourism-image-prefetch
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: >
+      sh -c "
+        if [ ! -f /app/data/destination_images.json ]; then
+          echo 'Fetching destination images...' &&
+          python backend/scripts/fetch_destination_images.py &&
+          echo 'Image fetch complete.';
+        else
+          echo 'destination_images.json already exists, skipping fetch.';
+        fi
+      "
+    volumes:
+      - ./data:/app/data
+    restart: "no"
+
 volumes:
   postgres_data:
   backend_models:

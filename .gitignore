@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
 *.pyo
 *.pyd
 .pytest_cache/
@@ -29,6 +30,8 @@ app/test/widget/failures/
 # Environment files
 .env
 .env.local
+backend/.env
+app/.env
 
 # Runtime logs / local audit output
 *.log
@@ -42,6 +45,19 @@ evaluation/*.md
 *.sqlite3-shm
 *.sqlite3-wal
 data/auth_users.json
+data/destination_images.json
+data/interactions.json
+data/users.json
+data/app.sqlite3
+
+# ML models
+models/
+
+# Flutter app build output
+app/.dart_tool/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
 
 # OS
 .DS_Store

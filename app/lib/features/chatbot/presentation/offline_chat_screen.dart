@@ -15,6 +15,8 @@ class OfflineChatScreen extends StatefulWidget {
 }
 
 class _OfflineChatScreenState extends State<OfflineChatScreen> {
+  static bool _aiProviderNoticeShownThisSession = false;
+
   static const List<({String label, String code})> _languages = [
     (label: 'English', code: 'en'),
     (label: 'Nepali', code: 'ne'),
@@ -27,6 +29,7 @@ class _OfflineChatScreenState extends State<OfflineChatScreen> {
 
   String _selectedLanguage = 'en';
   bool _isLoading = false;
+  bool _showAiProviderNotice = false;
 
   @override
   void initState() {
@@ -98,6 +101,12 @@ class _OfflineChatScreenState extends State<OfflineChatScreen> {
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        if (_isAiProviderConfigError(response.statusCode, response.body)) {
+          _showAiProviderConfigBanner();
+          return 'AI chat is in offline mode. Add GROQ_API_KEY or '
+              'GEMINI_API_KEY to backend/.env and restart Docker for full '
+              'AI responses.';
+        }
         return 'Offline chat unavailable. Check your connection to the backend.';
       }
 
@@ -126,6 +135,25 @@ class _OfflineChatScreenState extends State<OfflineChatScreen> {
         curve: Curves.easeOut,
       );
     });
+  }
+
+  bool _isAiProviderConfigError(int statusCode, String body) {
+    final lower = body.toLowerCase();
+    return statusCode == 503 ||
+        lower.contains('no ai provider configured') ||
+        lower.contains('groq_api_key') ||
+        lower.contains('gemini_api_key') ||
+        lower.contains('not configured');
+  }
+
+  void _showAiProviderConfigBanner() {
+    if (_aiProviderNoticeShownThisSession || !mounted) return;
+    _aiProviderNoticeShownThisSession = true;
+    setState(() => _showAiProviderNotice = true);
+  }
+
+  void _dismissAiProviderConfigBanner() {
+    setState(() => _showAiProviderNotice = false);
   }
 
   @override
@@ -191,6 +219,10 @@ class _OfflineChatScreenState extends State<OfflineChatScreen> {
                     backgroundColor: Colors.orange.shade100,
                     side: BorderSide.none,
                   ),
+                  if (_showAiProviderNotice) ...[
+                    const SizedBox(height: 10),
+                    _buildAiProviderNoticeBanner(),
+                  ],
                 ],
               ),
             ),
@@ -209,6 +241,37 @@ class _OfflineChatScreenState extends State<OfflineChatScreen> {
               controller: _controller,
               isLoading: _isLoading,
               onSend: _sendMessage,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiProviderNoticeBanner() {
+    final color = Colors.orange.shade700;
+
+    return Material(
+      color: Colors.orange.shade900.withValues(alpha: 0.16),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: color, size: 22),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'AI chat is in offline mode. Add GROQ_API_KEY or '
+                'GEMINI_API_KEY to backend/.env and restart Docker for '
+                'full AI responses.',
+                style: TextStyle(fontSize: 12.5, height: 1.35),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Dismiss',
+              onPressed: _dismissAiProviderConfigBanner,
+              icon: const Icon(Icons.close_rounded, size: 18),
             ),
           ],
         ),

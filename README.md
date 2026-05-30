@@ -1,8 +1,49 @@
+# Nepal Rural Tourism Recommendation System
 
-````markdown
-# 🇳🇵 Nepal Rural Tourism Recommendation System
+## Quick Start
 
-## 📌 Overview
+### Prerequisites
+- Docker Desktop running
+- Flutter SDK installed
+- Android device or emulator connected
+
+### 1. Clone and configure
+```bash
+git clone <repo>
+cd Recommendation
+cp backend/.env.example backend/.env
+# Edit backend/.env and add GROQ_API_KEY or GEMINI_API_KEY
+```
+
+### 2. Start the backend
+```bash
+docker compose up --build -d
+# Wait about 30 seconds for healthy status
+docker compose ps
+```
+
+### 3. Pre-fetch destination images first time only
+```bash
+docker compose exec backend python backend/scripts/fetch_destination_images.py
+```
+
+### 4. Run the Flutter app
+```bash
+# Find your PC IP, then edit app/.env:
+# AI_BACKEND_BASE_URL=http://YOUR_IP:8000
+ipconfig
+cd app
+flutter run
+```
+
+### 5. Verify everything works
+- Open http://localhost:8000/docs for backend API docs.
+- Open http://localhost:8000/health and expect `{"status":"ok"}`.
+- The app should load 300 destinations on the map.
+
+---
+
+## Overview
 
 The **Nepal Rural Tourism Recommendation System** is an AI-powered mobile and backend system designed to promote rural destinations in Nepal.
 
@@ -38,7 +79,7 @@ Contextual Reranking
 Diversity Filtering
         ↓
 Explainable Recommendations
-````
+```
 
 ---
 
@@ -267,6 +308,8 @@ From a fresh clone:
 ```powershell
 git clone <repo-url>
 cd Recommendation
+cp backend/.env.example backend/.env
+# Then edit backend/.env and fill in your API keys
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -299,6 +342,8 @@ From a fresh clone:
 ```bash
 git clone <repo-url>
 cd Recommendation
+cp backend/.env.example backend/.env
+# Then edit backend/.env and fill in your API keys
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -753,6 +798,3 @@ Abhiii10
 ## 📜 License
 
 This project is developed for academic purposes.
-
-````
-

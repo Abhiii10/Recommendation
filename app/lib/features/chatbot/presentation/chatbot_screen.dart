@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/l10n/app_localizations.dart';
 import 'package:rural_tourism_app/features/chatbot/domain/models/chat_message.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
@@ -31,6 +34,9 @@ class ChatbotScreen extends StatefulWidget {
 }
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
+  static bool _aiProviderNoticeShownThisSession = false;
+  static bool _aiProviderProbeCompletedThisSession = false;
+
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FlutterTts _tts = FlutterTts();
@@ -44,6 +50,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _loading = true;
   bool _botTyping = false;
   bool _ttsPlaying = false;
+  bool _showAiProviderNotice = false;
+  bool _checkingAiProvider = false;
   bool? _llmOnline;
   String? _ttsSpeaking;
 
@@ -154,6 +162,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     if (!mounted) return;
 
+    if (!likelyEmergency &&
+        response.responseMode != ChatResponseMode.onlineLlm) {
+      unawaited(_checkBackendAiProvider());
+    }
+
     setState(() {
       _messages.add(response);
       _suggestions = _service.suggestionsFromAdvanced(response);
@@ -179,6 +192,75 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     setState(() {
       _llmOnline = online;
     });
+  }
+
+  Uri _backendUri(String path) {
+    final base = backendBaseUrl.endsWith('/')
+        ? backendBaseUrl.substring(0, backendBaseUrl.length - 1)
+        : backendBaseUrl;
+    return Uri.parse('$base$path');
+  }
+
+  Future<void> _checkBackendAiProvider() async {
+    if (_checkingAiProvider ||
+        _aiProviderNoticeShownThisSession ||
+        _aiProviderProbeCompletedThisSession) {
+      return;
+    }
+
+    setState(() => _checkingAiProvider = true);
+
+    try {
+      final response = await http
+          .post(
+            _backendUri('/chat'),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'question': 'AI provider configuration check',
+              'language': 'en',
+              'top_k': 1,
+              'history': [],
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+
+      if (!mounted) return;
+
+      if (_isAiProviderConfigError(response.statusCode, response.body)) {
+        _aiProviderProbeCompletedThisSession = true;
+        _showAiProviderConfigBanner();
+        _setLlmOnline(false);
+      } else if (response.statusCode >= 200 && response.statusCode < 300) {
+        _aiProviderProbeCompletedThisSession = true;
+        _setLlmOnline(true);
+      }
+    } catch (_) {
+      // A failed probe means backend/network is unavailable, not necessarily
+      // that API keys are missing. The existing offline banner handles that.
+    } finally {
+      if (mounted) {
+        setState(() => _checkingAiProvider = false);
+      }
+    }
+  }
+
+  bool _isAiProviderConfigError(int statusCode, String body) {
+    final lower = body.toLowerCase();
+    return statusCode == 503 ||
+        lower.contains('no ai provider configured') ||
+        lower.contains('groq_api_key') ||
+        lower.contains('gemini_api_key') ||
+        lower.contains('not configured');
+  }
+
+  void _showAiProviderConfigBanner() {
+    if (_aiProviderNoticeShownThisSession || !mounted) return;
+    _aiProviderNoticeShownThisSession = true;
+    setState(() => _showAiProviderNotice = true);
+  }
+
+  void _dismissAiProviderConfigBanner() {
+    setState(() => _showAiProviderNotice = false);
   }
 
   void _scrollToBottom() {
@@ -511,6 +593,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: _buildModeBanner(),
             ),
+            if (_showAiProviderNotice)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+                child: _buildAiProviderNoticeBanner(),
+              ),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -552,7 +639,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ? 'Online LLM responses are available.'
         : _llmOnline == null
             ? 'Checking whether the AI server is reachable.'
-            : 'Backend is offline. Start FastAPI and check /health; offline fallback answers are active.';
+            : _showAiProviderNotice
+                ? 'Backend is reachable, but AI provider keys are missing.'
+                : 'Backend is offline. Start FastAPI and check /health; offline fallback answers are active.';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -615,6 +704,37 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             icon: Icon(Icons.refresh_rounded, color: color, size: 20),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAiProviderNoticeBanner() {
+    final color = Colors.orange.shade700;
+
+    return Material(
+      color: Colors.orange.shade900.withValues(alpha: 0.16),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: color, size: 22),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'AI chat is in offline mode. Add GROQ_API_KEY or '
+                'GEMINI_API_KEY to backend/.env and restart Docker for '
+                'full AI responses.',
+                style: TextStyle(fontSize: 12.5, height: 1.35),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Dismiss',
+              onPressed: _dismissAiProviderConfigBanner,
+              icon: const Icon(Icons.close_rounded, size: 18),
+            ),
+          ],
+        ),
       ),
     );
   }

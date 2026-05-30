@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
-import 'package:rural_tourism_app/core/media/image_cache_service.dart';
 import 'package:rural_tourism_app/features/destinations/presentation/widgets/destination_image.dart';
 
 class DestinationGallery extends StatefulWidget {
@@ -70,7 +69,8 @@ class _DestinationGalleryState extends State<DestinationGallery> {
               _loadingFallback()
             else if (_urls.isEmpty)
               DestinationImage(
-                destination: widget.destination,
+                destinationName: widget.destination.name,
+                category: widget.destination.primaryCategory,
                 height: widget.height,
                 fit: BoxFit.cover,
               )
@@ -86,7 +86,8 @@ class _DestinationGalleryState extends State<DestinationGallery> {
                   height: widget.height,
                   placeholder: (_, __) => _loadingFallback(),
                   errorWidget: (_, __, ___) => DestinationImage(
-                    destination: widget.destination,
+                    destinationName: widget.destination.name,
+                    category: widget.destination.primaryCategory,
                     height: widget.height,
                     fit: BoxFit.cover,
                   ),
@@ -181,30 +182,23 @@ class _DestinationGalleryState extends State<DestinationGallery> {
 
   Future<void> _loadGallery() async {
     final id = ++_requestId;
-    final urls = await ImageCacheService.instance.resolveGallery(
-      widget.destination.name,
-      destinationId: widget.destination.id,
-    );
+    final configuredUrls = widget.destination.images
+        .map((url) => url.trim())
+        .where((url) => url.isNotEmpty)
+        .toList(growable: false);
 
     if (!mounted || id != _requestId) return;
 
-    if (urls.isNotEmpty) {
+    if (configuredUrls.isNotEmpty) {
       setState(() {
-        _urls = urls;
+        _urls = configuredUrls;
         _loading = false;
       });
       return;
     }
 
-    final single = await ImageCacheService.instance.resolveNetworkUrl(
-      widget.destination.name,
-      destinationId: widget.destination.id,
-    );
-
-    if (!mounted || id != _requestId) return;
-
     setState(() {
-      _urls = single == null || single.isEmpty ? [] : [single];
+      _urls = [];
       _loading = false;
     });
   }

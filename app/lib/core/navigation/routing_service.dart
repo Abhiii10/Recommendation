@@ -11,16 +11,49 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
 import 'package:rural_tourism_app/core/navigation/models/route_result.dart';
+import 'package:rural_tourism_app/core/navigation/route_cache.dart';
+import 'package:rural_tourism_app/core/utils/haversine.dart';
 
 class RoutingService {
   final http.Client _client;
+  final RouteCache _cache;
 
-  RoutingService({http.Client? client}) : _client = client ?? http.Client();
+  RoutingService({
+    http.Client? client,
+    RouteCache? cache,
+  })  : _client = client ?? http.Client(),
+        _cache = cache ?? RouteCache.instance;
 
   Future<RouteResult?> getRoute(
     LatLng origin,
     LatLng destination, {
     TravelMode travelMode = TravelMode.driving,
+  }) async {
+    final cacheKey = _cache.buildKey(origin, destination, travelMode);
+    final cachedRoute = await _cache.get(cacheKey);
+    if (cachedRoute != null) return cachedRoute;
+
+    final onlineRoute = await _getOnlineRoute(
+      origin,
+      destination,
+      travelMode: travelMode,
+    );
+    if (onlineRoute != null) {
+      await _cache.save(cacheKey, onlineRoute);
+      return onlineRoute;
+    }
+
+    return _fallbackRoute(
+      origin,
+      destination,
+      travelMode: travelMode,
+    );
+  }
+
+  Future<RouteResult?> _getOnlineRoute(
+    LatLng origin,
+    LatLng destination, {
+    required TravelMode travelMode,
   }) async {
     try {
       final uri = Uri.parse(
@@ -104,6 +137,44 @@ class RoutingService {
     } catch (_) {
       return null;
     }
+  }
+
+  RouteResult _fallbackRoute(
+    LatLng origin,
+    LatLng destination, {
+    required TravelMode travelMode,
+  }) {
+    final distanceMeters = haversineKm(
+          origin.latitude,
+          origin.longitude,
+          destination.latitude,
+          destination.longitude,
+        ) *
+        1000;
+    final speedKmh = switch (travelMode) {
+      TravelMode.driving => 60.0,
+      TravelMode.walking => 5.0,
+      TravelMode.cycling => 15.0,
+    };
+    final durationSeconds = distanceMeters / (speedKmh * 1000 / 3600);
+
+    return RouteResult(
+      polylinePoints: [origin, destination],
+      steps: [
+        RouteStep(
+          instruction: 'Approximate route - internet required for turn-by-turn',
+          distanceMeters: distanceMeters,
+          durationSeconds: durationSeconds,
+          maneuverType: 'fallback',
+          maneuverDirection: 'straight',
+          location: destination,
+        ),
+      ],
+      distanceMeters: distanceMeters,
+      durationSeconds: durationSeconds,
+      travelMode: travelMode,
+      isFallback: true,
+    );
   }
 
   String _instructionFor(String type, String modifier, String name) {

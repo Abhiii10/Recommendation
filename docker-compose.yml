@@ -37,6 +37,10 @@ services:
     volumes:
       - ./data:/app/data
       - backend_models:/app/models
+    # To pre-fetch all destination images run:
+    # docker compose exec backend python backend/scripts/fetch_destination_images.py
+    # To generate bundled offline destination photos run:
+    # docker compose exec backend python backend/scripts/download_destination_images.py
     healthcheck:
       test:
         [

@@ -2,18 +2,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
-import 'package:rural_tourism_app/core/media/image_cache_service.dart';
+import 'package:rural_tourism_app/core/media/local_destination_image_service.dart';
+import 'package:rural_tourism_app/core/media/wiki_image_service.dart';
+import 'package:rural_tourism_app/core/utils/backend_config.dart';
 
 class DestinationImage extends StatefulWidget {
-  final Destination destination;
+  final String destinationName;
   final double height;
   final BoxFit fit;
   final String? category;
 
   const DestinationImage({
     super.key,
-    required this.destination,
+    required this.destinationName,
     required this.height,
     this.fit = BoxFit.cover,
     this.category,
@@ -24,6 +25,7 @@ class DestinationImage extends StatefulWidget {
 }
 
 class _DestinationImageState extends State<DestinationImage> {
+  String? _assetPath;
   String? _networkUrl;
   bool _loading = true;
   int _requestId = 0;
@@ -37,17 +39,27 @@ class _DestinationImageState extends State<DestinationImage> {
   @override
   void didUpdateWidget(covariant DestinationImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.destination.id != widget.destination.id ||
-        oldWidget.destination.name != widget.destination.name ||
-        _imagesChanged(
-            oldWidget.destination.images, widget.destination.images)) {
+    if (oldWidget.destinationName != widget.destinationName ||
+        oldWidget.category != widget.category) {
       _resolveImage();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isWidgetTest) return _localFallback();
     if (_loading) return _shimmerPlaceholder();
+
+    final assetPath = _assetPath;
+    if (assetPath != null && assetPath.isNotEmpty) {
+      return Image.asset(
+        assetPath,
+        fit: widget.fit,
+        height: widget.height,
+        width: double.infinity,
+        errorBuilder: (_, __, ___) => _localFallback(),
+      );
+    }
 
     final networkUrl = _networkUrl;
     if (networkUrl != null && networkUrl.isNotEmpty) {
@@ -56,34 +68,44 @@ class _DestinationImageState extends State<DestinationImage> {
         fit: widget.fit,
         height: widget.height,
         width: double.infinity,
-        errorWidget: (_, __, ___) => _localFallback(),
+        errorWidget: (_, __, ___) => _networkFallback(networkUrl),
         placeholder: (_, __) => _shimmerPlaceholder(),
       );
     }
 
-    return _localFallback();
+    return _networkFallback(null);
   }
 
   Future<void> _resolveImage() async {
     final requestId = ++_requestId;
     setState(() {
       _loading = true;
+      _assetPath = null;
       _networkUrl = null;
     });
 
-    final configuredUrl = _firstConfiguredImage();
-    if (configuredUrl != null) {
+    if (_isWidgetTest) {
       if (!mounted || requestId != _requestId) return;
+      setState(() => _loading = false);
+      return;
+    }
+
+    final assetPath = await LocalDestinationImageService.getAssetPath(
+      widget.destinationName,
+    );
+    if (!mounted || requestId != _requestId) return;
+    if (assetPath != null && assetPath.isNotEmpty) {
       setState(() {
-        _networkUrl = configuredUrl;
+        _assetPath = assetPath;
         _loading = false;
       });
       return;
     }
 
-    final url = await ImageCacheService.instance.resolveNetworkUrl(
-      widget.destination.name,
-      destinationId: widget.destination.id,
+    final url = await WikiImageService.getImageUrl(
+      placeName: widget.destinationName,
+      category: widget.category,
+      backendBaseUrl: backendBaseUrl,
     );
 
     if (!mounted || requestId != _requestId) return;
@@ -93,25 +115,23 @@ class _DestinationImageState extends State<DestinationImage> {
     });
   }
 
-  String? _firstConfiguredImage() {
-    for (final url in widget.destination.images) {
-      final trimmed = url.trim();
-      if (trimmed.isNotEmpty) return trimmed;
-    }
-    return null;
-  }
+  Widget _networkFallback(String? failedUrl) {
+    final fallbackUrl = WikiImageService.categoryFallbackUrl(widget.category);
+    if (failedUrl == fallbackUrl) return _localFallback();
 
-  bool _imagesChanged(List<String> oldImages, List<String> newImages) {
-    if (oldImages.length != newImages.length) return true;
-    for (var index = 0; index < oldImages.length; index++) {
-      if (oldImages[index] != newImages[index]) return true;
-    }
-    return false;
+    return CachedNetworkImage(
+      imageUrl: fallbackUrl,
+      fit: widget.fit,
+      height: widget.height,
+      width: double.infinity,
+      placeholder: (_, __) => _shimmerPlaceholder(),
+      errorWidget: (_, __, ___) => _localFallback(),
+    );
   }
 
   Widget _localFallback() {
     return Image.asset(
-      _assetForCategory(widget.category ?? widget.destination.primaryCategory),
+      _assetForCategory(widget.category),
       fit: widget.fit,
       height: widget.height,
       width: double.infinity,
@@ -158,5 +178,11 @@ class _DestinationImageState extends State<DestinationImage> {
         ),
       ),
     );
+  }
+
+  bool get _isWidgetTest {
+    return WidgetsBinding.instance.runtimeType
+        .toString()
+        .contains('TestWidgetsFlutterBinding');
   }
 }

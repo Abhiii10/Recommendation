@@ -65,6 +65,7 @@ flutter:
     - assets/images/cat_boating.jpg
     - assets/images/cat_spiritual.jpg
     - assets/images/cat_relaxation.jpg
+    - assets/destination_images/
     - assets/animations/
     - assets/maps/
     - assets/embeddings/

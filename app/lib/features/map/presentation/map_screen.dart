@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -87,10 +88,12 @@ class _MapScreenState extends State<MapScreen>
   TileProvider? _offlineTileProvider;
   late final AnimationController _locationPulseController;
   StreamSubscription<Position>? _positionSubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _offlineTileLoadAttempted = false;
   bool _offlineTilesUnavailableNoticeShown = false;
   bool _routeLoading = false;
   bool _navigationActive = false;
+  bool _isOnline = true;
   Destination? _selectedDestination;
   Destination? _routeDestination;
   RouteResult? _activeRoute;
@@ -110,11 +113,16 @@ class _MapScreenState extends State<MapScreen>
     )..repeat();
     unawaited(_loadOfflineTiles());
     unawaited(_loadTileStyle());
+    unawaited(_loadConnectivityStatus());
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+          _updateConnectivity,
+        );
   }
 
   @override
   void dispose() {
     unawaited(_positionSubscription?.cancel());
+    unawaited(_connectivitySubscription?.cancel());
     _locationPulseController.dispose();
     _offlineTileProvider?.dispose();
     super.dispose();
@@ -146,6 +154,20 @@ class _MapScreenState extends State<MapScreen>
   RouteResult? _routeFor(Destination destination) {
     if (_routeDestination?.id != destination.id) return null;
     return _activeRoute;
+  }
+
+  Future<void> _loadConnectivityStatus() async {
+    try {
+      _updateConnectivity(await Connectivity().checkConnectivity());
+    } catch (_) {
+      _updateConnectivity(const [ConnectivityResult.none]);
+    }
+  }
+
+  void _updateConnectivity(List<ConnectivityResult> results) {
+    final isOnline = results.any((result) => result != ConnectivityResult.none);
+    if (!mounted || _isOnline == isOnline) return;
+    setState(() => _isOnline = isOnline);
   }
 
   void _handleDestinationTap(Destination destination, LatLng point) {
@@ -207,7 +229,7 @@ class _MapScreenState extends State<MapScreen>
               route: _routeFor(destination),
               selectedMode: _travelMode,
               isLoading: _routeLoading,
-              errorText: _routeError,
+              errorText: _visibleRouteErrorText,
               onModeChanged: (mode) => refreshAfter(
                 () async {
                   await _loadRoute(destination, mode);
@@ -294,12 +316,20 @@ class _MapScreenState extends State<MapScreen>
       _routeLoading = false;
       _currentStepIndex = 0;
       _routeError = route == null
-          ? 'Could not build a route. Try another travel mode.'
+          ? (_isOnline
+              ? 'Could not build a route. Try another travel mode.'
+              : 'Offline - showing approximate route')
           : null;
     });
 
     if (route != null) _focusRoute(route.polylinePoints);
     return route;
+  }
+
+  String? get _visibleRouteErrorText {
+    if (_routeError == null) return null;
+    if (!_isOnline) return 'Offline - showing approximate route';
+    return _routeError;
   }
 
   void _focusRoute(List<LatLng> points) {
@@ -544,7 +574,12 @@ class _MapScreenState extends State<MapScreen>
                   ),
                   children: [
                     if (usingOfflineTiles)
-                      TileLayer(tileProvider: _offlineTileProvider!)
+                      TileLayer(
+                        tileProvider: _offlineTileProvider!,
+                        maxNativeZoom: 14,
+                        tileDimension: 256,
+                        keepBuffer: 5,
+                      )
                     else
                       TileLayer(
                         urlTemplate: tileStyle.url,
@@ -640,6 +675,7 @@ class _MapScreenState extends State<MapScreen>
                     child: _MapStatusChip(
                       offlineReady: usingOfflineTiles,
                       attempted: _offlineTileLoadAttempted,
+                      isOnline: _isOnline,
                     ),
                   ),
                   Positioned(
@@ -912,17 +948,32 @@ class _RouteSummary extends StatelessWidget {
     }
 
     if (route != null) {
-      return Row(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _RouteMetricChip(
-            icon: Icons.straighten_rounded,
-            label: _formatDistance(route!.distanceMeters),
+          Row(
+            children: [
+              _RouteMetricChip(
+                icon: Icons.straighten_rounded,
+                label: _formatDistance(route!.distanceMeters),
+              ),
+              const SizedBox(width: 8),
+              _RouteMetricChip(
+                icon: Icons.schedule_rounded,
+                label: _formatDuration(route!.durationSeconds),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          _RouteMetricChip(
-            icon: Icons.schedule_rounded,
-            label: _formatDuration(route!.durationSeconds),
-          ),
+          if (route!.isFallback) ...[
+            const SizedBox(height: 8),
+            Text(
+              '⚠ Approximate route only',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.tertiary,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ],
         ],
       );
     }
@@ -1241,20 +1292,26 @@ class _MapControls extends StatelessWidget {
 class _MapStatusChip extends StatelessWidget {
   final bool offlineReady;
   final bool attempted;
+  final bool isOnline;
 
   const _MapStatusChip({
     required this.offlineReady,
     required this.attempted,
+    required this.isOnline,
   });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final color = offlineReady ? cs.tertiary : cs.secondary;
+    final color = offlineReady
+        ? cs.tertiary
+        : isOnline
+            ? cs.secondary
+            : cs.error;
     final label = offlineReady
-        ? 'Offline map'
+        ? (isOnline ? 'Offline map ready' : 'Offline map')
         : attempted
-            ? 'Online map'
+            ? (isOnline ? 'Online map' : 'Offline unavailable')
             : 'Preparing map';
 
     return Material(
@@ -1268,7 +1325,11 @@ class _MapStatusChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              offlineReady ? Icons.offline_bolt_rounded : Icons.public_rounded,
+              offlineReady
+                  ? Icons.offline_bolt_rounded
+                  : isOnline
+                      ? Icons.public_rounded
+                      : Icons.cloud_off_rounded,
               size: 16,
               color: color,
             ),

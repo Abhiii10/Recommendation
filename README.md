@@ -324,6 +324,28 @@ flutter run
 Keep `app/.env` local to each machine and set `AI_BACKEND_BASE_URL` to the URL
 reachable from your emulator or phone.
 
+## Destination Images
+
+Run the image pre-fetch script after first startup:
+
+```bash
+docker compose exec backend python backend/scripts/fetch_destination_images.py
+```
+
+This fetches real Wikipedia photos for all destinations and stores them in
+`data/destination_images.json`. The app still works without this cache, but the
+first image load may be slower because it falls back to on-demand lookups.
+
+To bundle real destination photos for fully offline use, run:
+
+```bash
+docker compose exec backend python backend/scripts/download_destination_images.py
+```
+
+This downloads and compresses destination photos into
+`app/assets/destination_images/` and writes the Flutter asset manifest at
+`app/assets/data/destination_image_assets.json`.
+
 ## Backend
 
 From the project root:

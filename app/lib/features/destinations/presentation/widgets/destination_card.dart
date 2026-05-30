@@ -405,7 +405,8 @@ class _ImageHeader extends StatelessWidget {
             child: Hero(
               tag: 'dest-image-${destination.id}',
               child: DestinationImage(
-                destination: destination,
+                destinationName: destination.name,
+                category: category,
                 height: 200,
                 fit: BoxFit.cover,
               ),

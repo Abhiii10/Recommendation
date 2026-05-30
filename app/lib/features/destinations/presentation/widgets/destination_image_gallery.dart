@@ -1,8 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
+
+import 'package:rural_tourism_app/features/destinations/presentation/widgets/destination_image.dart';
 
 class DestinationImageGallery extends StatefulWidget {
   final List<String> images;
+  final String destinationName;
+  final String? category;
   final double height;
   final BorderRadius borderRadius;
   final BoxFit fit;
@@ -10,6 +15,8 @@ class DestinationImageGallery extends StatefulWidget {
   const DestinationImageGallery({
     super.key,
     required this.images,
+    required this.destinationName,
+    this.category,
     this.height = 300,
     this.borderRadius = const BorderRadius.vertical(top: Radius.circular(28)),
     this.fit = BoxFit.cover,
@@ -62,7 +69,12 @@ class _DestinationImageGalleryState extends State<DestinationImageGallery> {
         height: widget.height,
         width: double.infinity,
         child: images.isEmpty
-            ? _emptyPlaceholder(context)
+            ? DestinationImage(
+                destinationName: widget.destinationName,
+                category: widget.category,
+                height: widget.height,
+                fit: widget.fit,
+              )
             : Stack(
                 fit: StackFit.expand,
                 children: [
@@ -79,7 +91,12 @@ class _DestinationImageGalleryState extends State<DestinationImageGallery> {
                         width: double.infinity,
                         height: widget.height,
                         placeholder: (_, __) => _loadingPlaceholder(context),
-                        errorWidget: (_, __, ___) => _errorPlaceholder(context),
+                        errorWidget: (_, __, ___) => DestinationImage(
+                          destinationName: widget.destinationName,
+                          category: widget.category,
+                          height: widget.height,
+                          fit: widget.fit,
+                        ),
                       );
                     },
                   ),
@@ -107,31 +124,13 @@ class _DestinationImageGalleryState extends State<DestinationImageGallery> {
   }
 
   Widget _loadingPlaceholder(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade300,
-    );
-  }
-
-  Widget _emptyPlaceholder(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade300,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.image_outlined,
-        size: 46,
-        color: Colors.grey.shade600,
-      ),
-    );
-  }
-
-  Widget _errorPlaceholder(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade300,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.broken_image_outlined,
-        size: 42,
-        color: Colors.grey.shade600,
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE0E0E0),
+      highlightColor: const Color(0xFFF5F5F5),
+      child: Container(
+        color: Colors.white,
+        width: double.infinity,
+        height: widget.height,
       ),
     );
   }

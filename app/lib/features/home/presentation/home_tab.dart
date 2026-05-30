@@ -1436,7 +1436,8 @@ class _FeaturedImage extends StatelessWidget {
     return Hero(
       tag: 'dest-image-${destination.id}',
       child: DestinationImage(
-        destination: destination,
+        destinationName: destination.name,
+        category: destination.primaryCategory,
         height: height,
         fit: BoxFit.cover,
       ),
@@ -1542,7 +1543,8 @@ class _CompactDestinationCard extends StatelessWidget {
                         width: 72,
                         height: 72,
                         child: DestinationImage(
-                          destination: destination,
+                          destinationName: destination.name,
+                          category: destination.primaryCategory,
                           height: 72,
                           fit: BoxFit.cover,
                         ),

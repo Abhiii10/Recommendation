@@ -150,6 +150,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
             tag: 'dest-image-${destination.id}',
             child: DestinationImageGallery(
               images: destination.images,
+              destinationName: destination.name,
+              category: destination.primaryCategory,
               height: 300,
             ),
           ),

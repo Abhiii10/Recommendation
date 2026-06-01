@@ -17,6 +17,9 @@ import 'package:rural_tourism_app/features/intelligence/intent/intent_training_d
 import 'package:rural_tourism_app/features/intelligence/intent/semantic_intent_classifier.dart';
 import 'package:rural_tourism_app/features/intelligence/models/chatbot_request.dart';
 import 'package:rural_tourism_app/features/intelligence/models/chatbot_response.dart';
+import 'package:rural_tourism_app/features/intelligence/models/entity_mention.dart';
+import 'package:rural_tourism_app/features/intelligence/models/intent_classification_result.dart';
+import 'package:rural_tourism_app/features/intelligence/models/language_detection_result.dart';
 import 'package:rural_tourism_app/features/intelligence/models/translation_request.dart';
 import 'package:rural_tourism_app/features/intelligence/models/translation_response.dart';
 import 'package:rural_tourism_app/features/intelligence/nlp/advanced_tokenizer.dart';
@@ -59,6 +62,7 @@ class IntelligenceOrchestrator {
   late final SafetyLayer safetyLayer;
   late final HybridTranslationManager translationManager;
   late final OptionalGeminiService optionalGeminiService;
+  late final Map<String, Map<String, dynamic>> _destinationById;
 
   IntelligenceOrchestrator({this.config = IntelligenceConfig.production});
 
@@ -73,7 +77,13 @@ class IntelligenceOrchestrator {
       key: 'stopwords',
     );
     final ontology = await _loadOntology();
-    final destinationGazetteer = await _loadDestinationGazetteer();
+    final destinationRecords = await _loadDestinationRecords();
+    _destinationById = {
+      for (final item in destinationRecords)
+        if ((item['id']?.toString() ?? '').isNotEmpty)
+          item['id'].toString(): item,
+    };
+    final destinationGazetteer = _buildDestinationGazetteer(destinationRecords);
     final accommodationGazetteer = await _loadAccommodationGazetteer();
 
     knowledgeRepository = KnowledgeRepository();
@@ -165,6 +175,14 @@ class IntelligenceOrchestrator {
     final safety = safetyLayer.check(request.text, nlp.language);
     if (safety != null) return safety;
 
+    final destinationMatch = _bestDestinationMatch(nlp.entities);
+    if (destinationMatch != null) {
+      return _directDestinationResponse(
+        destinationMatch,
+        nlp.language,
+      );
+    }
+
     final intent = intentClassifier.classify(nlp);
     final dialogue = dialogueManager.updateBeforeResponse(
       conversationId: request.conversationId,
@@ -177,12 +195,19 @@ class IntelligenceOrchestrator {
       intent: intent.intent,
       dialogueState: dialogue.state,
     );
-    var text = dialogue.shouldClarify && dialogue.clarificationQuestion != null
-        ? dialogue.clarificationQuestion!
-        : rag.text;
-    var source = dialogue.shouldClarify
-        ? ChatbotResponseSource.offlineModel
-        : ChatbotResponseSource.offlineKnowledgeBase;
+    final shouldAppendClarification = _shouldAppendLowConfidenceClarification(
+        intent.intent, intent.confidence);
+    var text = rag.text;
+    var source = ChatbotResponseSource.offlineKnowledgeBase;
+    if (shouldAppendClarification && rag.contexts.isNotEmpty) {
+      text = _appendLowConfidenceClarification(text);
+    } else if (rag.contexts.isEmpty &&
+        intent.confidence < 0.25 &&
+        dialogue.shouldClarify &&
+        dialogue.clarificationQuestion != null) {
+      text = dialogue.clarificationQuestion!;
+      source = ChatbotResponseSource.offlineModel;
+    }
     final combinedConfidence =
         (intent.confidence * 0.45 + rag.confidence * 0.55).clamp(0.0, 1.0);
 
@@ -260,6 +285,88 @@ class IntelligenceOrchestrator {
     }
   }
 
+  bool _shouldAppendLowConfidenceClarification(
+    String intent,
+    double confidence,
+  ) {
+    return intent != 'fallback' && confidence >= 0.35 && confidence < 0.55;
+  }
+
+  String _appendLowConfidenceClarification(String text) {
+    const prompt = 'Did you mean: trekking tips / find homestay / safety info?';
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return prompt;
+    return '$trimmed\n\n$prompt';
+  }
+
+  EntityMention? _bestDestinationMatch(List<EntityMention> entities) {
+    final destinations =
+        entities.where((entity) => entity.type == EntityType.destination);
+    if (destinations.isEmpty) return null;
+
+    return destinations.reduce(
+      (best, entity) => entity.confidence > best.confidence ? entity : best,
+    );
+  }
+
+  ChatbotResponse _directDestinationResponse(
+    EntityMention entity,
+    LanguageDetectionResult language,
+  ) {
+    final destination = _destinationById[entity.canonicalId] ?? const {};
+    final name = (destination['name'] ?? entity.text).toString();
+    final district = (destination['district'] ?? '').toString();
+    final description = (destination['full_description'] ??
+            destination['short_description'] ??
+            'This is a rural tourism destination in Gandaki Province.')
+        .toString();
+    final activities = _stringList(destination['activities']);
+    final seasons = _stringList(destination['best_season']);
+    final highlights = _stringList(destination['highlights']);
+    final howToReach = (destination['how_to_reach'] ?? '').toString();
+
+    final buffer = StringBuffer()
+      ..writeln(
+        district.isEmpty
+            ? '$name is a destination in Nepal.'
+            : '$name is in $district.',
+      )
+      ..writeln(description);
+
+    if (activities.isNotEmpty) {
+      buffer.writeln('Activities: ${activities.join(', ')}.');
+    }
+    if (seasons.isNotEmpty) {
+      buffer.writeln('Best season: ${seasons.join(', ')}.');
+    }
+    if (highlights.isNotEmpty) {
+      buffer.writeln('Highlights: ${highlights.take(4).join(', ')}.');
+    }
+    if (howToReach.isNotEmpty) {
+      buffer.writeln('How to reach: $howToReach');
+    }
+
+    return ChatbotResponse(
+      text: buffer.toString().trim(),
+      intent: 'destination_query',
+      confidence: 0.95,
+      isEmergency: false,
+      source: ChatbotResponseSource.offlineKnowledgeBase,
+      language: language,
+      intentResult: IntentClassificationResult(
+        intent: 'destination_query',
+        confidence: 0.95,
+        alternatives: const {'destination_recommendation': 0.95},
+        matchedFeatures: ['destination_gazetteer:${entity.text}'],
+      ),
+      suggestions: const ['Show on map', 'Find homestay nearby', 'Best season'],
+      metadata: {
+        'destination_id': entity.canonicalId,
+        'destination_name': name,
+      },
+    );
+  }
+
   Future<Map<String, String>> _loadStringMap(String assetPath) async {
     try {
       final raw = await rootBundle.loadString(assetPath);
@@ -322,19 +429,108 @@ class IntelligenceOrchestrator {
     }
   }
 
-  Future<Map<String, String>> _loadDestinationGazetteer() async {
+  Future<List<Map<String, dynamic>>> _loadDestinationRecords() async {
     try {
       final raw = await rootBundle.loadString('assets/data/destinations.json');
       final decoded = jsonDecode(raw) as List;
-      return {
-        for (final item in decoded.whereType<Map>())
-          if ((item['name']?.toString() ?? '').isNotEmpty)
-            item['name'].toString():
-                item['id']?.toString() ?? item['name'].toString(),
-      };
+      return decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
     } catch (_) {
-      return const {};
+      return const [];
     }
+  }
+
+  Map<String, String> _buildDestinationGazetteer(
+    List<Map<String, dynamic>> destinations,
+  ) {
+    final forms = <String, String>{};
+    final firstTokenCounts = <String, int>{};
+
+    for (final item in destinations) {
+      final name = (item['name']?.toString() ?? '').trim();
+      if (name.isEmpty) continue;
+      final tokens = _nameTokens(name);
+      if (tokens.isNotEmpty) {
+        firstTokenCounts[tokens.first] =
+            (firstTokenCounts[tokens.first] ?? 0) + 1;
+      }
+    }
+
+    for (final item in destinations) {
+      final id = (item['id']?.toString() ?? '').trim();
+      final name = (item['name']?.toString() ?? '').trim();
+      if (name.isEmpty) continue;
+
+      final canonical = id.isNotEmpty ? id : name;
+      for (final form in _destinationNameForms(name, firstTokenCounts)) {
+        forms[form] = canonical;
+      }
+    }
+
+    return forms;
+  }
+
+  List<String> _destinationNameForms(
+    String name,
+    Map<String, int> firstTokenCounts,
+  ) {
+    final genericSuffixes = {
+      'base',
+      'camp',
+      'view',
+      'viewpoint',
+      'village',
+      'lake',
+      'riverside',
+      'temple',
+      'trail',
+      'trek',
+      'homestay',
+      'area',
+      'bazaar',
+    };
+    final tokens = _nameTokens(name);
+    final forms = <String>{name};
+    if (tokens.isEmpty) return forms.toList();
+
+    var trimmed = List<String>.from(tokens);
+    while (trimmed.length > 1 && genericSuffixes.contains(trimmed.last)) {
+      trimmed = trimmed.sublist(0, trimmed.length - 1);
+    }
+    if (trimmed.length >= 2) {
+      forms.add(trimmed.join(' '));
+      forms.add(trimmed.take(2).join(' '));
+    }
+    final first = tokens.first;
+    if (first.length >= 5 &&
+        firstTokenCounts[first] == 1 &&
+        !genericSuffixes.contains(first)) {
+      forms.add(first);
+    }
+
+    return forms.toList();
+  }
+
+  List<String> _nameTokens(String name) {
+    return name
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .split(RegExp(r'\s+'))
+        .where((token) => token.isNotEmpty)
+        .toList();
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is List) return value.map((item) => item.toString()).toList();
+    if (value == null) return const [];
+    return value
+        .toString()
+        .split('|')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
   }
 
   Future<Map<String, String>> _loadAccommodationGazetteer() async {

@@ -10,7 +10,7 @@ class ClarificationGenerator {
     required LanguageDetectionResult language,
   }) {
     final nepali = language.languageCode == 'ne';
-    if (confidence < 0.60) {
+    if (confidence < 0.25) {
       return nepali
           ? 'मैले सही बुझिनँ जस्तो लाग्छ। तपाईं गन्तव्य, होमस्टे, खाना, यातायात वा सुरक्षा बारे सोध्दै हुनुहुन्छ?'
           : 'I am not fully sure I understood. Are you asking about destinations, homestays, food, transport, or safety?';

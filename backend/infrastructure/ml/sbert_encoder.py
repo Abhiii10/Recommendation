@@ -22,6 +22,9 @@ class DestinationTextBuilder:
     """
 
     def build(self, destination: Destination) -> str:
+        if destination.sbert_text.strip():
+            return destination.sbert_text.strip()
+
         parts: List[str] = []
 
         # Core identity — name + location as one phrase

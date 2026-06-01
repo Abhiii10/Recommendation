@@ -7,6 +7,8 @@ import 'package:rural_tourism_app/features/intelligence/intent/intent_training_d
 import 'package:rural_tourism_app/features/intelligence/intent/semantic_intent_classifier.dart';
 
 class HybridIntentClassifier implements IntentClassifierBase {
+  static const double _minimumIntentConfidence = 0.30;
+
   final SemanticIntentClassifier semanticClassifier;
   final Future<IntentTrainingData> Function() trainingDataLoader;
 
@@ -25,6 +27,16 @@ class HybridIntentClassifier implements IntentClassifierBase {
 
   @override
   IntentClassificationResult classify(NlpProcessingResult nlp) {
+    final destinationEntity = _destinationEntity(nlp);
+    if (destinationEntity != null) {
+      return IntentClassificationResult(
+        intent: 'destination_query',
+        confidence: 0.95,
+        alternatives: const {'destination_recommendation': 0.95},
+        matchedFeatures: ['destination_gazetteer:${destinationEntity.text}'],
+      );
+    }
+
     final semantic = semanticClassifier.classify(nlp);
     final scores = <String, double>{};
     final features = <String>[];
@@ -75,10 +87,10 @@ class HybridIntentClassifier implements IntentClassifierBase {
 
     final sorted = scores.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    if (sorted.isEmpty || sorted.first.value < 0.20) {
+    if (sorted.isEmpty || sorted.first.value < _minimumIntentConfidence) {
       return const IntentClassificationResult(
         intent: 'fallback',
-        confidence: 0.35,
+        confidence: 0,
         matchedFeatures: ['fallback'],
       );
     }
@@ -166,6 +178,29 @@ class HybridIntentClassifier implements IntentClassifierBase {
         ])
             ? 1.0
             : 0;
+      case 'safety_concern':
+        if (hasAny(['trek', 'trekking', 'hiking']) &&
+            hasAny(['safe', 'safety', 'alone', 'risk', 'danger'])) {
+          return 0.94;
+        }
+        return hasAny(['safe', 'safety', 'danger', 'risk', 'alone']) ? 0.86 : 0;
+      case 'adventure_activity':
+        if (hasAny(['trek', 'trekking', 'hiking']) &&
+            hasAny([
+              'tip',
+              'tips',
+              'advice',
+              'bring',
+              'pack',
+              'preparation',
+              'prepare',
+              'before'
+            ])) {
+          return 0.94;
+        }
+        return hasAny(['trek', 'trekking', 'hiking', 'rafting', 'adventure'])
+            ? 0.82
+            : 0;
       default:
         return 0;
     }
@@ -173,4 +208,13 @@ class HybridIntentClassifier implements IntentClassifierBase {
 
   bool _hasEntity(NlpProcessingResult nlp, EntityType type) =>
       nlp.entities.any((entity) => entity.type == type);
+
+  EntityMention? _destinationEntity(NlpProcessingResult nlp) {
+    final destinations =
+        nlp.entities.where((entity) => entity.type == EntityType.destination);
+    if (destinations.isEmpty) return null;
+    return destinations.reduce(
+      (best, entity) => entity.confidence > best.confidence ? entity : best,
+    );
+  }
 }

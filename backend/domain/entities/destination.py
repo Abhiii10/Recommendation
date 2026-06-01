@@ -1,5 +1,6 @@
 from typing import List, Optional
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
 
 
 class Destination(BaseModel):
@@ -23,6 +24,13 @@ class Destination(BaseModel):
     longitude: Optional[float] = None
     tags: List[str] = []
     confidence: str = ""
+    highlights: List[str] = Field(default_factory=list)
+    how_to_reach: str = ""
+    accommodation_types: List[str] = Field(default_factory=list)
+    elevation_m: Optional[int] = None
+    typical_duration: str = ""
+    nearby_destinations: List[str] = Field(default_factory=list)
+    sbert_text: str = ""
 
     # ── ML ranking fields (added for synthetic data + ranker) ─────────────────
     popularity_score: float = 0.5

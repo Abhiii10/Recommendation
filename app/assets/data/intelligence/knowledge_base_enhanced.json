@@ -8,9 +8,21 @@
       "question_ne": "होमस्टे कसरी बुक गर्ने?",
       "answer_en": "Browse the Accommodation tab, compare price range and amenities, then call the host directly. In rural Nepal, many homestays also accept walk-in guests, but phone confirmation is safer in peak season.",
       "answer_ne": "आवास ट्याबमा होमस्टे हेर्नुहोस्, मूल्य र सुविधा तुलना गर्नुहोस्, अनि होस्टलाई सिधै फोन गर्नुहोस्। ग्रामीण नेपालमा धेरै होमस्टेले आगमनमै पाहुना लिन्छन्, तर सिजनमा पहिले फोन गर्नु राम्रो हुन्छ।",
-      "keywords": ["homestay", "book", "accommodation", "reservation", "होमस्टे", "बुक", "आवास"],
+      "keywords": [
+        "homestay",
+        "book",
+        "accommodation",
+        "reservation",
+        "होमस्टे",
+        "बुक",
+        "आवास"
+      ],
       "intent": "homestay_search",
-      "related_destinations": ["pokhara", "dhampus", "ghandruk"],
+      "related_destinations": [
+        "pokhara",
+        "dhampus",
+        "ghandruk"
+      ],
       "confidence_weight": 1.0
     },
     {
@@ -21,9 +33,21 @@
       "question_ne": "कम खर्चमा आराम गर्न कहाँ जाने?",
       "answer_en": "For a cheap and peaceful trip near Pokhara, look for lake villages, lower-altitude Gurung villages, and community homestays. Begnas Lake, Dhampus, and nearby cultural villages often balance low transport cost, quiet scenery, and simple food.",
       "answer_ne": "पोखरा नजिकै कम खर्चमा शान्त यात्रा चाहनुहुन्छ भने ताल वरिपरिका गाउँ, कम उचाइका गुरुङ गाउँ र सामुदायिक होमस्टे हेर्नुहोस्। बेगनास ताल, धम्पुस र नजिकका सांस्कृतिक गाउँहरू उपयुक्त हुन्छन्।",
-      "keywords": ["cheap", "peaceful", "budget", "relax", "sasto", "shanta", "सस्तो", "शान्त"],
+      "keywords": [
+        "cheap",
+        "peaceful",
+        "budget",
+        "relax",
+        "sasto",
+        "shanta",
+        "सस्तो",
+        "शान्त"
+      ],
       "intent": "budget_relaxation",
-      "related_destinations": ["begnas", "dhampus"],
+      "related_destinations": [
+        "begnas",
+        "dhampus"
+      ],
       "confidence_weight": 1.0
     },
     {
@@ -34,7 +58,15 @@
       "question_ne": "कस्तो सांस्कृतिक शिष्टाचार पालना गर्ने?",
       "answer_en": "Greet people with Namaste, ask before taking photos, dress modestly near temples or monasteries, remove shoes before entering homes and sacred places, and use your right hand when giving or receiving items.",
       "answer_ne": "नमस्ते गरेर अभिवादन गर्नुहोस्, फोटो खिच्नु अघि अनुमति माग्नुहोस्, मन्दिर वा गुम्बा नजिक शालीन पोशाक लगाउनुहोस्, घर र पवित्र स्थानमा जुत्ता खोल्नुहोस्, र सामान दिँदा/लिँदा दायाँ हात प्रयोग गर्नुहोस्।",
-      "keywords": ["culture", "etiquette", "temple", "photo", "custom", "संस्कृति", "शिष्टाचार"],
+      "keywords": [
+        "culture",
+        "etiquette",
+        "temple",
+        "photo",
+        "custom",
+        "संस्कृति",
+        "शिष्टाचार"
+      ],
       "intent": "culture_etiquette",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -47,7 +79,15 @@
       "question_ne": "शाकाहारी खाना पाइन्छ?",
       "answer_en": "Vegetarian food is widely available in rural Nepal. Dal bhat, vegetable curry, potatoes, noodles, roti, tea, and seasonal greens are common. Tell the host early if you avoid meat, eggs, dairy, garlic, or onion.",
       "answer_ne": "ग्रामीण नेपालमा शाकाहारी खाना सामान्यतया पाइन्छ। दाल भात, तरकारी, आलु, चाउचाउ, रोटी, चिया र मौसमी साग सामान्य छन्। मासु, अण्डा, दूध, लसुन वा प्याज नखाने भए पहिले नै भन्नुहोस्।",
-      "keywords": ["vegetarian", "food", "dal bhat", "meal", "khana", "शाकाहारी", "खाना"],
+      "keywords": [
+        "vegetarian",
+        "food",
+        "dal bhat",
+        "meal",
+        "khana",
+        "शाकाहारी",
+        "खाना"
+      ],
       "intent": "vegetarian_food",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -60,9 +100,20 @@
       "question_ne": "पोखराबाट गाउँ कसरी जाने?",
       "answer_en": "Most nearby rural destinations can be reached by local bus, shared jeep, or taxi from Pokhara. Roads can be rough in monsoon, so confirm the last vehicle time with your host and carry cash for transport.",
       "answer_ne": "पोखरा नजिकका धेरै ग्रामीण गन्तव्य स्थानीय बस, शेयर जीप वा ट्याक्सीबाट पुग्न सकिन्छ। वर्षायाममा बाटो बिग्रन सक्छ, त्यसैले अन्तिम गाडीको समय होस्टसँग पुष्टि गर्नुहोस् र नगद बोक्नुहोस्।",
-      "keywords": ["transport", "bus", "jeep", "route", "Pokhara", "यातायात", "बस", "जीप"],
+      "keywords": [
+        "transport",
+        "bus",
+        "jeep",
+        "route",
+        "Pokhara",
+        "यातायात",
+        "बस",
+        "जीप"
+      ],
       "intent": "transport_query",
-      "related_destinations": ["pokhara"],
+      "related_destinations": [
+        "pokhara"
+      ],
       "confidence_weight": 1.0
     },
     {
@@ -73,7 +124,16 @@
       "question_ne": "ग्रामीण पर्यटनका लागि उत्तम मौसम कहिले हो?",
       "answer_en": "Spring (March to May) and autumn (September to November) are usually best for rural tourism, trekking, views, and village stays. Monsoon can be beautiful but brings landslide and road risks.",
       "answer_ne": "वसन्त (मार्चदेखि मे) र शरद (सेप्टेम्बरदेखि नोभेम्बर) ग्रामीण पर्यटन, ट्रेकिङ, दृश्य र गाउँ बसाइका लागि प्रायः उत्तम हुन्छन्। वर्षायाम सुन्दर भए पनि पहिरो र सडक जोखिम हुन्छ।",
-      "keywords": ["season", "weather", "spring", "autumn", "monsoon", "मौसम", "वसन्त", "शरद"],
+      "keywords": [
+        "season",
+        "weather",
+        "spring",
+        "autumn",
+        "monsoon",
+        "मौसम",
+        "वसन्त",
+        "शरद"
+      ],
       "intent": "weather_season",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -86,9 +146,32 @@
       "question_ne": "ट्रेकिङ अघि के जान्नुपर्छ?",
       "answer_en": "Carry warm layers, rain protection, water, snacks, offline maps, a power bank, and basic first aid. Tell your host your route, avoid walking alone after dark, and check whether permits are required.",
       "answer_ne": "न्यानो कपडा, रेनकोट, पानी, खाजा, अफलाइन नक्सा, पावर बैंक र प्राथमिक उपचार बोक्नुहोस्। आफ्नो रुट होस्टलाई बताउनुहोस्, अँध्यारोपछि एक्लै नहिँड्नुहोस्, र परमिट चाहिन्छ कि जाँच्नुहोस्।",
-      "keywords": ["trekking", "hiking", "packing", "permit", "ट्रेकिङ", "पदयात्रा"],
+      "keywords": [
+        "trekking",
+        "hiking",
+        "packing",
+        "permit",
+        "ट्रेकिङ",
+        "पदयात्रा",
+        "trek",
+        "what to know",
+        "tips",
+        "safety",
+        "prepare",
+        "preparation",
+        "pack",
+        "permits",
+        "TIMS",
+        "tims",
+        "ACAP",
+        "acap"
+      ],
       "intent": "adventure_activity",
-      "related_destinations": ["ghandruk", "dhampus", "sikles"],
+      "related_destinations": [
+        "ghandruk",
+        "dhampus",
+        "sikles"
+      ],
       "confidence_weight": 1.0
     },
     {
@@ -99,9 +182,19 @@
       "question_ne": "परिवारसँग यात्रा गर्न कुन ठाउँ राम्रो?",
       "answer_en": "For families, prefer easy-access destinations with short walking distances, homestays, simple food, and nearby health posts. Lakeside villages, Dhampus-style short hikes, and cultural villages are usually easier than high-altitude treks.",
       "answer_ne": "परिवारका लागि सजिलो पहुँच, छोटो हिँडाइ, होमस्टे, सामान्य खाना र नजिकै स्वास्थ्य चौकी भएका गन्तव्य छान्नुहोस्। ताल वरिपरिका गाउँ, धम्पुस जस्ता छोटो हाइक र सांस्कृतिक गाउँहरू उच्च हिमाली ट्रेकभन्दा सजिला हुन्छन्।",
-      "keywords": ["family", "kids", "children", "elderly", "परिवार", "बच्चा"],
+      "keywords": [
+        "family",
+        "kids",
+        "children",
+        "elderly",
+        "परिवार",
+        "बच्चा"
+      ],
       "intent": "family_travel",
-      "related_destinations": ["begnas", "dhampus"],
+      "related_destinations": [
+        "begnas",
+        "dhampus"
+      ],
       "confidence_weight": 1.0
     },
     {
@@ -112,7 +205,14 @@
       "question_ne": "तीर्थयात्रीले के जान्नुपर्छ?",
       "answer_en": "At temples, dress modestly, remove shoes where required, avoid touching offerings without permission, and ask before photographing rituals. Carry cash for small donations and respect queue systems.",
       "answer_ne": "मन्दिरमा शालीन पोशाक लगाउनुहोस्, आवश्यक ठाउँमा जुत्ता खोल्नुहोस्, अनुमति बिना प्रसाद वा पूजा सामग्री नछुनुहोस्, र पूजा विधिको फोटो अघि अनुमति माग्नुहोस्। सानो दानका लागि नगद बोक्नुहोस्।",
-      "keywords": ["pilgrimage", "religious", "temple", "mandir", "तीर्थ", "मन्दिर"],
+      "keywords": [
+        "pilgrimage",
+        "religious",
+        "temple",
+        "mandir",
+        "तीर्थ",
+        "मन्दिर"
+      ],
       "intent": "pilgrimage",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -125,7 +225,15 @@
       "question_ne": "ग्रामीण नेपाल सुरक्षित छ?",
       "answer_en": "Rural Nepal is generally welcoming, but safety depends on weather, road conditions, health, and communication. Share your route, keep offline maps, carry cash, avoid unknown trails alone, and ask locals before walking after dark.",
       "answer_ne": "ग्रामीण नेपाल सामान्यतया आतिथ्यपूर्ण छ, तर सुरक्षा मौसम, बाटो, स्वास्थ्य र सञ्चारमा निर्भर हुन्छ। आफ्नो रुट साझा गर्नुहोस्, अफलाइन नक्सा राख्नुहोस्, नगद बोक्नुहोस्, अपरिचित बाटो एक्लै नहिँड्नुहोस्।",
-      "keywords": ["safe", "safety", "risk", "solo", "rural", "सुरक्षा", "जोखिम"],
+      "keywords": [
+        "safe",
+        "safety",
+        "risk",
+        "solo",
+        "rural",
+        "सुरक्षा",
+        "जोखिम"
+      ],
       "intent": "safety_concern",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -138,7 +246,15 @@
       "question_ne": "आपतकालमा के गर्ने?",
       "answer_en": "Use emergency numbers first: Police 100, Ambulance 102, Fire 101, Tourist Police 1144, Mountain Rescue 01-4003635. Stay calm, inform your host or nearest local person, and share your location from the offline map.",
       "answer_ne": "पहिले आपतकालीन नम्बर प्रयोग गर्नुहोस्: प्रहरी 100, एम्बुलेन्स 102, दमकल 101, पर्यटक प्रहरी 1144, माउन्टेन रेस्क्यु 01-4003635। शान्त रहनुहोस्, होस्ट वा स्थानीयलाई खबर गर्नुहोस्, र अफलाइन नक्साबाट स्थान साझा गर्नुहोस्।",
-      "keywords": ["emergency", "police", "ambulance", "rescue", "आपतकाल", "प्रहरी", "एम्बुलेन्स"],
+      "keywords": [
+        "emergency",
+        "police",
+        "ambulance",
+        "rescue",
+        "आपतकाल",
+        "प्रहरी",
+        "एम्बुलेन्स"
+      ],
       "intent": "emergency_help",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -151,7 +267,13 @@
       "question_ne": "यो एप अफलाइन चल्छ?",
       "answer_en": "Yes. Destination data, saved places, offline recommendations, phrasebook translation, emergency contacts, and the offline chatbot knowledge base work without internet. Online AI is only an optional enhancement.",
       "answer_ne": "हो। गन्तव्य डेटा, सेभ गरिएका ठाउँ, अफलाइन सिफारिस, वाक्यांश अनुवाद, आपतकालीन सम्पर्क र अफलाइन च्याटबोट ज्ञान इन्टरनेट बिना चल्छन्। अनलाइन AI वैकल्पिक मात्र हो।",
-      "keywords": ["offline", "internet", "app", "download", "अफलाइन"],
+      "keywords": [
+        "offline",
+        "internet",
+        "app",
+        "download",
+        "अफलाइन"
+      ],
       "intent": "offline_help",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -164,7 +286,16 @@
       "question_ne": "कति नगद बोक्ने?",
       "answer_en": "Carry enough Nepali rupees for transport, meals, rooms, and emergency buffer. Rural areas may not accept cards or digital wallets. Ask hosts about current prices because road access and season affect costs.",
       "answer_ne": "यातायात, खाना, कोठा र आपतकालीन खर्चका लागि पर्याप्त नेपाली रुपैयाँ बोक्नुहोस्। ग्रामीण क्षेत्रमा कार्ड वा डिजिटल वालेट नचल्न सक्छ। बाटो र मौसमले मूल्य बदल्ने भएकाले होस्टसँग हालको मूल्य सोध्नुहोस्।",
-      "keywords": ["price", "cost", "cash", "budget", "money", "मूल्य", "नगद", "पैसा"],
+      "keywords": [
+        "price",
+        "cost",
+        "cash",
+        "budget",
+        "money",
+        "मूल्य",
+        "नगद",
+        "पैसा"
+      ],
       "intent": "price_inquiry",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -177,7 +308,14 @@
       "question_ne": "कस्ता साहसिक गतिविधि हुन्छन्?",
       "answer_en": "Common adventure activities include trekking, hiking, rafting, paragliding, boating, and mountain biking. Check season, permits, guide requirements, and insurance before high-risk activities.",
       "answer_ne": "सामान्य साहसिक गतिविधिमा ट्रेकिङ, हाइकिङ, राफ्टिङ, प्याराग्लाइडिङ, बोटिङ र माउन्टेन बाइकिङ पर्छन्। उच्च जोखिम गतिविधि अघि मौसम, परमिट, गाइड र बीमा जाँच्नुहोस्।",
-      "keywords": ["adventure", "rafting", "paragliding", "boating", "साहस", "राफ्टिङ"],
+      "keywords": [
+        "adventure",
+        "rafting",
+        "paragliding",
+        "boating",
+        "साहस",
+        "राफ्टिङ"
+      ],
       "intent": "adventure_activity",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -190,7 +328,14 @@
       "question_ne": "ग्रामीण नेपालका लागि के प्याक गर्ने?",
       "answer_en": "Pack layers, rain protection, reusable water bottle, torch, power bank, basic medicines, cash, copies of documents, modest clothing, and offline maps. For trekking, add good shoes and warm gear.",
       "answer_ne": "न्यानो तह कपडा, रेनकोट, पानी बोतल, टर्च, पावर बैंक, सामान्य औषधि, नगद, कागजातको प्रतिलिपि, शालीन कपडा र अफलाइन नक्सा प्याक गर्नुहोस्। ट्रेकिङका लागि राम्रो जुत्ता र न्यानो सामग्री थप्नुहोस्।",
-      "keywords": ["packing", "pack", "medicine", "power bank", "clothes", "प्याक"],
+      "keywords": [
+        "packing",
+        "pack",
+        "medicine",
+        "power bank",
+        "clothes",
+        "प्याक"
+      ],
       "intent": "offline_help",
       "related_destinations": [],
       "confidence_weight": 0.9
@@ -203,7 +348,14 @@
       "question_ne": "ग्रामीण बाटो कसरी नेभिगेट गर्ने?",
       "answer_en": "Use the Map tab before leaving, save key places, and ask locals about current trail and road conditions. In rural Nepal, landslides, roadworks, and seasonal vehicle changes can make old routes unreliable.",
       "answer_ne": "निस्कनु अघि नक्सा ट्याब प्रयोग गर्नुहोस्, मुख्य ठाउँ सेभ गर्नुहोस्, र हालको बाटो अवस्थाबारे स्थानीयसँग सोध्नुहोस्। पहिरो, सडक मर्मत र मौसमी गाडी परिवर्तनले पुरानो रुट अविश्वसनीय बनाउन सक्छ।",
-      "keywords": ["route", "navigation", "map", "trail", "बाटो", "नक्सा"],
+      "keywords": [
+        "route",
+        "navigation",
+        "map",
+        "trail",
+        "बाटो",
+        "नक्सा"
+      ],
       "intent": "route_navigation",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -216,7 +368,15 @@
       "question_ne": "होमस्टेमा कुन सुविधाबारे सोध्ने?",
       "answer_en": "Ask about hot water, meals, charging, blankets, room sharing, toilet type, phone signal, road pickup, and whether the quoted price includes dinner and breakfast.",
       "answer_ne": "तातो पानी, खाना, चार्जिङ, कम्बल, कोठा शेयर, शौचालय प्रकार, फोन सिग्नल, बाटोबाट पिकअप, र मूल्यमा राति/बिहानको खाना पर्छ कि सोध्नुहोस्।",
-      "keywords": ["amenities", "hot water", "charging", "room", "meal", "सुविधा", "कोठा"],
+      "keywords": [
+        "amenities",
+        "hot water",
+        "charging",
+        "room",
+        "meal",
+        "सुविधा",
+        "कोठा"
+      ],
       "intent": "accommodation_inquiry",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -229,7 +389,14 @@
       "question_ne": "कस्तो स्थानीय खाना चाख्ने?",
       "answer_en": "Try dal bhat, seasonal vegetables, local pickles, gundruk, dhido where available, millet roti, tea, and village-style snacks. Always ask about spice level and dietary restrictions.",
       "answer_ne": "दाल भात, मौसमी तरकारी, अचार, गुन्द्रुक, उपलब्ध भए ढिँडो, कोदो रोटी, चिया र गाउँका खाजा चाख्नुहोस्। मसला र आहार सीमाबारे पहिले सोध्नुहोस्।",
-      "keywords": ["food", "dal bhat", "dhido", "gundruk", "खाना", "दाल भात"],
+      "keywords": [
+        "food",
+        "dal bhat",
+        "dhido",
+        "gundruk",
+        "खाना",
+        "दाल भात"
+      ],
       "intent": "food_query",
       "related_destinations": [],
       "confidence_weight": 1.0
@@ -242,9 +409,20 @@
       "question_ne": "सांस्कृतिक गाउँ सुझाउनुहोस्",
       "answer_en": "For cultural village experiences, prioritize places with homestays, museums, local festivals, traditional architecture, and community tourism. Ghandruk, Sikles, and Dhampus-style villages are strong starting points.",
       "answer_ne": "सांस्कृतिक गाउँ अनुभवका लागि होमस्टे, संग्रहालय, स्थानीय चाड, परम्परागत वास्तुकला र सामुदायिक पर्यटन भएका ठाउँ रोज्नुहोस्। घान्द्रुक, सिक्लेस र धम्पुस जस्ता गाउँ राम्रो सुरुवात हुन्।",
-      "keywords": ["culture", "village", "heritage", "homestay", "संस्कृति", "गाउँ"],
+      "keywords": [
+        "culture",
+        "village",
+        "heritage",
+        "homestay",
+        "संस्कृति",
+        "गाउँ"
+      ],
       "intent": "destination_recommendation",
-      "related_destinations": ["ghandruk", "sikles", "dhampus"],
+      "related_destinations": [
+        "ghandruk",
+        "sikles",
+        "dhampus"
+      ],
       "confidence_weight": 1.0
     },
     {
@@ -255,9 +433,18 @@
       "question_ne": "प्रकृति गन्तव्य सुझाउनुहोस्",
       "answer_en": "For nature-focused travel, look for lakes, viewpoints, forests, sunrise points, and lower-risk short hikes. Choose spring or autumn for clearer views, and keep monsoon plans flexible.",
       "answer_ne": "प्रकृति यात्राका लागि ताल, भ्यू पोइन्ट, जंगल, सूर्योदय स्थल र कम जोखिमका छोटो हाइक हेर्नुहोस्। सफा दृश्यका लागि वसन्त वा शरद छान्नुहोस्, वर्षायाममा योजना लचिलो राख्नुहोस्।",
-      "keywords": ["nature", "lake", "forest", "view", "प्रकृति", "ताल"],
+      "keywords": [
+        "nature",
+        "lake",
+        "forest",
+        "view",
+        "प्रकृति",
+        "ताल"
+      ],
       "intent": "destination_recommendation",
-      "related_destinations": ["begnas"],
+      "related_destinations": [
+        "begnas"
+      ],
       "confidence_weight": 1.0
     }
   ]

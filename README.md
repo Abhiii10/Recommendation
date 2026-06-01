@@ -403,9 +403,11 @@ python scripts/setup_env.py
 .\scripts\start_backend.ps1
 ```
 
-If port `8000` is already occupied, `scripts/start_backend.ps1` kills the
-conflicting Windows process before starting uvicorn. On Mac/Linux, use
-`bash scripts/start_backend.sh`.
+If port `8000` already has a healthy backend, `scripts/start_backend.ps1`
+reuses it instead of starting a duplicate server. To intentionally stop the
+Docker backend and start local uvicorn, run
+`.\scripts\start_backend.ps1 -ForceRestart`. On Mac/Linux, use
+`FORCE_RESTART=true bash scripts/start_backend.sh`.
 
 Backend health check:
 

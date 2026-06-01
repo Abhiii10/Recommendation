@@ -39,12 +39,20 @@ class NamedEntityRecognizer {
     EntityType type,
     List<EntityMention> entities,
   ) {
-    for (final entry in gazetteer.entries) {
+    final matchedCanonicalIds = <String>{};
+    final entries = gazetteer.entries.toList()
+      ..sort((a, b) => b.key.length.compareTo(a.key.length));
+
+    for (final entry in entries) {
+      if (matchedCanonicalIds.contains(entry.value)) {
+        continue;
+      }
       final name = TextUtils.normalizeSearchText(entry.key);
       if (name.length < 3 || !TextUtils.containsPhrase(normalized, name)) {
         continue;
       }
       final start = normalized.indexOf(name);
+      matchedCanonicalIds.add(entry.value);
       entities.add(
         EntityMention(
           text: entry.key,

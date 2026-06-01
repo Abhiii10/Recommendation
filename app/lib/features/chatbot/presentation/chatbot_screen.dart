@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:rural_tourism_app/core/utils/backend_config.dart';
+import 'package:rural_tourism_app/providers/offline_provider.dart';
 import 'package:rural_tourism_app/l10n/app_localizations.dart';
 import 'package:rural_tourism_app/features/chatbot/domain/models/chat_message.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
@@ -19,7 +21,7 @@ import 'package:rural_tourism_app/features/translator/data/services/legacy_trans
 import 'package:rural_tourism_app/shared/theme/app_theme.dart';
 import 'package:rural_tourism_app/features/translator/presentation/translation_screen.dart';
 
-class ChatbotScreen extends StatefulWidget {
+class ChatbotScreen extends ConsumerStatefulWidget {
   final List<Destination> destinations;
   final VoidCallback? onOpenAbout;
 
@@ -30,10 +32,10 @@ class ChatbotScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatbotScreen> createState() => _ChatbotScreenState();
+  ConsumerState<ChatbotScreen> createState() => _ChatbotScreenState();
 }
 
-class _ChatbotScreenState extends State<ChatbotScreen> {
+class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
   static bool _aiProviderNoticeShownThisSession = false;
   static bool _aiProviderProbeCompletedThisSession = false;
 
@@ -553,6 +555,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final isOffline = ref.watch(offlineProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -583,11 +586,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ),
                 ),
                 Text(
-                  _llmOnline == true
-                      ? 'Online LLM ready'
-                      : _llmOnline == false
-                          ? 'Offline fallback active'
-                          : 'Checking LLM status',
+                  _headerSubtitle(isOffline: isOffline),
                   style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.onSurfaceVariant,
@@ -744,6 +743,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ],
       ),
     );
+  }
+
+  String _headerSubtitle({required bool isOffline}) {
+    if (isOffline) return 'Offline fallback active';
+    if (_llmOnline == true) return 'Online LLM ready';
+    if (_llmOnline == false) return 'Backend unavailable';
+    return 'Checking LLM status';
   }
 
   Widget _buildAiProviderNoticeBanner() {

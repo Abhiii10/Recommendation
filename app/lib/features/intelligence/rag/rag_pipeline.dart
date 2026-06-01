@@ -19,7 +19,11 @@ class RagPipeline {
     required String intent,
     required DialogueState dialogueState,
   }) {
-    final retrievalResults = contextRetriever.retrieve(nlp, intent: intent);
+    final effectiveIntent = _effectiveIntent(intent);
+    final retrievalResults = contextRetriever.retrieve(
+      nlp,
+      intent: effectiveIntent,
+    );
     final contexts = retrievalResults
         .map(
           (result) => RetrievedContext(
@@ -33,10 +37,15 @@ class RagPipeline {
         )
         .toList(growable: false);
     return responseGenerator.generate(
-      intent: intent,
+      intent: effectiveIntent,
       language: nlp.language,
       contexts: contexts,
       dialogueState: dialogueState,
     );
+  }
+
+  String _effectiveIntent(String intent) {
+    if (intent == 'destination_query') return 'destination_recommendation';
+    return intent;
   }
 }

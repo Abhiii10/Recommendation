@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import threading
 from typing import Dict, Iterable, List, Set
+import weakref
 
 import faiss
 import numpy as np
@@ -31,6 +32,7 @@ class CandidateRetriever:
 
     _cache: _FaissIndexCache | None = None
     _cache_lock = threading.Lock()
+    _instances: "weakref.WeakSet[CandidateRetriever]" = weakref.WeakSet()
 
     def __init__(self, destinations: List[Destination]):
         self.destinations = destinations
@@ -41,6 +43,7 @@ class CandidateRetriever:
         self._matrix = cache.matrix
         self._index = cache.index
         self._id_to_idx = cache.id_to_idx
+        self.__class__._instances.add(self)
 
     def rebuild_index(self, destinations: List[Destination] | None = None) -> None:
         """
@@ -289,3 +292,42 @@ class CandidateRetriever:
 
     def _normalize(self, value: str | None) -> str:
         return value.strip().lower() if value else ""
+
+
+def rebuild_index() -> dict:
+    """
+    Rebuild the shared in-memory FAISS candidate retrieval index.
+
+    Admin tasks call this after destination data or SBERT text changes. Existing
+    CandidateRetriever instances are refreshed too, so cached services start
+    using the new embedding matrix without requiring a process restart.
+    """
+
+    from backend.infrastructure.repositories.json_destination_repository import (
+        JsonDestinationRepository,
+    )
+
+    destinations = JsonDestinationRepository().get_all()
+    if not destinations:
+        CandidateRetriever._cache = None
+        return {
+            "status": "empty",
+            "destinations": 0,
+            "message": "No destinations found; candidate index cleared.",
+        }
+
+    instances = list(CandidateRetriever._instances)
+    if instances:
+        for retriever in instances:
+            retriever.rebuild_index(destinations)
+    else:
+        CandidateRetriever(destinations)
+
+    cache = CandidateRetriever._cache
+    return {
+        "status": "ok",
+        "destinations": len(destinations),
+        "dimensions": int(cache.matrix.shape[1]) if cache is not None else 0,
+        "index_type": "faiss.IndexFlatIP",
+        "message": "Candidate retrieval FAISS index rebuilt.",
+    }

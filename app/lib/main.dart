@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:rural_tourism_app/core/observability/app_telemetry.dart';
+import 'package:rural_tourism_app/core/storage/hive_storage_service.dart';
 import 'package:rural_tourism_app/data/datasources/user_profile_local_datasource.dart';
 import 'package:rural_tourism_app/data/repositories/shared_preferences_user_profile_repository.dart';
 import 'package:rural_tourism_app/data/repositories/user_profile_repository_impl.dart';
@@ -36,6 +37,7 @@ Future<void> main() async {
       }
 
       // ── Step 2: Telemetry (now reads from dotenv correctly) ───────────────
+      await HiveStorageService.instance.init();
       await AppTelemetry.instance.initialize();
 
       FlutterError.onError = (details) {

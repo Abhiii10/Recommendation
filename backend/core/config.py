@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     allowed_origins_raw: str = Field("*", validation_alias="ALLOWED_ORIGINS")
     environment: str = Field("development", validation_alias="ENVIRONMENT")
+    offline_mode: bool = False
 
     model_name: str = "all-MiniLM-L6-v2"
 
@@ -28,8 +29,8 @@ class Settings(BaseSettings):
     retrieval_category_weight:  float = 0.10
 
     # ── Final score weights (FIXED) ───────────────────────────────────────────
-    semantic_weight:      float = 0.60
-    collaborative_weight: float = 0.10
+    semantic_weight:      float = 0.50
+    collaborative_weight: float = 0.20
     contextual_weight:    float = 0.30
 
     # ── Contextual sub-weights (sum should equal 1.0) ─────────────────────────
@@ -70,6 +71,9 @@ class Settings(BaseSettings):
     app_db_file:          Path = data_dir / "app.sqlite3"
     interaction_storage_backend: str = "sqlite"
     database_url: str = ""
+    redis_url: str = "redis://localhost:6379"
+    redis_cache_ttl_seconds: int = 300
+    redis_enabled: bool = False
     auth_users_file: Path = data_dir / "auth_users.json"
     auth_secret_key: str = AUTH_SECRET_PLACEHOLDER
     auth_access_token_expire_minutes: int = 60 * 24 * 30

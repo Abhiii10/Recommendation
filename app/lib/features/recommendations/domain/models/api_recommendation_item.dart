@@ -54,6 +54,21 @@ class ApiRecommendationItem {
     };
   }
 
+  ApiRecommendationItem copyWith({
+    Map<String, String>? metadata,
+  }) {
+    return ApiRecommendationItem(
+      id: id,
+      name: name,
+      district: district,
+      province: province,
+      score: score,
+      components: components,
+      reasons: reasons,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+
   String get location {
     final parts = [district, province].whereType<String>().toList();
     return parts.join(', ');

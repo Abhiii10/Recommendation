@@ -1,8 +1,9 @@
 """
-Feature engineering for ML ranking model.
+Legacy feature engineering helpers for synthetic ranking data.
 
 Converts a (user preferences, destination) pair into a fixed-length
-numeric vector that the GradientBoostingClassifier can train on.
+numeric vector used by synthetic data generation and backward-compatible
+evaluation code.
 
 Feature order must never change after training — the saved model
 depends on the index positions being stable.

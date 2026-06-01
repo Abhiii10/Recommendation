@@ -5,6 +5,8 @@ from urllib.parse import urlencode
 
 import httpx
 
+from backend.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,6 +22,10 @@ class TranslationService:
     async def translate(self, text: str, src: str, tgt: str) -> tuple[str, float]:
         if src == tgt:
             return text, 1.0
+
+        if settings.offline_mode:
+            logger.info("OFFLINE_MODE=true; skipping MyMemory translation call.")
+            return text, 0.0
 
         langpair = SUPPORTED_PAIRS.get((src, tgt))
         if not langpair:

@@ -26,8 +26,10 @@ from backend.domain.entities.destination import Destination
 from backend.infrastructure.repositories.json_destination_repository import JsonDestinationRepository
 from backend.infrastructure.repositories.json_user_repository import JsonUserRepository
 from backend.infrastructure.ml.synthetic_data import synthetic_relevance_label
-from backend.infrastructure.ml.feature_builder import build_ranking_features
-from backend.infrastructure.ml.ranker import RankingModel
+from backend.infrastructure.ml.ranker import (
+    build_training_feature_vector,
+    get_ranking_model,
+)
 
 
 # ── Individual metric functions ───────────────────────────────────────────────
@@ -154,8 +156,8 @@ def evaluate_recommender(
             "message":        "No destinations found.",
         }
 
-    ranker = RankingModel()
-    ranker.load()   # loads saved model if available, otherwise uses fallback
+    ranker = get_ranking_model()
+    ranker.ensure_loaded()   # loads saved model if available, otherwise uses fallback
 
     precision_values  = []
     recall_values     = []
@@ -177,11 +179,11 @@ def evaluate_recommender(
         # Score and rank all destinations
         scored = []
         for dest in destinations:
-            features = build_ranking_features(
+            features = build_training_feature_vector(
                 preferences=preferences,
                 destination=dest,
                 semantic_score=0.5,
-                user_history_score=0.0,
+                collaborative_score=0.0,
             )
             score = ranker.predict_score(features)
             scored.append((dest, score))

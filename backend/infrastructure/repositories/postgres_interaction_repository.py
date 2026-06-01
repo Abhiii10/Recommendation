@@ -41,7 +41,15 @@ class PostgresInteractionRepository(InteractionRepository):
             with connection.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT user_id, destination_id, event_type, value, event_timestamp
+                    SELECT
+                        user_id,
+                        destination_id,
+                        event_type,
+                        value,
+                        event_timestamp,
+                        recommendation_id,
+                        recommended_destination_ids,
+                        pipeline_used
                     FROM interactions
                     ORDER BY id ASC
                     """
@@ -55,6 +63,12 @@ class PostgresInteractionRepository(InteractionRepository):
                 event_type=row["event_type"],
                 value=float(row["value"]),
                 timestamp=self._timestamp_to_string(row["event_timestamp"]),
+                recommendation_id=row["recommendation_id"],
+                recommended_destination_ids=[
+                    str(item)
+                    for item in (row["recommended_destination_ids"] or [])
+                ],
+                pipeline_used=row["pipeline_used"],
             )
             for row in rows
         ]
@@ -62,14 +76,23 @@ class PostgresInteractionRepository(InteractionRepository):
     def add(self, interaction: Interaction) -> None:
         event_timestamp = interaction.timestamp or datetime.now(timezone.utc).isoformat()
 
+        from psycopg.types.json import Jsonb
+
         with self._connect() as connection:
             with connection.cursor() as cur:
                 cur.execute(
                     """
                     INSERT INTO interactions (
-                        user_id, destination_id, event_type, value, event_timestamp
+                        user_id,
+                        destination_id,
+                        event_type,
+                        value,
+                        event_timestamp,
+                        recommendation_id,
+                        recommended_destination_ids,
+                        pipeline_used
                     )
-                    VALUES (%s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         interaction.user_id,
@@ -77,6 +100,9 @@ class PostgresInteractionRepository(InteractionRepository):
                         interaction.event_type,
                         float(interaction.value),
                         event_timestamp,
+                        interaction.recommendation_id,
+                        Jsonb(interaction.recommended_destination_ids),
+                        interaction.pipeline_used,
                     ),
                 )
             connection.commit()
@@ -143,8 +169,30 @@ class PostgresInteractionRepository(InteractionRepository):
                         event_type TEXT NOT NULL,
                         value DOUBLE PRECISION NOT NULL DEFAULT 1.0,
                         event_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        recommendation_id TEXT,
+                        recommended_destination_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+                        pipeline_used TEXT,
                         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
                     )
+                    """
+                )
+                cur.execute(
+                    """
+                    ALTER TABLE interactions
+                    ADD COLUMN IF NOT EXISTS recommendation_id TEXT
+                    """
+                )
+                cur.execute(
+                    """
+                    ALTER TABLE interactions
+                    ADD COLUMN IF NOT EXISTS recommended_destination_ids JSONB
+                    NOT NULL DEFAULT '[]'::jsonb
+                    """
+                )
+                cur.execute(
+                    """
+                    ALTER TABLE interactions
+                    ADD COLUMN IF NOT EXISTS pipeline_used TEXT
                     """
                 )
                 cur.execute(
@@ -177,6 +225,12 @@ class PostgresInteractionRepository(InteractionRepository):
                     ON interactions(destination_id, event_timestamp DESC)
                     """
                 )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_interactions_recommendation
+                    ON interactions(recommendation_id)
+                    """
+                )
             connection.commit()
 
     def _seed_from_json_if_empty(self) -> None:
@@ -193,17 +247,23 @@ class PostgresInteractionRepository(InteractionRepository):
             if not seed_items:
                 return
 
-            
+            from psycopg.types.json import Jsonb
+
             with connection.cursor() as cur:
                 cur.executemany(
                     """
                     INSERT INTO interactions (
-                        user_id, destination_id, event_type, value, event_timestamp
+                        user_id,
+                        destination_id,
+                        event_type,
+                        value,
+                        event_timestamp,
+                        recommendation_id,
+                        recommended_destination_ids,
+                        pipeline_used
                     )
-                    VALUES (%s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """,
-                    
-            
                     [
                         (
                             item.get("user_id", ""),
@@ -211,6 +271,9 @@ class PostgresInteractionRepository(InteractionRepository):
                             item.get("event_type", ""),
                             float(item.get("value", 1.0) or 1.0),
                             item.get("timestamp") or datetime.now(timezone.utc).isoformat(),
+                            item.get("recommendation_id"),
+                            Jsonb(item.get("recommended_destination_ids") or []),
+                            item.get("pipeline_used"),
                         )
                         for item in seed_items
                         if item.get("user_id")

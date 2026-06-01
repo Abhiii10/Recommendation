@@ -160,13 +160,27 @@ class RecommendationApiService {
     });
 
     final results = (data['results'] as List?) ?? const [];
+    final responseMetadata = <String, String>{
+      if (data['recommendation_id'] != null)
+        'recommendation_id': data['recommendation_id'].toString(),
+      if (data['pipeline_used'] != null)
+        'pipeline_used': data['pipeline_used'].toString(),
+      if (data['recommendation_id'] != null) 'server_logged_impression': 'true',
+    };
 
-    return results
-        .map(
-          (value) =>
-              ApiRecommendationItem.fromJson(value as Map<String, dynamic>),
-        )
-        .toList();
+    return results.map(
+      (value) {
+        final item =
+            ApiRecommendationItem.fromJson(value as Map<String, dynamic>);
+        if (responseMetadata.isEmpty) return item;
+        return item.copyWith(
+          metadata: {
+            ...item.metadata,
+            ...responseMetadata,
+          },
+        );
+      },
+    ).toList();
   }
 
   Future<void> logInteraction({
@@ -175,13 +189,21 @@ class RecommendationApiService {
     required String eventType,
     double value = 1.0,
     DateTime? timestamp,
+    String? recommendationId,
+    List<String> recommendedDestinationIds = const [],
+    String? pipelineUsed,
   }) async {
     await _post('/interactions', {
       'user_id': userId,
       'destination_id': destinationId,
       'event_type': eventType,
+      'action': eventType,
       'value': value,
       'timestamp': (timestamp ?? DateTime.now()).toUtc().toIso8601String(),
+      if (recommendationId != null) 'recommendation_id': recommendationId,
+      if (recommendedDestinationIds.isNotEmpty)
+        'recommended_destination_ids': recommendedDestinationIds,
+      if (pipelineUsed != null) 'pipeline_used': pipelineUsed,
     });
   }
 

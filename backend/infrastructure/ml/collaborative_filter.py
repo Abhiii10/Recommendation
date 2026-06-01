@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Set
 
 from backend.core.constants import EventTypes
 from backend.domain.entities.interaction import Interaction
+from backend.two_tower import get_two_tower_scorer
 
 
 class InteractionWeightStrategy:
@@ -53,6 +54,7 @@ class CollaborativeFilter:
         # Build once at construction — not per score_candidates() call
         self._matrix: Dict[str, Dict[str, float]] = self._build_user_item_matrix()
         self._item_users: Dict[str, Set[str]] = self._build_item_user_sets(self._matrix)
+        self._interaction_counts: Dict[str, int] = self._build_interaction_counts()
 
     # ── private ────────────────────────────────────────────────────────────────
 
@@ -74,6 +76,13 @@ class CollaborativeFilter:
                 item_users[iid].add(uid)
         return item_users
 
+    def _build_interaction_counts(self) -> Dict[str, int]:
+        counts: Dict[str, int] = defaultdict(int)
+        for ix in self._interactions:
+            if self._strategy.weight(ix.event_type) > 0.0:
+                counts[ix.user_id] += 1
+        return counts
+
     # ── public ─────────────────────────────────────────────────────────────────
 
     def score_candidates(
@@ -85,6 +94,36 @@ class CollaborativeFilter:
         Cold-start: if the user has no recorded interactions, all scores are 0.0.
         The reranker blends collaborative at 0 weight in this case gracefully.
         """
+        basic_scores = self._basic_score_candidates(
+            user_id=user_id,
+            candidate_ids=candidate_ids,
+        )
+
+        if not user_id:
+            return basic_scores
+
+        two_tower_scores = get_two_tower_scorer().score_candidates(
+            user_id=user_id,
+            candidate_ids=candidate_ids,
+            user_interaction_count=self._interaction_counts.get(user_id, 0),
+        )
+
+        if two_tower_scores is None:
+            return basic_scores
+
+        return {
+            cid: (
+                0.7 * two_tower_scores.get(cid, 0.0)
+                + 0.3 * basic_scores.get(cid, 0.0)
+            )
+            for cid in candidate_ids
+        }
+
+    def _basic_score_candidates(
+        self,
+        user_id: str,
+        candidate_ids: List[str],
+    ) -> Dict[str, float]:
         if not user_id:
             return {cid: 0.0 for cid in candidate_ids}
 

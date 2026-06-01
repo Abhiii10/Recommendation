@@ -1,8 +1,11 @@
 from argparse import ArgumentParser
+import logging
+import sqlite3
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.v1.admin import router as admin_router
 from backend.api.v1.analytics import router as analytics_router
 from backend.api.v1.auth import router as auth_router
 from backend.api.v1.chat import router as chat_router
@@ -14,6 +17,51 @@ from backend.api.v1.recommend import router as recommend_router
 from backend.api.v1.similar import router as similar_router
 from backend.api.v1.translate import router as translate_router
 from backend.core.config import settings
+from backend.infrastructure.ml.ranker import get_ranking_model
+
+logger = logging.getLogger(__name__)
+
+
+def _sbert_loaded_in_memory() -> bool:
+    try:
+        from backend.infrastructure.ml.sbert_encoder import SbertEncoder
+
+        instance = getattr(SbertEncoder, "_instance", None)
+        return instance is not None and getattr(instance, "_model", None) is not None
+    except Exception as exc:
+        logger.debug("SBERT health probe skipped: %s", exc)
+        return False
+
+
+def _database_reachable() -> bool:
+    backend = settings.interaction_storage_backend.lower()
+
+    if backend == "postgres":
+        if not settings.database_url:
+            return False
+        try:
+            import psycopg
+
+            with psycopg.connect(settings.database_url, connect_timeout=2) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                    cur.fetchone()
+            return True
+        except Exception as exc:
+            logger.debug("PostgreSQL health probe failed: %s", exc)
+            return False
+
+    if backend == "sqlite":
+        try:
+            settings.app_db_file.parent.mkdir(parents=True, exist_ok=True)
+            with sqlite3.connect(settings.app_db_file, timeout=2) as conn:
+                conn.execute("SELECT 1").fetchone()
+            return True
+        except Exception as exc:
+            logger.debug("SQLite health probe failed: %s", exc)
+            return False
+
+    return True
 
 
 class ApplicationFactory:
@@ -36,6 +84,16 @@ class ApplicationFactory:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        try:
+            ranker = get_ranking_model()
+            ranker.ensure_loaded()
+            logger.info("Recommendation ranker startup mode: %s", ranker.mode)
+        except Exception as exc:
+            logger.warning(
+                "Recommendation ranker startup check failed; fallback mode will be used: %s",
+                exc,
+            )
 
         application.include_router(
             recommend_router,
@@ -97,6 +155,12 @@ class ApplicationFactory:
             tags=["Evaluation & Training"],
         )
 
+        application.include_router(
+            admin_router,
+            prefix="/admin",
+            tags=["Admin"],
+        )
+
         @application.get("/", tags=["Health"])
         def root() -> dict[str, str]:
             return {
@@ -108,6 +172,10 @@ class ApplicationFactory:
 
         @application.get("/health", tags=["Health"])
         def health() -> dict[str, str]:
+            # Health checks are intentionally local-only. Do not add outbound
+            # HTTP calls here; Docker and offline demos must stay fast.
+            _sbert_loaded_in_memory()
+            _database_reachable()
             return {"status": "ok"}
 
         return application

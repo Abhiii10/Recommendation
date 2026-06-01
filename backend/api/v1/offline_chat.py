@@ -15,33 +15,6 @@ def _get_service():
     return OfflineChatService()
 
 
-@lru_cache(maxsize=1)
-def _get_translator():
-    from backend.application.services.translation_service import TranslationService
-
-    return TranslationService()
-
-
 @router.post("", response_model=ChatResponseDto)
 async def offline_chat(payload: ChatRequestDto) -> ChatResponseDto:
-    translator = _get_translator()
-
-    if payload.language != "en" and translator.is_supported(payload.language, "en"):
-        translated_question, _ = await translator.translate(
-            payload.question,
-            payload.language,
-            "en",
-        )
-        payload = payload.model_copy(update={"question": translated_question})
-
-    result = await _get_service().answer(payload)
-
-    if payload.language != "en" and translator.is_supported("en", payload.language):
-        translated_answer, _ = await translator.translate(
-            result.answer,
-            "en",
-            payload.language,
-        )
-        result = result.model_copy(update={"answer": translated_answer})
-
-    return result
+    return await _get_service().answer(payload)

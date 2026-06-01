@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
 import httpx
@@ -7,12 +8,15 @@ from fastapi import HTTPException
 
 from backend.application.dto.requests import ChatRequestDto
 from backend.application.dto.responses import ChatResponseDto
+from backend.application.services.chat_fallback import build_rule_based_chat_response
 from backend.core.config import settings
 from backend.domain.entities.destination import Destination
 from backend.infrastructure.ml.candidate_retriever import CandidateRetriever
 from backend.infrastructure.repositories.json_destination_repository import (
     JsonDestinationRepository,
 )
+
+logger = logging.getLogger(__name__)
 
 
 SYSTEM_PROMPT = """
@@ -35,7 +39,16 @@ class GroqChatService:
     def __init__(self) -> None:
         self._destination_repo = JsonDestinationRepository()
         self._destinations = self._destination_repo.get_all()
-        self._retriever = CandidateRetriever(self._destinations)
+        self._retriever: CandidateRetriever | None = None
+        if settings.offline_mode:
+            return
+        try:
+            self._retriever = CandidateRetriever(self._destinations)
+        except Exception as exc:
+            logger.warning(
+                "SBERT retriever unavailable; using keyword chat fallback: %s",
+                exc,
+            )
 
     async def answer(self, request: ChatRequestDto) -> ChatResponseDto:
         question = request.question.strip()
@@ -46,16 +59,25 @@ class GroqChatService:
                 detail="Question cannot be empty.",
             )
 
-        if not settings.groq_api_key:
-            raise HTTPException(
-                status_code=503,
-                detail="GROQ_API_KEY is not configured in backend .env.",
-            )
-
         context_destinations = self._retrieve_destinations(
             question=question,
             top_k=request.top_k,
         )
+
+        if settings.offline_mode:
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="OFFLINE_MODE=true",
+            )
+
+        if not settings.groq_api_key:
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="GROQ_API_KEY is not configured",
+            )
+
         context = self._build_context(context_destinations)
 
         prompt = f"""
@@ -91,7 +113,7 @@ If the context is not enough, give general rural tourism guidance and clearly sa
         url = f"{settings.groq_base_url.rstrip('/')}/chat/completions"
 
         try:
-            async with httpx.AsyncClient(timeout=45.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
                 response = await client.post(
                     url,
                     headers={
@@ -100,30 +122,64 @@ If the context is not enough, give general rural tourism guidance and clearly sa
                     },
                     json=payload,
                 )
+        except httpx.ConnectError as exc:
+            logger.warning("Groq connection failed; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="the Groq service could not be reached",
+            )
         except httpx.TimeoutException as exc:
-            raise HTTPException(
-                status_code=504,
-                detail="LLM request timed out.",
-            ) from exc
+            logger.warning("Groq request timed out; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="the Groq request timed out",
+            )
         except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail=f"LLM connection error: {exc}",
-            ) from exc
-
-        if response.status_code < 200 or response.status_code >= 300:
-            raise HTTPException(
-                status_code=502,
-                detail=f"LLM API error: {response.text[:1000]}",
+            logger.warning("Groq HTTP error; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="the Groq request failed",
+            )
+        except Exception as exc:
+            logger.exception("Unexpected Groq chat failure; using fallback")
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason=f"the Groq request failed unexpectedly: {type(exc).__name__}",
             )
 
-        data = response.json()
+        if response.status_code < 200 or response.status_code >= 300:
+            logger.warning(
+                "Groq API returned %s; using fallback: %s",
+                response.status_code,
+                response.text[:300],
+            )
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason=f"Groq returned HTTP {response.status_code}",
+            )
+
+        try:
+            data = response.json()
+        except ValueError as exc:
+            logger.warning("Groq returned invalid JSON; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="Groq returned an invalid response",
+            )
+
         answer = self._extract_answer(data)
 
         if not answer:
-            raise HTTPException(
-                status_code=502,
-                detail="LLM returned an empty answer.",
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="Groq returned an empty answer",
             )
 
         return ChatResponseDto(
@@ -138,6 +194,8 @@ If the context is not enough, give general rural tourism guidance and clearly sa
         top_k: int,
     ) -> List[Destination]:
         try:
+            if self._retriever is None:
+                return self._keyword_retrieve(question, top_k)
             candidates = self._retriever.retrieve(
                 query_text=question,
                 top_k=top_k,

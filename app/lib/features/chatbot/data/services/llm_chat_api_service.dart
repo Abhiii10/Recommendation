@@ -58,7 +58,7 @@ class LlmChatApiService {
       }
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final answer = data['answer']?.toString().trim();
+      final answer = (data['answer'] ?? data['reply'])?.toString().trim();
 
       if (answer == null || answer.isEmpty) {
         throw Exception('LLM chat failed: empty answer');

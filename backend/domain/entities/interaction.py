@@ -1,5 +1,6 @@
-from typing import Optional
-from pydantic import BaseModel
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class Interaction(BaseModel):
@@ -8,3 +9,6 @@ class Interaction(BaseModel):
     event_type: str
     value: float = 1.0
     timestamp: Optional[str] = None
+    recommendation_id: Optional[str] = None
+    recommended_destination_ids: List[str] = Field(default_factory=list)
+    pipeline_used: Optional[str] = None

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class RecommendationRequestDto(BaseModel):
@@ -23,11 +23,21 @@ class RecommendationRequestDto(BaseModel):
 
 
 class InteractionRequestDto(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None
     destination_id: str
-    event_type: str
+    event_type: Optional[str] = None
+    action: Optional[str] = None
     value: float = 1.0
     timestamp: Optional[str] = None
+    recommendation_id: Optional[str] = None
+    recommended_destination_ids: List[str] = Field(default_factory=list)
+    pipeline_used: Optional[str] = None
+
+    @model_validator(mode="after")
+    def sync_action_event_type(self) -> "InteractionRequestDto":
+        if not self.event_type and self.action:
+            self.event_type = self.action
+        return self
 
 
 class InteractionBatchRequestDto(BaseModel):

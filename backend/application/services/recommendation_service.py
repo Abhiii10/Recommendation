@@ -22,8 +22,7 @@ from backend.infrastructure.explain.recommendation_explainer import Recommendati
 from backend.infrastructure.ml.candidate_retriever import CandidateRetriever
 from backend.infrastructure.ml.collaborative_filter import CollaborativeFilter
 from backend.infrastructure.ml.contextual_reranker import ContextualReranker
-from backend.infrastructure.ml.feature_builder import build_ranking_features
-from backend.infrastructure.ml.ranker import RankingModel
+from backend.infrastructure.ml.ranker import build_ranker_features, get_ranking_model
 from backend.infrastructure.ml.sbert_encoder import PreferenceQueryBuilder
 from backend.infrastructure.repositories.json_accommodation_repository import (
     JsonAccommodationRepository,
@@ -41,9 +40,6 @@ _COLD_START_COLLABORATIVE_WEIGHT = 0.0
 
 _WARM_POPULARITY_WEIGHT = 0.15
 _WARM_COLLABORATIVE_WEIGHT = 0.85
-
-_HYBRID_SCORE_WEIGHT = 0.70
-_ML_RANK_SCORE_WEIGHT = 0.30
 
 
 class RecommendationService:
@@ -67,8 +63,8 @@ class RecommendationService:
         self._reranker = ContextualReranker()
         self._explainer = RecommendationExplainer()
 
-        self._ranker = RankingModel()
-        self._ranker.load()
+        self._ranker = get_ranking_model()
+        self._ranker.ensure_loaded()
 
     def recommend(self, request: RecommendationRequestDto) -> RecommendationResponseDto:
         query_text = self._query_builder.build(
@@ -178,18 +174,9 @@ class RecommendationService:
         top_k: int,
     ) -> list:
         """
-        Blends old hybrid score with ML ranker score.
-        This keeps your old recommender but upgrades ranking quality.
+        Applies LightGBM LambdaRank when trained, otherwise uses the fixed
+        semantic/collaborative/contextual fallback formula.
         """
-
-        preferences = {
-            "activity": request.activity,
-            "budget": request.budget,
-            "season": request.season,
-            "vibe": request.vibe,
-            "family_friendly": request.family_friendly,
-            "adventure_level": request.adventure_level,
-        }
 
         rescored = []
 
@@ -204,25 +191,42 @@ class RecommendationService:
                 getattr(recommendation.components, "collaborative", 0.0) or 0.0
             )
 
-            features = build_ranking_features(
-                preferences=preferences,
-                destination=destination,
+            contextual_score = self._metadata_float(
+                recommendation.metadata.get("contextual_score"),
+            )
+
+            features = build_ranker_features(
                 semantic_score=semantic_score,
-                user_history_score=user_history_score,
+                collaborative_score=user_history_score,
+                contextual_score=contextual_score,
+                popularity_score=float(destination.popularity_score or 0.0),
+                activity_match=float(
+                    getattr(recommendation.components, "activity_match", 0.0) or 0.0
+                ),
+                season_match=float(
+                    getattr(recommendation.components, "season_match", 0.0) or 0.0
+                ),
+                budget_match=float(
+                    getattr(recommendation.components, "budget_match", 0.0) or 0.0
+                ),
+                vibe_match=float(
+                    getattr(recommendation.components, "vibe_match", 0.0) or 0.0
+                ),
             )
 
             ml_rank_score = self._ranker.predict_score(features)
 
-            final_score = (
-                _HYBRID_SCORE_WEIGHT * float(recommendation.score)
-                + _ML_RANK_SCORE_WEIGHT * ml_rank_score
-            )
-
-            recommendation.score = round(final_score, 4)
+            recommendation.score = round(ml_rank_score, 4)
             recommendation.metadata["ml_rank_score"] = f"{ml_rank_score:.4f}"
             recommendation.metadata["ml_ranker_trained"] = str(
                 self._ranker.is_trained
             ).lower()
+            recommendation.metadata["ranker_mode"] = self._ranker.mode
+            recommendation.metadata["ranker_model"] = (
+                "lightgbm_lambdarank"
+                if self._ranker.is_trained
+                else "fixed_weight_fallback"
+            )
 
             rescored.append(recommendation)
 
@@ -277,3 +281,10 @@ class RecommendationService:
     @staticmethod
     def _is_cold_start(collab_scores: dict[str, float]) -> bool:
         return all(score == 0.0 for score in collab_scores.values())
+
+    @staticmethod
+    def _metadata_float(value: str | None) -> float:
+        try:
+            return float(value or 0.0)
+        except (TypeError, ValueError):
+            return 0.0

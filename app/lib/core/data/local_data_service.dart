@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:rural_tourism_app/core/data/offline_storage.dart';
+import 'package:rural_tourism_app/core/storage/hive_models.dart';
+import 'package:rural_tourism_app/core/storage/hive_storage_service.dart';
 import 'package:rural_tourism_app/core/storage/database_factory_config.dart';
 import 'package:rural_tourism_app/core/utils/app_constants.dart';
 import 'package:rural_tourism_app/data/datasources/user_profile_local_datasource.dart';
@@ -20,16 +22,14 @@ class LocalDataService {
   static final LocalDataService instance = LocalDataService._();
   static const String _webSavedDestinationsKey = 'web_saved_destinations';
   static const String _webEventsKey = 'web_app_events';
-  static const String _webPendingBackendInteractionsKey =
-      'web_pending_backend_interactions';
-  static const String _webCachePrefix = 'web_recommendation_cache_';
-  static const String _webCacheTimestampSuffix = '_generated_at';
   static const String _webReviewsPrefix = 'web_destination_reviews_';
 
   Database? _db;
   bool _ffiInitialized = false;
 
   Future<void> init() async {
+    await HiveStorageService.instance.init();
+
     if (kIsWeb) return;
     if (_db != null) return;
 
@@ -51,14 +51,6 @@ class LocalDataService {
         ''');
 
         await db.execute('''
-          CREATE TABLE recommendation_cache(
-            cache_key TEXT PRIMARY KEY,
-            payload TEXT NOT NULL,
-            generated_at INTEGER NOT NULL
-          )
-        ''');
-
-        await db.execute('''
           CREATE TABLE app_events(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             event_type TEXT NOT NULL,
@@ -68,16 +60,11 @@ class LocalDataService {
         ''');
 
         await _createDestinationReviewsTable(db);
-        await _createPendingBackendInteractionsTable(db);
         await UserProfileLocalDatasource.runMigrations(db, 0, version);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 3) {
           await _createDestinationReviewsTable(db);
-        }
-
-        if (oldVersion < 4) {
-          await _createPendingBackendInteractionsTable(db);
         }
 
         await UserProfileLocalDatasource.runMigrations(
@@ -103,26 +90,6 @@ class LocalDataService {
     await db.execute('''
       CREATE INDEX IF NOT EXISTS idx_destination_reviews_destination_id
       ON destination_reviews(destination_id)
-    ''');
-  }
-
-  Future<void> _createPendingBackendInteractionsTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS pending_backend_interactions(
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        destination_id TEXT NOT NULL,
-        event_type TEXT NOT NULL,
-        value REAL NOT NULL DEFAULT 1.0,
-        timestamp TEXT NOT NULL,
-        created_at INTEGER NOT NULL,
-        attempts INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-
-    await db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_pending_backend_interactions_created_at
-      ON pending_backend_interactions(created_at)
     ''');
   }
 
@@ -325,19 +292,10 @@ class LocalDataService {
             })
         .toList();
 
-    if (kIsWeb) {
-      await cacheJsonPayload(cacheKey, payload);
-      return;
-    }
-
-    await _database.insert(
-      'recommendation_cache',
-      {
-        'cache_key': cacheKey,
-        'payload': jsonEncode(payload),
-        'generated_at': DateTime.now().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+    await HiveStorageService.instance.cacheRecommendationsJson(
+      cacheKey,
+      payload,
+      preferencesHash: cacheKey,
     );
   }
 
@@ -346,29 +304,15 @@ class LocalDataService {
   ) async {
     await init();
 
-    if (kIsWeb) {
-      final payload = await getCachedJsonList(cacheKey);
-      if (payload == null) return [];
-      return _decodeRecommendationResults(payload);
-    }
-
-    final rows = await _database.query(
-      'recommendation_cache',
-      where: 'cache_key = ?',
-      whereArgs: [cacheKey],
-      limit: 1,
-    );
-
-    if (rows.isEmpty) return [];
-
-    final payload = jsonDecode(rows.first['payload'] as String) as List;
+    final payload = await getCachedJsonList(cacheKey);
+    if (payload == null) return [];
 
     return _decodeRecommendationResults(payload);
   }
 
   Future<void> clearRecommendationCache() async {
-    final db = database;
-    await db.delete('recommendation_cache');
+    await init();
+    await HiveStorageService.instance.clearRecommendationCache();
   }
 
   Future<void> enqueueBackendInteraction({
@@ -377,6 +321,9 @@ class LocalDataService {
     required String eventType,
     double value = 1.0,
     String? timestamp,
+    String? recommendationId,
+    List<String> recommendedDestinationIds = const [],
+    String? pipelineUsed,
   }) async {
     await init();
 
@@ -387,21 +334,19 @@ class LocalDataService {
       'user_id': userId,
       'destination_id': destinationId,
       'event_type': eventType,
+      'action': eventType,
       'value': value,
       'timestamp': timestamp ?? now.toUtc().toIso8601String(),
+      if (recommendationId != null) 'recommendation_id': recommendationId,
+      if (recommendedDestinationIds.isNotEmpty)
+        'recommended_destination_ids': recommendedDestinationIds,
+      if (pipelineUsed != null) 'pipeline_used': pipelineUsed,
       'created_at': now.millisecondsSinceEpoch,
       'attempts': 0,
     };
 
-    if (kIsWeb) {
-      await _enqueueBackendInteractionForWeb(item);
-      return;
-    }
-
-    await _database.insert(
-      'pending_backend_interactions',
+    await HiveStorageService.instance.enqueuePendingBackendInteraction(
       item,
-      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
@@ -410,14 +355,7 @@ class LocalDataService {
   }) async {
     await init();
 
-    if (kIsWeb) {
-      final items = await _getPendingBackendInteractionsForWeb();
-      return items.take(limit).toList();
-    }
-
-    return _database.query(
-      'pending_backend_interactions',
-      orderBy: 'created_at ASC',
+    return HiveStorageService.instance.getPendingBackendInteractions(
       limit: limit,
     );
   }
@@ -427,21 +365,7 @@ class LocalDataService {
 
     await init();
 
-    if (kIsWeb) {
-      final idSet = ids.toSet();
-      final items = await _getPendingBackendInteractionsForWeb();
-      final remaining =
-          items.where((item) => !idSet.contains(item['id'])).toList();
-      await _savePendingBackendInteractionsForWeb(remaining);
-      return;
-    }
-
-    final placeholders = List.filled(ids.length, '?').join(',');
-    await _database.delete(
-      'pending_backend_interactions',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids,
-    );
+    await HiveStorageService.instance.removePendingBackendInteractions(ids);
   }
 
   Future<void> markBackendInteractionSyncAttempted(List<String> ids) async {
@@ -449,27 +373,7 @@ class LocalDataService {
 
     await init();
 
-    if (kIsWeb) {
-      final idSet = ids.toSet();
-      final items = await _getPendingBackendInteractionsForWeb();
-      final updated = items.map((item) {
-        if (!idSet.contains(item['id'])) return item;
-        return {
-          ...item,
-          'attempts': ((item['attempts'] as num?)?.toInt() ?? 0) + 1,
-        };
-      }).toList();
-      await _savePendingBackendInteractionsForWeb(updated);
-      return;
-    }
-
-    final placeholders = List.filled(ids.length, '?').join(',');
-    await _database.rawUpdate(
-      '''
-      UPDATE pending_backend_interactions
-      SET attempts = attempts + 1
-      WHERE id IN ($placeholders)
-      ''',
+    await HiveStorageService.instance.markPendingBackendInteractionsAttempted(
       ids,
     );
   }
@@ -490,82 +394,32 @@ class LocalDataService {
   Future<void> cacheJsonPayload(String cacheKey, Object payload) async {
     await init();
 
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('$_webCachePrefix$cacheKey', jsonEncode(payload));
-      await prefs.setInt(
-        '$_webCachePrefix$cacheKey$_webCacheTimestampSuffix',
-        DateTime.now().millisecondsSinceEpoch,
-      );
-      return;
-    }
-
-    await _database.insert(
-      'recommendation_cache',
-      {
-        'cache_key': cacheKey,
-        'payload': jsonEncode(payload),
-        'generated_at': DateTime.now().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+    await HiveStorageService.instance.cacheRecommendationsJson(
+      cacheKey,
+      payload,
+      preferencesHash: cacheKey,
     );
+  }
+
+  Future<CachedRecommendation?> getCachedRecommendationEntry(
+    String cacheKey,
+  ) async {
+    await init();
+    return HiveStorageService.instance.getCachedRecommendation(cacheKey);
   }
 
   Future<List<dynamic>?> getCachedJsonList(
     String cacheKey, {
     Duration? maxAge,
+    bool allowStale = false,
   }) async {
     await init();
 
-    if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      final generatedAt =
-          prefs.getInt('$_webCachePrefix$cacheKey$_webCacheTimestampSuffix');
-
-      if (maxAge != null && generatedAt == null) return null;
-
-      if (maxAge != null && generatedAt != null) {
-        final age = DateTime.now().millisecondsSinceEpoch - generatedAt;
-        if (age > maxAge.inMilliseconds) {
-          await prefs.remove('$_webCachePrefix$cacheKey');
-          await prefs.remove(
-            '$_webCachePrefix$cacheKey$_webCacheTimestampSuffix',
-          );
-          return null;
-        }
-      }
-
-      final raw = prefs.getString('$_webCachePrefix$cacheKey');
-      if (raw == null || raw.isEmpty) return null;
-
-      final decoded = jsonDecode(raw);
-      return decoded is List ? decoded : null;
-    }
-
-    final rows = await _database.query(
-      'recommendation_cache',
-      where: 'cache_key = ?',
-      whereArgs: [cacheKey],
-      limit: 1,
+    return HiveStorageService.instance.getCachedRecommendationsJson(
+      cacheKey,
+      maxAge: maxAge,
+      allowStale: allowStale,
     );
-
-    if (rows.isEmpty) return null;
-
-    if (maxAge != null) {
-      final generatedAt = rows.first['generated_at'] as int;
-      final age = DateTime.now().millisecondsSinceEpoch - generatedAt;
-      if (age > maxAge.inMilliseconds) {
-        await _database.delete(
-          'recommendation_cache',
-          where: 'cache_key = ?',
-          whereArgs: [cacheKey],
-        );
-        return null;
-      }
-    }
-
-    final decoded = jsonDecode(rows.first['payload'] as String);
-    return decoded is List ? decoded : null;
   }
 
   Future<void> _saveDestinationForWeb(Destination destination) async {
@@ -653,44 +507,6 @@ class LocalDataService {
     } catch (_) {
       return [];
     }
-  }
-
-  Future<void> _enqueueBackendInteractionForWeb(
-    Map<String, dynamic> item,
-  ) async {
-    final items = await _getPendingBackendInteractionsForWeb();
-    items.removeWhere((existing) => existing['id'] == item['id']);
-    items.add(item);
-    await _savePendingBackendInteractionsForWeb(items);
-  }
-
-  Future<List<Map<String, dynamic>>>
-      _getPendingBackendInteractionsForWeb() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_webPendingBackendInteractionsKey);
-
-    if (raw == null || raw.isEmpty) return [];
-
-    try {
-      final decoded = jsonDecode(raw) as List<dynamic>;
-      return decoded
-          .map((entry) => Map<String, dynamic>.from(entry as Map))
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<void> _savePendingBackendInteractionsForWeb(
-    List<Map<String, dynamic>> items,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final limited =
-        items.length > 500 ? items.sublist(items.length - 500) : items;
-    await prefs.setString(
-      _webPendingBackendInteractionsKey,
-      jsonEncode(limited),
-    );
   }
 
   Future<void> logEvent(String eventType, Map<String, dynamic> payload) async {

@@ -1,12 +1,26 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+import threading
 from typing import Dict, Iterable, List, Set
 
+import faiss
 import numpy as np
 
 from backend.core.config import settings
 from backend.domain.entities.destination import Destination
 from backend.infrastructure.ml.sbert_encoder import DestinationTextBuilder, SbertEncoder
+
+
+_FAISS_RETRIEVAL_POOL_SIZE = 500
+
+
+@dataclass(frozen=True)
+class _FaissIndexCache:
+    signature: tuple[str, ...]
+    matrix: np.ndarray
+    index: faiss.IndexFlatIP
+    id_to_idx: Dict[str, int]
 
 
 class CandidateRetriever:
@@ -15,16 +29,77 @@ class CandidateRetriever:
     of semantic similarity plus lightweight structured boosts.
     """
 
+    _cache: _FaissIndexCache | None = None
+    _cache_lock = threading.Lock()
+
     def __init__(self, destinations: List[Destination]):
         self.destinations = destinations
         self._encoder = SbertEncoder()
         self._text_builder = DestinationTextBuilder()
 
+        cache = self._ensure_index(destinations)
+        self._matrix = cache.matrix
+        self._index = cache.index
+        self._id_to_idx = cache.id_to_idx
+
+    def rebuild_index(self, destinations: List[Destination] | None = None) -> None:
+        """
+        Rebuilds the in-memory FAISS index after destination data changes.
+
+        Call this after adding, removing, or editing destinations so future
+        retrievals search the latest SBERT embedding matrix.
+        """
+
+        if destinations is not None:
+            self.destinations = destinations
+
+        cache = self._ensure_index(self.destinations, force=True)
+        self._matrix = cache.matrix
+        self._index = cache.index
+        self._id_to_idx = cache.id_to_idx
+
+    def _ensure_index(
+        self,
+        destinations: List[Destination],
+        *,
+        force: bool = False,
+    ) -> _FaissIndexCache:
+        signature = tuple(destination.id for destination in destinations)
+
+        with self._cache_lock:
+            if (
+                not force
+                and self.__class__._cache is not None
+                and self.__class__._cache.signature == signature
+            ):
+                return self.__class__._cache
+
+            cache = self._build_faiss_index(destinations, signature)
+            self.__class__._cache = cache
+            return cache
+
+    def _build_faiss_index(
+        self,
+        destinations: List[Destination],
+        signature: tuple[str, ...],
+    ) -> _FaissIndexCache:
         texts = [self._text_builder.build(destination) for destination in destinations]
-        self._matrix: np.ndarray = self._encoder.encode_texts(texts)
-        self._id_to_idx: Dict[str, int] = {
-            destination.id: index for index, destination in enumerate(destinations)
+        matrix = self._encoder.encode_texts(texts).astype("float32")
+        matrix = np.ascontiguousarray(matrix)
+        faiss.normalize_L2(matrix)
+
+        faiss_index = faiss.IndexFlatIP(matrix.shape[1])
+        faiss_index.add(matrix)
+
+        id_to_idx = {
+            destination.id: idx for idx, destination in enumerate(destinations)
         }
+        return _FaissIndexCache(
+            signature=signature,
+            matrix=matrix,
+            index=faiss_index,
+            id_to_idx=id_to_idx,
+        )
 
     def retrieve(
         self,
@@ -36,8 +111,15 @@ class CandidateRetriever:
         season: str = "",
         budget: str = "",
     ) -> List[Dict]:
-        query_vector = self._encoder.encode_text(query_text)
-        semantic_scores = self._normalize_scores(self._matrix @ query_vector)
+        if not self.destinations:
+            return []
+
+        query_vector = self._query_matrix(query_text)
+        search_k = min(
+            len(self.destinations),
+            max(top_k, _FAISS_RETRIEVAL_POOL_SIZE),
+        )
+        similarities, indices = self._index.search(query_vector, search_k)
         query_terms = self._build_query_terms(
             query_text=query_text,
             activity=activity,
@@ -47,11 +129,16 @@ class CandidateRetriever:
         )
 
         scored: List[Dict] = []
-        for index, destination in enumerate(self.destinations):
+        for raw_score, index in zip(similarities[0], indices[0]):
+            if index < 0:
+                continue
+
+            destination = self.destinations[int(index)]
+            semantic_score = self._normalize_score(float(raw_score))
             activity_boost = self._activity_match(destination, activity)
             category_boost = self._category_overlap(destination, query_terms)
             retrieval_score = (
-                semantic_scores[index] * settings.retrieval_semantic_weight
+                semantic_score * settings.retrieval_semantic_weight
                 + activity_boost * settings.retrieval_activity_weight
                 + category_boost * settings.retrieval_category_weight
             )
@@ -59,7 +146,7 @@ class CandidateRetriever:
             scored.append(
                 {
                     "destination": destination,
-                    "semantic_score": round(float(semantic_scores[index]), 4),
+                    "semantic_score": round(semantic_score, 4),
                     "retrieval_score": round(float(retrieval_score), 4),
                 }
             )
@@ -72,20 +159,25 @@ class CandidateRetriever:
             return []
 
         source_index = self._id_to_idx[destination_id]
-        source_vector = self._matrix[source_index]
-        semantic_scores = self._normalize_scores(self._matrix @ source_vector)
-        ranked = np.argsort(semantic_scores)[::-1]
+        source_vector = self._matrix[source_index].reshape(1, -1).astype("float32")
+        source_vector = np.ascontiguousarray(source_vector)
+        faiss.normalize_L2(source_vector)
+        search_k = min(len(self.destinations), top_k + 1)
+        similarities, indices = self._index.search(source_vector, search_k)
 
         results: List[Dict] = []
-        for index in ranked:
-            destination = self.destinations[index]
+        for raw_score, index in zip(similarities[0], indices[0]):
+            if index < 0:
+                continue
+
+            destination = self.destinations[int(index)]
             if destination.id == destination_id:
                 continue
 
             results.append(
                 {
                     "destination": destination,
-                    "semantic_score": round(float(semantic_scores[index]), 4),
+                    "semantic_score": round(self._normalize_score(float(raw_score)), 4),
                 }
             )
 
@@ -97,8 +189,14 @@ class CandidateRetriever:
     def get_all_embeddings(self) -> np.ndarray:
         return self._matrix
 
-    def _normalize_scores(self, values: np.ndarray) -> np.ndarray:
-        return np.clip((values + 1.0) / 2.0, 0.0, 1.0)
+    def _query_matrix(self, query_text: str) -> np.ndarray:
+        query_vector = self._encoder.encode_text(query_text).astype("float32")
+        query_matrix = np.ascontiguousarray(query_vector.reshape(1, -1))
+        faiss.normalize_L2(query_matrix)
+        return query_matrix
+
+    def _normalize_score(self, value: float) -> float:
+        return float(np.clip((value + 1.0) / 2.0, 0.0, 1.0))
 
     def _build_query_terms(
         self,

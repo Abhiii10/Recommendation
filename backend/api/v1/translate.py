@@ -34,6 +34,14 @@ SYSTEM_PROMPT = """You are a Nepali language translator for a Nepal rural touris
 
 @router.post("/translate", response_model=TranslateResponse)
 async def translate(payload: TranslateRequest) -> TranslateResponse:
+    if settings.offline_mode:
+        return TranslateResponse(
+            translated=payload.text,
+            roman="",
+            confidence=0.0,
+            source="offline",
+        )
+
     if not settings.anthropic_api_key.strip():
         raise HTTPException(
             status_code=503,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
 import httpx
@@ -7,12 +8,15 @@ from fastapi import HTTPException
 
 from backend.application.dto.requests import ChatRequestDto
 from backend.application.dto.responses import ChatResponseDto
+from backend.application.services.chat_fallback import build_rule_based_chat_response
 from backend.core.config import settings
 from backend.domain.entities.destination import Destination
 from backend.infrastructure.ml.candidate_retriever import CandidateRetriever
 from backend.infrastructure.repositories.json_destination_repository import (
     JsonDestinationRepository,
 )
+
+logger = logging.getLogger(__name__)
 
 
 SYSTEM_PROMPT = """
@@ -35,7 +39,16 @@ class GeminiChatService:
     def __init__(self) -> None:
         self._destination_repo = JsonDestinationRepository()
         self._destinations = self._destination_repo.get_all()
-        self._retriever = CandidateRetriever(self._destinations)
+        self._retriever: CandidateRetriever | None = None
+        if settings.offline_mode:
+            return
+        try:
+            self._retriever = CandidateRetriever(self._destinations)
+        except Exception as exc:
+            logger.warning(
+                "SBERT retriever unavailable; using keyword chat fallback: %s",
+                exc,
+            )
 
     async def answer(self, request: ChatRequestDto) -> ChatResponseDto:
         question = request.question.strip()
@@ -46,16 +59,24 @@ class GeminiChatService:
                 detail="Question cannot be empty.",
             )
 
-        if not settings.gemini_api_key:
-            raise HTTPException(
-                status_code=503,
-                detail="GEMINI_API_KEY is not configured in backend .env.",
-            )
-
         context_destinations = self._retrieve_destinations(
             question=question,
             top_k=request.top_k,
         )
+
+        if settings.offline_mode:
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="OFFLINE_MODE=true",
+            )
+
+        if not settings.gemini_api_key:
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="GEMINI_API_KEY is not configured",
+            )
 
         context = self._build_context(context_destinations)
 
@@ -108,42 +129,72 @@ If the context is not enough, give general rural tourism guidance and clearly sa
         }
 
         try:
-            async with httpx.AsyncClient(timeout=45.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
                 response = await client.post(
                     url,
                     params={"key": settings.gemini_api_key},
                     headers={"Content-Type": "application/json"},
                     json=payload,
                 )
+        except httpx.ConnectError as exc:
+            logger.warning("Gemini connection failed; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="the Gemini service could not be reached",
+            )
         except httpx.TimeoutException as exc:
-            raise HTTPException(
-                status_code=504,
-                detail="Gemini request timed out.",
-            ) from exc
+            logger.warning("Gemini request timed out; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="the Gemini request timed out",
+            )
         except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Gemini connection error: {exc}",
-            ) from exc
-
-        if response.status_code < 200 or response.status_code >= 300:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Gemini API error: {response.text[:1000]}",
+            logger.warning("Gemini HTTP error; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="the Gemini request failed",
+            )
+        except Exception as exc:
+            logger.exception("Unexpected Gemini chat failure; using fallback")
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason=f"the Gemini request failed unexpectedly: {type(exc).__name__}",
             )
 
-        data = response.json()
+        if response.status_code < 200 or response.status_code >= 300:
+            logger.warning(
+                "Gemini API returned %s; using fallback: %s",
+                response.status_code,
+                response.text[:300],
+            )
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason=f"Gemini returned HTTP {response.status_code}",
+            )
+
+        try:
+            data = response.json()
+        except ValueError as exc:
+            logger.warning("Gemini returned invalid JSON; using fallback: %s", exc)
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason="Gemini returned an invalid response",
+            )
+
         answer = self._extract_answer(data)
 
         if not answer:
-            block_reason = self._extract_block_reason(data)
-            detail = "Gemini returned an empty answer."
-            if block_reason:
-                detail = f"Gemini returned no answer. Block reason: {block_reason}"
-
-            raise HTTPException(
-                status_code=502,
-                detail=detail,
+            reason = self._extract_block_reason(data) or "Gemini returned an empty answer"
+            return build_rule_based_chat_response(
+                question,
+                context_destinations,
+                reason=reason,
             )
 
         return ChatResponseDto(
@@ -158,6 +209,8 @@ If the context is not enough, give general rural tourism guidance and clearly sa
         top_k: int,
     ) -> List[Destination]:
         try:
+            if self._retriever is None:
+                return self._keyword_retrieve(question, top_k)
             candidates = self._retriever.retrieve(
                 query_text=question,
                 top_k=top_k,

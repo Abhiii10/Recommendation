@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/unified_recommendation.dart';
-import 'package:rural_tourism_app/core/data/local_data_service.dart';
-import 'package:rural_tourism_app/core/utils/backend_config.dart';
-import 'package:rural_tourism_app/features/recommendations/data/services/recommendation_manager.dart';
 import 'package:rural_tourism_app/features/recommendations/data/services/recommender_service.dart';
+import 'package:rural_tourism_app/providers/offline_provider.dart';
+import 'package:rural_tourism_app/providers/recommendations_provider.dart';
+import 'package:rural_tourism_app/providers/user_prefs_provider.dart';
 import 'package:rural_tourism_app/shared/theme/app_theme.dart';
 import 'package:rural_tourism_app/features/destinations/domain/services/accommodation_matcher.dart';
 import 'package:rural_tourism_app/features/destinations/presentation/widgets/destination_card.dart';
@@ -58,7 +59,7 @@ const _kVibeIcons = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Widget
 // ─────────────────────────────────────────────────────────────────────────────
-class RecommendTab extends StatefulWidget {
+class RecommendTab extends ConsumerStatefulWidget {
   final List<Destination> destinations;
   final List<Accommodation> accommodations;
   final RecommenderService service;
@@ -77,10 +78,10 @@ class RecommendTab extends StatefulWidget {
   });
 
   @override
-  State<RecommendTab> createState() => _RecommendTabState();
+  ConsumerState<RecommendTab> createState() => _RecommendTabState();
 }
 
-class _RecommendTabState extends State<RecommendTab> {
+class _RecommendTabState extends ConsumerState<RecommendTab> {
   // ── options ───────────────────────────────────────────────────────────────
   static const activityOptions = [
     'trekking',
@@ -106,39 +107,43 @@ class _RecommendTabState extends State<RecommendTab> {
   ];
 
   // ── state ─────────────────────────────────────────────────────────────────
-  late RecommendationManager _manager;
-
-  String activity = 'trekking';
-  String budget = 'medium';
-  String season = 'spring';
-  String vibe = 'cultural';
-  bool familyFriendly = false;
-  int adventureLevel = 3;
-  bool _showOnlySaved = false;
-
-  bool _busy = false;
-  bool _checkingBackend = true;
-  bool _backendAvailable = false;
-  bool _isOffline = false;
-  bool _checkingHealth = false;
-  String? _error;
-  UnifiedRecommendationResponse? _response;
-  List<Destination> _localDestinations = const [];
-  List<Accommodation> _localAccommodations = const [];
-
   // ── lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    _manager = RecommendationManager(
-      offlineService: widget.service,
-      destinations: _recommendationDestinations,
-      accommodations: _recommendationAccommodations,
-    );
-    unawaited(_checkHealth());
+    unawaited(_configureRecommendations());
+  }
+
+  @override
+  void didUpdateWidget(covariant RecommendTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service ||
+        oldWidget.destinations.length != widget.destinations.length ||
+        oldWidget.accommodations.length != widget.accommodations.length) {
+      unawaited(_configureRecommendations());
+    }
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
+  RecommendationPrefsState get _prefs => ref.read(userPrefsProvider);
+
+  RecommendationsState get _recommendationState =>
+      ref.read(recommendationsProvider);
+
+  String get activity => _prefs.activity;
+  String get budget => _prefs.budget;
+  String get season => _prefs.season;
+  String get vibe => _prefs.vibe;
+  bool get familyFriendly => _prefs.familyFriendly;
+  int get adventureLevel => _prefs.adventureLevel;
+  bool get _showOnlySaved => _prefs.showOnlySaved;
+  bool get _busy => _recommendationState.isLoading;
+  bool get _checkingBackend => _recommendationState.checkingBackend;
+  bool get _backendAvailable => _recommendationState.backendAvailable;
+  bool get _isOffline => _recommendationState.backendOffline;
+  String? get _error => _recommendationState.error;
+  UnifiedRecommendationResponse? get _response => _recommendationState.response;
+
   Color _actColor() => AppTheme.categoryColourFor(context, activity);
 
   String _cap(String v) =>
@@ -152,14 +157,10 @@ class _RecommendTabState extends State<RecommendTab> {
   }
 
   List<Destination> get _recommendationDestinations =>
-      _isOffline && _localDestinations.isNotEmpty
-          ? _localDestinations
-          : widget.destinations;
+      _recommendationState.destinationsFor(widget.destinations);
 
   List<Accommodation> get _recommendationAccommodations =>
-      _isOffline && _localAccommodations.isNotEmpty
-          ? _localAccommodations
-          : widget.accommodations;
+      _recommendationState.accommodationsFor(widget.accommodations);
 
   List<String> _badges(UnifiedRecommendationResult r, int idx) {
     final b = <String>[];
@@ -218,96 +219,43 @@ class _RecommendTabState extends State<RecommendTab> {
     await _checkHealth();
   }
 
+  Future<void> _configureRecommendations() {
+    return ref.read(recommendationsProvider.notifier).configure(
+          service: widget.service,
+          destinations: widget.destinations,
+          accommodations: widget.accommodations,
+        );
+  }
+
   Future<void> _checkHealth() async {
-    if (_checkingHealth) return;
-    setState(() {
-      _checkingHealth = true;
-      _checkingBackend = true;
-    });
-    final result = await BackendConfig.checkBackendHealth(attempts: 1);
-    final localDestinations = result.reachable
-        ? const <Destination>[]
-        : await LocalDataService.instance.loadLocalDestinations();
-    final localAccommodations = result.reachable
-        ? const <Accommodation>[]
-        : await LocalDataService.instance.loadLocalAccommodations();
-    if (!mounted) return;
-    setState(() {
-      _isOffline = !result.reachable;
-      _localDestinations = localDestinations;
-      _localAccommodations = localAccommodations;
-      _backendAvailable = result.reachable;
-      _checkingBackend = false;
-      _checkingHealth = false;
-      _manager = RecommendationManager(
-        offlineService: widget.service,
-        destinations: _recommendationDestinations,
-        accommodations: _recommendationAccommodations,
-      );
-    });
+    await ref.read(recommendationsProvider.notifier).checkHealth();
   }
 
   Future<void> _generate() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final r = _isOffline
-          ? _manager.recommendOffline(
-              activity: activity,
-              budget: budget,
-              season: season,
-              vibe: vibe,
-              familyFriendly: familyFriendly,
-              adventureLevel: adventureLevel,
-              topK: 10,
-            )
-          : await _manager.recommend(
-              activity: activity,
-              budget: budget,
-              season: season,
-              vibe: vibe,
-              familyFriendly: familyFriendly,
-              adventureLevel: adventureLevel,
-              topK: 10,
-            );
-      if (!mounted) return;
-      setState(() {
-        _response = r;
-        _busy = false;
-        _backendAvailable = r.mode == RecommendationMode.ai;
-      });
-      unawaited(_manager.logRecommendationShown(r.results));
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _error = 'Could not generate recommendations.\n\n$e';
-      });
-    }
+    await ref.read(recommendationsProvider.notifier).generate(
+          ref.read(userPrefsProvider),
+        );
   }
 
   Future<void> _refreshResults() async {
-    await LocalDataService.instance.clearRecommendationCache();
-    await _generate();
+    await ref.read(recommendationsProvider.notifier).refreshResults(
+          ref.read(userPrefsProvider),
+        );
   }
 
   Future<void> _saveResult(UnifiedRecommendationResult r) async {
     final wasSaved = widget.isSaved(r.destination);
     await widget.onToggleSaved(r.destination);
-    try {
-      await _manager.logSave(r, saved: !wasSaved);
-    } catch (_) {}
-    if (!mounted) return;
-    setState(() {});
+    await ref.read(recommendationsProvider.notifier).logSave(
+          r,
+          saved: !wasSaved,
+        );
   }
 
   Future<void> _toggleAndRefresh(Destination d) async {
     HapticFeedback.lightImpact();
     await widget.onToggleSaved(d);
-    if (!mounted) return;
-    setState(() {});
+    ref.read(recommendationsProvider.notifier).notifySavedStateChanged();
   }
 
   // ── build helpers ─────────────────────────────────────────────────────────
@@ -411,7 +359,7 @@ class _RecommendTabState extends State<RecommendTab> {
               return GestureDetector(
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  setState(() => onSelected(opt));
+                  onSelected(opt);
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -497,6 +445,7 @@ class _RecommendTabState extends State<RecommendTab> {
 
   Widget _buildFilterCard() {
     final cs = Theme.of(context).colorScheme;
+    final prefsController = ref.read(userPrefsProvider.notifier);
     const adventureLabels = [
       'Easy',
       'Light',
@@ -532,7 +481,7 @@ class _RecommendTabState extends State<RecommendTab> {
               title: 'Activity',
               options: activityOptions,
               selected: activity,
-              onSelected: (v) => activity = v,
+              onSelected: prefsController.setActivity,
               icons: _kActivityIcons,
               colours: _kActivityColours),
           const SizedBox(height: 18),
@@ -540,19 +489,19 @@ class _RecommendTabState extends State<RecommendTab> {
               title: 'Budget',
               options: budgetOptions,
               selected: budget,
-              onSelected: (v) => budget = v),
+              onSelected: prefsController.setBudget),
           const SizedBox(height: 18),
           _buildDimension(
               title: 'Season',
               options: seasonOptions,
               selected: season,
-              onSelected: (v) => season = v),
+              onSelected: prefsController.setSeason),
           const SizedBox(height: 18),
           _buildDimension(
               title: 'Trip vibe',
               options: vibeOptions,
               selected: vibe,
-              onSelected: (v) => vibe = v,
+              onSelected: prefsController.setVibe,
               icons: _kVibeIcons),
           const SizedBox(height: 22),
 
@@ -580,7 +529,7 @@ class _RecommendTabState extends State<RecommendTab> {
             label: adventureLabels[adventureLevel - 1],
             onChanged: (value) {
               HapticFeedback.selectionClick();
-              setState(() => adventureLevel = value);
+              prefsController.setAdventureLevel(value);
             },
           ),
 
@@ -589,13 +538,13 @@ class _RecommendTabState extends State<RecommendTab> {
               title: 'Family friendly',
               subtitle: 'Prioritise destinations suitable for children.',
               value: familyFriendly,
-              onChanged: (v) => setState(() => familyFriendly = v)),
+              onChanged: prefsController.setFamilyFriendly),
           _buildSwitch(
               icon: Icons.bookmark_rounded,
               title: 'Show only saved results',
               subtitle: 'Filter the list to bookmarked places only.',
               value: _showOnlySaved,
-              onChanged: (v) => setState(() => _showOnlySaved = v)),
+              onChanged: prefsController.setShowOnlySaved),
 
           const SizedBox(height: 18),
           SizedBox(
@@ -684,7 +633,9 @@ class _RecommendTabState extends State<RecommendTab> {
           title: 'Active score signals',
         ),
         onTap: () {
-          unawaited(_manager.logClick(result));
+          unawaited(
+            ref.read(recommendationsProvider.notifier).logClick(result),
+          );
           if (result.isAiBacked) {
             Navigator.push(
                 context,
@@ -796,9 +747,7 @@ class _RecommendTabState extends State<RecommendTab> {
       icon: Icons.search_off_rounded,
       actionLabel: _showOnlySaved ? 'Show All Results' : null,
       onAction: _showOnlySaved
-          ? () => setState(() {
-                _showOnlySaved = false;
-              })
+          ? () => ref.read(userPrefsProvider.notifier).setShowOnlySaved(false)
           : null,
     );
   }
@@ -838,6 +787,9 @@ class _RecommendTabState extends State<RecommendTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    ref.watch(userPrefsProvider);
+    ref.watch(recommendationsProvider);
+    final isOffline = ref.watch(offlineProvider) || _isOffline;
 
     return Scaffold(
       appBar: AppBar(
@@ -874,7 +826,7 @@ class _RecommendTabState extends State<RecommendTab> {
         decoration: AppTheme.scaffoldDecorationFor(context),
         child: Column(
           children: [
-            if (_isOffline)
+            if (isOffline)
               MaterialBanner(
                 content:
                     const Text('Offline mode — showing local recommendations'),

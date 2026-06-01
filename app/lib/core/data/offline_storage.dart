@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +14,10 @@ class OfflineStorage {
   static const String accommodationsPath = 'assets/data/accommodations.json';
   static const String similarPlacesPath = 'assets/data/recommendations.json';
   static const String destinationEmbeddingsPath =
+      'assets/data/destination_embeddings.json';
+  static const String destinationEmbeddingMetaPath =
+      'assets/data/embedding_meta.json';
+  static const String legacyDestinationEmbeddingsPath =
       'assets/embeddings/destination_embeddings.json';
 
   static Future<List<Destination>> loadDestinations() async {
@@ -43,9 +48,30 @@ class OfflineStorage {
   static Future<Map<String, List<double>>> loadDestinationEmbeddings() async {
     try {
       final raw = await rootBundle.loadString(destinationEmbeddingsPath);
-      return compute(_parseDestinationEmbeddingsJson, raw);
+      final meta = await _loadOptionalString(destinationEmbeddingMetaPath);
+      return compute(_parseDestinationEmbeddingsBundle, {
+        'embeddings': raw,
+        'meta': meta,
+      });
     } catch (_) {
-      return const {};
+      try {
+        final raw =
+            await rootBundle.loadString(legacyDestinationEmbeddingsPath);
+        return compute(_parseDestinationEmbeddingsBundle, {
+          'embeddings': raw,
+          'meta': '',
+        });
+      } catch (_) {
+        return const {};
+      }
+    }
+  }
+
+  static Future<String> _loadOptionalString(String path) async {
+    try {
+      return rootBundle.loadString(path);
+    } catch (_) {
+      return '';
     }
   }
 }
@@ -80,14 +106,21 @@ Map<String, List<Map<String, dynamic>>> _parseSimilarPlacesJson(String raw) {
   return out;
 }
 
-Map<String, List<double>> _parseDestinationEmbeddingsJson(String raw) {
-  final decoded = jsonDecode(raw);
+Map<String, List<double>> _parseDestinationEmbeddingsBundle(
+  Map<String, String> bundle,
+) {
+  final decoded = jsonDecode(bundle['embeddings'] ?? '');
+  final metaRaw = bundle['meta'] ?? '';
+  final meta = metaRaw.isEmpty ? const {} : jsonDecode(metaRaw);
+  final quantized = meta is Map && meta['quantized'] == true;
+  final scale =
+      meta is Map ? (meta['scale'] as num?)?.toDouble() ?? 127.0 : 127.0;
 
   if (decoded is! Map) {
     throw Exception('Unexpected destination embeddings JSON format.');
   }
 
-  final entries = decoded['entries'];
+  final entries = decoded['entries'] is Map ? decoded['entries'] : decoded;
   if (entries is! Map) {
     throw Exception('Destination embeddings JSON is missing entries.');
   }
@@ -95,12 +128,26 @@ Map<String, List<double>> _parseDestinationEmbeddingsJson(String raw) {
   final out = <String, List<double>>{};
   entries.forEach((key, value) {
     if (value is List) {
-      out[key.toString()] = value
+      final vector = value
           .whereType<num>()
-          .map((item) => item.toDouble())
+          .map((item) => quantized ? item.toDouble() / scale : item.toDouble())
           .toList(growable: false);
+      out[key.toString()] = _normaliseVector(vector);
     }
   });
 
   return out;
+}
+
+List<double> _normaliseVector(List<double> vector) {
+  var sumSquares = 0.0;
+  for (final value in vector) {
+    sumSquares += value * value;
+  }
+  if (sumSquares == 0) {
+    return vector;
+  }
+
+  final magnitude = sqrt(sumSquares);
+  return vector.map((value) => value / magnitude).toList(growable: false);
 }

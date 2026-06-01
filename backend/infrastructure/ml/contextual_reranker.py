@@ -70,9 +70,9 @@ class ContextualReranker:
             )
 
             final_score = self._clamp(
-                semantic_score * settings.semantic_weight
-                + collaborative_score * settings.collaborative_weight
-                + contextual_score * settings.contextual_weight
+                0.50 * semantic_score
+                + 0.20 * collaborative_score
+                + 0.30 * contextual_score
             )
 
             results.append(
@@ -101,6 +101,7 @@ class ContextualReranker:
                         "accessibility": destination.accessibility or "",
                         "primary_category": self._primary_category(destination),
                         "contextual_score": f"{contextual_score:.4f}",
+                        "fixed_formula_score": f"{final_score:.4f}",
                         "retrieval_score": f"{item.get('retrieval_score', 0.0):.4f}",
                     },
                 )

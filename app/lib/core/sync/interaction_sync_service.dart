@@ -26,6 +26,9 @@ class InteractionSyncService {
     double value = 1.0,
     DateTime? timestamp,
     bool syncNow = true,
+    String? recommendationId,
+    List<String> recommendedDestinationIds = const [],
+    String? pipelineUsed,
   }) async {
     await _localDataService.enqueueBackendInteraction(
       userId: userId,
@@ -33,6 +36,9 @@ class InteractionSyncService {
       eventType: eventType,
       value: value,
       timestamp: (timestamp ?? DateTime.now()).toUtc().toIso8601String(),
+      recommendationId: recommendationId,
+      recommendedDestinationIds: recommendedDestinationIds,
+      pipelineUsed: pipelineUsed,
     );
 
     if (syncNow) {
@@ -84,8 +90,16 @@ class InteractionSyncService {
       'user_id': item['user_id']?.toString() ?? '',
       'destination_id': item['destination_id']?.toString() ?? '',
       'event_type': item['event_type']?.toString() ?? '',
+      'action':
+          item['action']?.toString() ?? item['event_type']?.toString() ?? '',
       'value': (item['value'] as num?)?.toDouble() ?? 1.0,
       'timestamp': item['timestamp']?.toString(),
+      if (item['recommendation_id'] != null)
+        'recommendation_id': item['recommendation_id']?.toString(),
+      if (item['recommended_destination_ids'] is List)
+        'recommended_destination_ids': item['recommended_destination_ids'],
+      if (item['pipeline_used'] != null)
+        'pipeline_used': item['pipeline_used']?.toString(),
     };
   }
 }

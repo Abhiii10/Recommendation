@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from backend.application.services import analytics_service as analytics_module
 from backend.application.services.analytics_service import AnalyticsService
 from backend.core.constants import EventTypes
@@ -83,3 +85,70 @@ def test_recommender_summary_computes_rates_and_top_destinations(monkeypatch):
     assert top.name == "Ghandruk"
     assert top.average_rating == 4.0
     assert top.click_through_rate == 0.5
+
+
+def test_recommendation_quality_computes_online_metrics(monkeypatch):
+    timestamp = datetime.now(timezone.utc).isoformat()
+    recommendation_id = "rec-1"
+
+    class QualityInteractionRepository:
+        def get_all(self):
+            return [
+                Interaction(
+                    user_id="user-1",
+                    destination_id="dest-1",
+                    event_type=EventTypes.RECOMMENDATION_SHOWN,
+                    timestamp=timestamp,
+                    recommendation_id=recommendation_id,
+                    recommended_destination_ids=["dest-1", "dest-2", "dest-3"],
+                    pipeline_used="online",
+                ),
+                Interaction(
+                    user_id="user-1",
+                    destination_id="dest-2",
+                    event_type=EventTypes.RECOMMENDATION_SHOWN,
+                    timestamp=timestamp,
+                    recommendation_id=recommendation_id,
+                    recommended_destination_ids=["dest-1", "dest-2", "dest-3"],
+                    pipeline_used="online",
+                ),
+                Interaction(
+                    user_id="user-1",
+                    destination_id="dest-3",
+                    event_type=EventTypes.RECOMMENDATION_SHOWN,
+                    timestamp=timestamp,
+                    recommendation_id=recommendation_id,
+                    recommended_destination_ids=["dest-1", "dest-2", "dest-3"],
+                    pipeline_used="online",
+                ),
+                Interaction(
+                    user_id="user-1",
+                    destination_id="dest-2",
+                    event_type=EventTypes.CLICK,
+                    timestamp=timestamp,
+                    recommendation_id=recommendation_id,
+                ),
+                Interaction(
+                    user_id="user-1",
+                    destination_id="dest-3",
+                    event_type=EventTypes.SAVE,
+                    timestamp=timestamp,
+                    recommendation_id=recommendation_id,
+                ),
+            ]
+
+    monkeypatch.setattr(
+        analytics_module,
+        "build_interaction_repository",
+        lambda: QualityInteractionRepository(),
+    )
+
+    quality = AnalyticsService().recommendation_quality()
+
+    assert quality.recommendations_shown == 3
+    assert quality.clicks == 1
+    assert quality.saves == 1
+    assert quality.click_through_rate == 0.3333
+    assert quality.save_rate == 0.3333
+    assert quality.average_clicked_position == 2.0
+    assert quality.pipeline_breakdown == {"online": 100.0}

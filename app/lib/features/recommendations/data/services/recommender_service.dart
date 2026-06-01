@@ -7,27 +7,12 @@ import 'package:rural_tourism_app/features/destinations/domain/models/destinatio
 import 'package:rural_tourism_app/features/recommendations/domain/models/recommendation_components.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/user_preferences.dart';
 import 'package:rural_tourism_app/features/recommendations/data/services/destination_affinity_provider.dart';
-import 'package:rural_tourism_app/features/recommendations/data/services/offline_semantic_encoder.dart';
 
 export 'package:rural_tourism_app/domain/entities/recommendation_result.dart';
 
-const double _retrievalTextWeight = 0.46;
-const double _retrievalEmbeddingWeight = 0.18;
-const double _retrievalNumericWeight = 0.20;
-const double _retrievalQualityWeight = 0.09;
-const double _retrievalAccommodationWeight = 0.07;
-
-const double _finalTextWeight = 0.25;
-const double _finalEmbeddingWeight = 0.16;
-const double _finalNumericWeight = 0.14;
-const double _finalContextualWeight = 0.27;
-const double _finalQualityWeight = 0.08;
-const double _finalPopularityWeight = 0.05;
-const double _finalAccommodationWeight = 0.05;
-
-const double _tfIdfTextBlend = 0.62;
-const double _bm25TextBlend = 0.38;
-const double _bm25Normalisation = 6.0;
+const double _embeddingScoreWeight = 0.70;
+const double _contextualScoreWeight = 0.30;
+const double _querySeedThreshold = 0.18;
 const double _diversityScoreTolerance = 0.020;
 const int _candidateMultiplier = 8;
 
@@ -35,8 +20,6 @@ class RecommenderService {
   final Map<String, List<Map<String, dynamic>>> similarPlaces;
   final DestinationAffinityProvider? userProfileService;
   final Map<String, List<double>> destinationEmbeddings;
-  _HybridTextIndex? _index;
-  int _indexedDestinationCount = 0;
 
   RecommenderService(
     this.similarPlaces, {
@@ -56,59 +39,33 @@ class RecommenderService {
       return [];
     }
 
-    _ensureIndex(destinations);
-
-    final index = _index!;
-    final queryTerms = _queryTerms(prefs);
-    final queryTextVector = index.queryVector(queryTerms);
-    final queryEmbeddingVector = OfflineSemanticEncoder.encodePreferences(
-      prefs,
-      familyFriendly: familyFriendly,
-      adventureLevel: adventureLevel,
-    );
-    final queryNumericVector = _numericQueryVector(
-      prefs,
-      familyFriendly: familyFriendly,
-      adventureLevel: adventureLevel,
-    );
     final accommodationsByDestination =
         _accommodationsByDestination(accommodations);
+    final queryEmbeddingVector = _queryEmbeddingVector(
+      prefs,
+      destinations,
+      accommodationsByDestination,
+      familyFriendly: familyFriendly,
+      adventureLevel: adventureLevel,
+    );
 
     final candidates = <_CandidateScore>[];
 
     for (final destination in destinations) {
-      final documentVector = index.documentVector(destination.id);
-      if (documentVector == null) {
-        continue;
-      }
-
-      final tfIdfSimilarity = _clamp(
-        _cosineSimilarity(queryTextVector, documentVector),
+      final components = _contextualComponents(
+        destination: destination,
+        prefs: prefs,
+        familyFriendly: familyFriendly,
+        accommodationsByDestination: accommodationsByDestination,
       );
-      final bm25Similarity = index.bm25Score(destination.id, queryTerms);
-      final textSimilarity = _clamp(
-        tfIdfSimilarity * _tfIdfTextBlend + bm25Similarity * _bm25TextBlend,
-      );
+      final contextualScore = _contextualScore(components);
       final embeddingSimilarity = _semanticEmbeddingSimilarity(
         destination,
         queryEmbeddingVector,
       );
-      final numericSimilarity = _clamp(
-        _cosineSimilarity(queryNumericVector, _numericDocVector(destination)),
-      );
-      final qualityPrior = _qualityPrior(destination);
-      final accommodationFit = _accommodationFit(
-        destination,
-        accommodationsByDestination,
-        prefs.budget,
-      );
-
       final retrievalScore = _clamp(
-        textSimilarity * _retrievalTextWeight +
-            embeddingSimilarity * _retrievalEmbeddingWeight +
-            numericSimilarity * _retrievalNumericWeight +
-            qualityPrior * _retrievalQualityWeight +
-            accommodationFit * _retrievalAccommodationWeight,
+        embeddingSimilarity * _embeddingScoreWeight +
+            contextualScore * _contextualScoreWeight,
       );
 
       if (retrievalScore <= 0) {
@@ -118,14 +75,10 @@ class RecommenderService {
       candidates.add(
         _CandidateScore(
           destination: destination,
-          textSimilarity: textSimilarity,
-          tfIdfSimilarity: tfIdfSimilarity,
-          bm25Similarity: bm25Similarity,
           embeddingSimilarity: embeddingSimilarity,
-          numericSimilarity: numericSimilarity,
           retrievalScore: retrievalScore,
-          qualityPrior: qualityPrior,
-          accommodationFit: accommodationFit,
+          contextualScore: contextualScore,
+          components: components,
         ),
       );
     }
@@ -145,33 +98,13 @@ class RecommenderService {
 
     for (final candidate in stageOne) {
       final destination = candidate.destination;
-      final activityMatch = _activityMatch(destination, prefs.activity);
-      final vibeMatch = _vibeMatch(destination, prefs.vibe);
-      final seasonMatch = _seasonMatch(destination, prefs.season);
-      final budgetMatch = _budgetMatch(destination.priceTier, prefs.budget);
-      final accessibilityFit = _accessibilityScore(destination.accessibility);
-      final familyFit = _familyFit(destination, familyFriendly);
-      final popularityPrior = _offlinePopularityPrior(
-        destination,
-        accommodationsByDestination[destination.id] ?? const [],
-      );
+      final components = candidate.components;
       final constraintPenalty = _constraintPenalty(
         destination: destination,
         preferredBudget: prefs.budget,
-        budgetMatch: budgetMatch,
+        budgetMatch: components.budgetMatch,
         familyFriendly: familyFriendly,
         adventureLevel: adventureLevel,
-      );
-
-      final contextualScore = _clamp(
-        activityMatch * AppConstants.activityComponentWeight +
-            vibeMatch * AppConstants.vibeComponentWeight +
-            seasonMatch * AppConstants.seasonComponentWeight +
-            budgetMatch * AppConstants.budgetComponentWeight +
-            accessibilityFit * AppConstants.accessibilityComponentWeight +
-            familyFit * AppConstants.familyComponentWeight +
-            candidate.accommodationFit *
-                AppConstants.accommodationComponentWeight,
       );
 
       final localAffinityBoost =
@@ -184,31 +117,21 @@ class RecommenderService {
           : 0.0;
 
       final baseScore = _clamp(
-        candidate.textSimilarity * _finalTextWeight +
-            candidate.embeddingSimilarity * _finalEmbeddingWeight +
-            candidate.numericSimilarity * _finalNumericWeight +
-            contextualScore * _finalContextualWeight +
-            candidate.qualityPrior * _finalQualityWeight +
-            popularityPrior * _finalPopularityWeight +
-            candidate.accommodationFit * _finalAccommodationWeight,
+        candidate.embeddingSimilarity * _embeddingScoreWeight +
+            candidate.contextualScore * _contextualScoreWeight,
       );
 
-      final finalScore =
-          _clamp(baseScore * constraintPenalty + localAffinityBoost);
-
-      final components = RecommendationComponents(
-        semantic: _clamp(
-          candidate.textSimilarity * 0.60 +
-              candidate.embeddingSimilarity * 0.40,
-        ),
+      final finalScore = baseScore;
+      final resultComponents = RecommendationComponents(
+        semantic: candidate.embeddingSimilarity,
         collaborative: localPersonalizationScore,
-        activityMatch: activityMatch,
-        vibeMatch: vibeMatch,
-        seasonMatch: seasonMatch,
-        budgetMatch: budgetMatch,
-        accessibilityFit: accessibilityFit,
-        familyFit: familyFit,
-        accommodationFit: candidate.accommodationFit,
+        activityMatch: components.activityMatch,
+        vibeMatch: components.vibeMatch,
+        seasonMatch: components.seasonMatch,
+        budgetMatch: components.budgetMatch,
+        accessibilityFit: components.accessibilityFit,
+        familyFit: components.familyFit,
+        accommodationFit: components.accommodationFit,
       );
 
       reranked.add(
@@ -219,15 +142,12 @@ class RecommenderService {
             destination: destination,
             prefs: prefs,
             familyFriendly: familyFriendly,
-            textSimilarity: candidate.textSimilarity,
             embeddingSimilarity: candidate.embeddingSimilarity,
-            numericSimilarity: candidate.numericSimilarity,
-            qualityPrior: candidate.qualityPrior,
-            popularityPrior: popularityPrior,
+            contextualScore: candidate.contextualScore,
             constraintPenalty: constraintPenalty,
-            components: components,
+            components: resultComponents,
           ),
-          components: components,
+          components: resultComponents,
         ),
       );
     }
@@ -251,17 +171,12 @@ class RecommenderService {
       return [];
     }
 
-    _ensureIndex(destinations);
-
-    final index = _index!;
-    final seedVector = index.documentVector(seed.id);
     final seedEmbedding = _semanticVectorFor(seed);
-    if (seedVector == null) {
+    if (seedEmbedding.isEmpty) {
       return [];
     }
 
     final explicitMatches = _offlineSimilarMatches(seed);
-    final seedTerms = _documentQueryTerms(seed);
     final scored = <RecommendationResult>[];
 
     for (final destination in destinations) {
@@ -269,20 +184,13 @@ class RecommenderService {
         continue;
       }
 
-      final documentVector = index.documentVector(destination.id);
-      if (documentVector == null) {
+      final destinationEmbedding = _semanticVectorFor(destination);
+      if (destinationEmbedding.isEmpty) {
         continue;
       }
 
-      final tfIdfSimilarity =
-          _clamp(_cosineSimilarity(seedVector, documentVector));
-      final bm25Similarity = index.bm25Score(destination.id, seedTerms);
-      final embeddingSimilarity =
-          _cosineSimilarity(seedEmbedding, _semanticVectorFor(destination));
       var similarity = _clamp(
-        tfIdfSimilarity * 0.46 +
-            bm25Similarity * 0.28 +
-            embeddingSimilarity * 0.26,
+        _normalisedDotProduct(seedEmbedding, destinationEmbedding),
       );
       final reasons = <String>[];
 
@@ -326,27 +234,159 @@ class RecommenderService {
     );
   }
 
-  void _ensureIndex(List<Destination> destinations) {
-    if (_index != null && _indexedDestinationCount == destinations.length) {
-      return;
-    }
-
-    _index = _HybridTextIndex.build(destinations);
-    _indexedDestinationCount = destinations.length;
-  }
-
   double _semanticEmbeddingSimilarity(
     Destination destination,
     List<double> queryVector,
   ) {
-    return _clamp(
-      _cosineSimilarity(queryVector, _semanticVectorFor(destination)),
-    );
+    final destinationVector = _semanticVectorFor(destination);
+    if (queryVector.isEmpty || destinationVector.isEmpty) {
+      return 0.0;
+    }
+    return _clamp(_normalisedDotProduct(queryVector, destinationVector));
   }
 
   List<double> _semanticVectorFor(Destination destination) {
-    return destinationEmbeddings[destination.id] ??
-        OfflineSemanticEncoder.encodeDestination(destination);
+    return destinationEmbeddings[destination.id] ?? const [];
+  }
+
+  List<double> _queryEmbeddingVector(
+    UserPreferences prefs,
+    List<Destination> destinations,
+    Map<String, List<Accommodation>> accommodationsByDestination, {
+    bool? familyFriendly,
+    int? adventureLevel,
+  }) {
+    final weighted = <double>[];
+    var totalWeight = 0.0;
+
+    for (final destination in destinations) {
+      final vector = _semanticVectorFor(destination);
+      if (vector.isEmpty) {
+        continue;
+      }
+
+      final seedWeight = _querySeedWeight(
+        destination: destination,
+        prefs: prefs,
+        familyFriendly: familyFriendly,
+        adventureLevel: adventureLevel,
+        accommodationsByDestination: accommodationsByDestination,
+      );
+      if (seedWeight < _querySeedThreshold) {
+        continue;
+      }
+
+      if (weighted.isEmpty) {
+        weighted.addAll(List<double>.filled(vector.length, 0.0));
+      }
+      if (weighted.length != vector.length) {
+        continue;
+      }
+
+      for (var index = 0; index < vector.length; index++) {
+        weighted[index] += vector[index] * seedWeight;
+      }
+      totalWeight += seedWeight;
+    }
+
+    if (weighted.isEmpty || totalWeight <= 0) {
+      return _averageEmbedding(destinations);
+    }
+
+    for (var index = 0; index < weighted.length; index++) {
+      weighted[index] /= totalWeight;
+    }
+    return _l2Normalise(weighted);
+  }
+
+  List<double> _averageEmbedding(List<Destination> destinations) {
+    final average = <double>[];
+    var count = 0;
+
+    for (final destination in destinations) {
+      final vector = _semanticVectorFor(destination);
+      if (vector.isEmpty) {
+        continue;
+      }
+      if (average.isEmpty) {
+        average.addAll(List<double>.filled(vector.length, 0.0));
+      }
+      if (average.length != vector.length) {
+        continue;
+      }
+      for (var index = 0; index < vector.length; index++) {
+        average[index] += vector[index];
+      }
+      count++;
+    }
+
+    if (count == 0) {
+      return const [];
+    }
+    for (var index = 0; index < average.length; index++) {
+      average[index] /= count;
+    }
+    return _l2Normalise(average);
+  }
+
+  double _querySeedWeight({
+    required Destination destination,
+    required UserPreferences prefs,
+    required bool? familyFriendly,
+    required int? adventureLevel,
+    required Map<String, List<Accommodation>> accommodationsByDestination,
+  }) {
+    final components = _contextualComponents(
+      destination: destination,
+      prefs: prefs,
+      familyFriendly: familyFriendly,
+      accommodationsByDestination: accommodationsByDestination,
+    );
+    var score = _contextualScore(components);
+
+    if (adventureLevel != null && destination.adventureLevel != null) {
+      final diff = (destination.adventureLevel! - adventureLevel).abs();
+      score = _clamp(score + max(0.0, 1.0 - diff / 4.0) * 0.10);
+    }
+
+    return score;
+  }
+
+  RecommendationComponents _contextualComponents({
+    required Destination destination,
+    required UserPreferences prefs,
+    required bool? familyFriendly,
+    required Map<String, List<Accommodation>> accommodationsByDestination,
+  }) {
+    return RecommendationComponents(
+      semantic: 0.0,
+      collaborative: 0.0,
+      activityMatch: _activityMatch(destination, prefs.activity),
+      vibeMatch: _vibeMatch(destination, prefs.vibe),
+      seasonMatch: _seasonMatch(destination, prefs.season),
+      budgetMatch: _budgetMatch(destination.priceTier, prefs.budget),
+      accessibilityFit: _accessibilityScore(destination.accessibility),
+      familyFit: _familyFit(destination, familyFriendly),
+      accommodationFit: _accommodationFit(
+        destination,
+        accommodationsByDestination,
+        prefs.budget,
+      ),
+    );
+  }
+
+  double _contextualScore(RecommendationComponents components) {
+    return _clamp(
+      components.activityMatch * AppConstants.activityComponentWeight +
+          components.vibeMatch * AppConstants.vibeComponentWeight +
+          components.seasonMatch * AppConstants.seasonComponentWeight +
+          components.budgetMatch * AppConstants.budgetComponentWeight +
+          components.accessibilityFit *
+              AppConstants.accessibilityComponentWeight +
+          components.familyFit * AppConstants.familyComponentWeight +
+          components.accommodationFit *
+              AppConstants.accommodationComponentWeight,
+    );
   }
 
   Set<String> _offlineSimilarMatches(Destination seed) {
@@ -364,118 +404,6 @@ class RecommenderService {
             ])
         .whereType<String>()
         .toSet();
-  }
-
-  List<double> _numericDocVector(Destination destination) {
-    return _l2Normalise([
-      (destination.adventureLevel ?? 3) / 5.0,
-      (destination.cultureLevel ?? 3) / 5.0,
-      (destination.natureLevel ?? 3) / 5.0,
-      _accessibilityScore(destination.accessibility),
-      destination.familyFriendly == true ? 1.0 : 0.0,
-    ]);
-  }
-
-  List<double> _numericQueryVector(
-    UserPreferences prefs, {
-    bool? familyFriendly,
-    int? adventureLevel,
-  }) {
-    final activity = _norm(prefs.activity);
-    final vibe = _norm(prefs.vibe);
-
-    var adventure = 0.5;
-    var culture = 0.5;
-    var nature = 0.5;
-    var accessibility = 0.5;
-    var family = 0.5;
-
-    switch (activity) {
-      case 'adventure':
-      case 'hiking':
-      case 'trekking':
-        adventure = 0.9;
-        nature = 0.8;
-        break;
-      case 'culture':
-      case 'cultural':
-      case 'heritage':
-        culture = 1.0;
-        adventure = 0.3;
-        break;
-      case 'pilgrimage':
-      case 'spiritual':
-        culture = 0.9;
-        accessibility = 0.7;
-        adventure = 0.25;
-        break;
-      case 'wildlife':
-        nature = 1.0;
-        adventure = 0.6;
-        break;
-      case 'relaxation':
-        adventure = 0.2;
-        accessibility = 0.8;
-        break;
-      case 'lake':
-      case 'boating':
-        nature = 0.9;
-        adventure = 0.4;
-        accessibility = 0.75;
-        break;
-      case 'photography':
-      case 'viewpoint':
-      case 'scenic':
-        nature = 0.8;
-        culture = 0.6;
-        break;
-    }
-
-    switch (vibe) {
-      case 'family':
-      case 'social':
-        family = 1.0;
-        adventure = adventure.clamp(0.0, 0.6);
-        accessibility = 0.9;
-        break;
-      case 'adventure':
-        adventure = (adventure + 0.2).clamp(0.0, 1.0);
-        break;
-      case 'cultural':
-      case 'historic':
-        culture = (culture + 0.2).clamp(0.0, 1.0);
-        break;
-      case 'spiritual':
-        culture = max(culture, 0.85);
-        accessibility = max(accessibility, 0.65);
-        break;
-      case 'nature':
-      case 'scenic':
-        nature = max(nature, 0.9);
-        break;
-      case 'quiet':
-      case 'peaceful':
-        adventure = (adventure - 0.1).clamp(0.0, 1.0);
-        accessibility = max(accessibility, 0.65);
-        break;
-    }
-
-    if (familyFriendly == true) {
-      family = 1.0;
-      accessibility = max(accessibility, 0.85);
-    }
-
-    if (adventureLevel != null) {
-      adventure = ((adventure + adventureLevel / 5.0) / 2).clamp(0.0, 1.0);
-    }
-
-    return _l2Normalise([
-      adventure,
-      culture,
-      nature,
-      accessibility,
-      family,
-    ]);
   }
 
   double _activityMatch(Destination destination, String activity) {
@@ -688,56 +616,6 @@ class RecommenderService {
     return _clamp(score);
   }
 
-  double _offlinePopularityPrior(
-    Destination destination,
-    List<Accommodation> stays,
-  ) {
-    var score = 0.28;
-
-    switch (_norm(destination.confidence)) {
-      case 'high':
-        score += 0.18;
-        break;
-      case 'medium':
-        score += 0.12;
-        break;
-      case 'low':
-        score += 0.06;
-        break;
-    }
-
-    score += min(stays.length, 3) / 3.0 * 0.18;
-    score += min(destination.tags.length, 12) / 12.0 * 0.10;
-    score += min(destination.bestSeason.length, 4) / 4.0 * 0.08;
-
-    final access = _norm(destination.accessibility ?? '');
-    if (access == 'easy') {
-      score += 0.10;
-    } else if (access == 'moderate') {
-      score += 0.06;
-    }
-
-    if (destination.familyFriendly == true) {
-      score += 0.05;
-    }
-
-    final category = _norm(destination.primaryCategory);
-    if (const {
-      'village',
-      'cultural',
-      'culture',
-      'trekking',
-      'nature',
-      'boating',
-      'pilgrimage',
-      'wildlife',
-    }.contains(category)) {
-      score += 0.05;
-    }
-
-    return _clamp(score);
-  }
-
   double _constraintPenalty({
     required Destination destination,
     required String preferredBudget,
@@ -852,11 +730,8 @@ class RecommenderService {
     required Destination destination,
     required UserPreferences prefs,
     required bool? familyFriendly,
-    required double textSimilarity,
     required double embeddingSimilarity,
-    required double numericSimilarity,
-    required double qualityPrior,
-    required double popularityPrior,
+    required double contextualScore,
     required double constraintPenalty,
     required RecommendationComponents components,
   }) {
@@ -866,66 +741,56 @@ class RecommenderService {
         reason: 'Personalized from your saved and viewed destinations',
       ),
       _WeightedReason(
-        score: textSimilarity * _finalTextWeight,
-        reason: 'Strong offline semantic match to your travel profile',
+        score: embeddingSimilarity * _embeddingScoreWeight,
+        reason: 'SBERT embedding match understands related travel intent',
       ),
       _WeightedReason(
-        score: embeddingSimilarity * _finalEmbeddingWeight,
-        reason: 'Offline embedding match understands related travel intent',
-      ),
-      _WeightedReason(
-        score: numericSimilarity * _finalNumericWeight,
-        reason: 'Feature profile matches your preferred trip style',
+        score: contextualScore * _contextualScoreWeight,
+        reason: 'Contextual fit matches your selected trip profile',
       ),
       _WeightedReason(
         score: components.activityMatch *
-            _finalContextualWeight *
+            _contextualScoreWeight *
             AppConstants.activityComponentWeight,
         reason: 'Matches your activity',
       ),
       _WeightedReason(
         score: components.vibeMatch *
-            _finalContextualWeight *
+            _contextualScoreWeight *
             AppConstants.vibeComponentWeight,
         reason: 'Matches your preferred vibe',
       ),
       _WeightedReason(
         score: components.seasonMatch *
-            _finalContextualWeight *
+            _contextualScoreWeight *
             AppConstants.seasonComponentWeight,
         reason: 'Best season match',
       ),
       _WeightedReason(
         score: components.budgetMatch *
-            _finalContextualWeight *
+            _contextualScoreWeight *
             AppConstants.budgetComponentWeight,
         reason: 'Fits budget',
       ),
       _WeightedReason(
         score: components.accessibilityFit *
-            _finalContextualWeight *
+            _contextualScoreWeight *
             AppConstants.accessibilityComponentWeight,
         reason: 'Accessibility fit supports this trip',
       ),
       _WeightedReason(
         score: components.familyFit *
-            _finalContextualWeight *
+            _contextualScoreWeight *
             AppConstants.familyComponentWeight,
         reason: familyFriendly == true
             ? 'Family friendly'
             : 'Flexible for mixed groups',
       ),
       _WeightedReason(
-        score: components.accommodationFit * _finalAccommodationWeight,
+        score: components.accommodationFit *
+            _contextualScoreWeight *
+            AppConstants.accommodationComponentWeight,
         reason: 'Has multiple nearby accommodation options',
-      ),
-      _WeightedReason(
-        score: qualityPrior * _finalQualityWeight,
-        reason: 'High quality local catalogue data',
-      ),
-      _WeightedReason(
-        score: popularityPrior * _finalPopularityWeight,
-        reason: 'Reliable offline fallback pick for cold-start users',
       ),
     ].where((entry) => entry.score > 0).toList()
       ..sort((a, b) => b.score.compareTo(a.score));
@@ -933,8 +798,7 @@ class RecommenderService {
     if (constraintPenalty < 0.90) {
       weightedContributions.removeWhere(
         (entry) =>
-            entry.reason ==
-            'Reliable offline fallback pick for cold-start users',
+            entry.reason == 'Contextual fit matches your selected trip profile',
       );
     }
 
@@ -1003,25 +867,6 @@ class RecommenderService {
     }
 
     return reasons;
-  }
-
-  List<String> _queryTerms(UserPreferences prefs) => [
-        ..._activityAliases(_norm(prefs.activity)),
-        ..._vibeAliases(_norm(prefs.vibe)),
-        ..._budgetAliases(_norm(prefs.budget)),
-        ..._seasonAliases(_norm(prefs.season)),
-      ].where((term) => term.trim().isNotEmpty).toList();
-
-  List<String> _documentQueryTerms(Destination destination) {
-    return [
-      destination.name,
-      destination.district ?? '',
-      destination.municipality ?? '',
-      ...destination.category,
-      ...destination.activities,
-      ...destination.tags,
-      destination.shortDescription,
-    ];
   }
 
   List<String> _activityAliases(String activity) {
@@ -1113,26 +958,6 @@ class RecommenderService {
     return aliases[vibe] ?? [vibe];
   }
 
-  List<String> _budgetAliases(String budget) {
-    const aliases = <String, List<String>>{
-      'budget': ['budget', 'low cost', 'homestay', 'basic rooms'],
-      'medium': ['medium', 'guesthouse', 'lodge', 'private rooms'],
-      'premium': ['premium', 'hotel', 'resort', 'comfort'],
-    };
-    return aliases[budget] ?? [budget];
-  }
-
-  List<String> _seasonAliases(String season) {
-    const aliases = <String, List<String>>{
-      'spring': ['spring', 'rhododendron', 'clear weather'],
-      'autumn': ['autumn', 'clear weather', 'festival season'],
-      'winter': ['winter', 'clear view', 'cool weather'],
-      'monsoon': ['monsoon', 'rainy season', 'green hills'],
-      'summer': ['summer', 'monsoon', 'green hills'],
-    };
-    return aliases[season] ?? [season];
-  }
-
   Set<String> _allTerms(Destination destination) {
     final values = [
       destination.name,
@@ -1147,9 +972,39 @@ class RecommenderService {
 
     return {
       for (final value in values) _norm(value),
-      for (final value in values)
-        ..._HybridTextIndex.tokenize(value).map(_norm),
+      for (final value in values) ..._tokenize(value).map(_norm),
     }..remove('');
+  }
+
+  List<String> _tokenize(String input) {
+    const stopWords = {
+      'a',
+      'an',
+      'and',
+      'are',
+      'as',
+      'at',
+      'by',
+      'for',
+      'from',
+      'in',
+      'is',
+      'it',
+      'near',
+      'of',
+      'on',
+      'or',
+      'the',
+      'to',
+      'with',
+    };
+
+    return input
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .split(RegExp(r'\s+'))
+        .where((token) => token.length > 1 && !stopWords.contains(token))
+        .toList();
   }
 
   String _pretty(String value) {
@@ -1173,50 +1028,32 @@ class RecommenderService {
     return values.map((value) => value / magnitude).toList();
   }
 
-  double _cosineSimilarity(List<double> left, List<double> right) {
+  double _normalisedDotProduct(List<double> left, List<double> right) {
     if (left.length != right.length || left.isEmpty) {
       return 0.0;
     }
 
     var dot = 0.0;
-    var leftMagnitude = 0.0;
-    var rightMagnitude = 0.0;
-
     for (var index = 0; index < left.length; index++) {
       dot += left[index] * right[index];
-      leftMagnitude += left[index] * left[index];
-      rightMagnitude += right[index] * right[index];
     }
-
-    if (leftMagnitude == 0 || rightMagnitude == 0) {
-      return 0.0;
-    }
-
-    return dot / (sqrt(leftMagnitude) * sqrt(rightMagnitude));
+    return dot;
   }
 }
 
 class _CandidateScore {
   final Destination destination;
-  final double textSimilarity;
-  final double tfIdfSimilarity;
-  final double bm25Similarity;
   final double embeddingSimilarity;
-  final double numericSimilarity;
   final double retrievalScore;
-  final double qualityPrior;
-  final double accommodationFit;
+  final double contextualScore;
+  final RecommendationComponents components;
 
   const _CandidateScore({
     required this.destination,
-    required this.textSimilarity,
-    required this.tfIdfSimilarity,
-    required this.bm25Similarity,
     required this.embeddingSimilarity,
-    required this.numericSimilarity,
     required this.retrievalScore,
-    required this.qualityPrior,
-    required this.accommodationFit,
+    required this.contextualScore,
+    required this.components,
   });
 }
 
@@ -1228,210 +1065,4 @@ class _WeightedReason {
     required this.score,
     required this.reason,
   });
-}
-
-class _HybridTextIndex {
-  static const _stopWords = {
-    'a',
-    'an',
-    'and',
-    'are',
-    'as',
-    'at',
-    'by',
-    'for',
-    'from',
-    'in',
-    'is',
-    'it',
-    'near',
-    'of',
-    'on',
-    'or',
-    'the',
-    'to',
-    'with',
-  };
-
-  final Map<String, int> vocab;
-  final Map<String, List<double>> docVectors;
-  final Map<String, Map<String, int>> docTermFrequencies;
-  final Map<String, int> docLengths;
-  final List<int> documentFrequency;
-  final int documentCount;
-  final double averageDocLength;
-
-  _HybridTextIndex({
-    required this.vocab,
-    required this.docVectors,
-    required this.docTermFrequencies,
-    required this.docLengths,
-    required this.documentFrequency,
-    required this.documentCount,
-    required this.averageDocLength,
-  });
-
-  factory _HybridTextIndex.build(List<Destination> destinations) {
-    final vocab = <String, int>{};
-    final docTerms = <String, List<String>>{};
-    final docTermFrequencies = <String, Map<String, int>>{};
-
-    for (final destination in destinations) {
-      final terms = _termsForDestination(destination);
-      docTerms[destination.id] = terms;
-
-      final frequency = <String, int>{};
-      for (final term in terms) {
-        vocab.putIfAbsent(term, () => vocab.length);
-        frequency[term] = (frequency[term] ?? 0) + 1;
-      }
-      docTermFrequencies[destination.id] = frequency;
-    }
-
-    final documentFrequency = List<int>.filled(vocab.length, 0);
-    for (final terms in docTerms.values) {
-      final seen = <int>{};
-      for (final term in terms) {
-        final index = vocab[term];
-        if (index != null && seen.add(index)) {
-          documentFrequency[index]++;
-        }
-      }
-    }
-
-    final documentCount = destinations.length;
-    final docLengths = {
-      for (final entry in docTerms.entries) entry.key: entry.value.length,
-    };
-    final averageDocLength = docLengths.isEmpty
-        ? 0.0
-        : docLengths.values.fold<int>(0, (sum, value) => sum + value) /
-            docLengths.length;
-    final docVectors = <String, List<double>>{};
-
-    for (final entry in docTerms.entries) {
-      final tf = List<double>.filled(vocab.length, 0.0);
-      for (final term in entry.value) {
-        final index = vocab[term];
-        if (index != null) {
-          tf[index] += 1.0;
-        }
-      }
-
-      for (var index = 0; index < tf.length; index++) {
-        if (tf[index] == 0) {
-          continue;
-        }
-        final idf =
-            log((documentCount + 1) / (documentFrequency[index] + 1)) + 1.0;
-        tf[index] = tf[index] * idf;
-      }
-
-      final magnitude = sqrt(tf.fold(0.0, (sum, value) => sum + value * value));
-      docVectors[entry.key] =
-          magnitude == 0 ? tf : tf.map((value) => value / magnitude).toList();
-    }
-
-    return _HybridTextIndex(
-      vocab: vocab,
-      docVectors: docVectors,
-      docTermFrequencies: docTermFrequencies,
-      docLengths: docLengths,
-      documentFrequency: documentFrequency,
-      documentCount: documentCount,
-      averageDocLength: averageDocLength,
-    );
-  }
-
-  List<double>? documentVector(String id) => docVectors[id];
-
-  List<double> queryVector(List<String> terms) {
-    final vector = List<double>.filled(vocab.length, 0.0);
-    for (final term in terms.expand(tokenize)) {
-      final index = vocab[term];
-      if (index != null) {
-        final idf =
-            log((documentCount + 1) / (documentFrequency[index] + 1)) + 1.0;
-        vector[index] += idf;
-      }
-    }
-
-    final magnitude =
-        sqrt(vector.fold(0.0, (sum, value) => sum + value * value));
-    return magnitude == 0
-        ? vector
-        : vector.map((value) => value / magnitude).toList();
-  }
-
-  double bm25Score(String id, List<String> queryTerms) {
-    final frequencies = docTermFrequencies[id];
-    final docLength = docLengths[id];
-    if (frequencies == null || docLength == null || averageDocLength <= 0) {
-      return 0.0;
-    }
-
-    const k1 = 1.45;
-    const b = 0.72;
-    var rawScore = 0.0;
-    final seenQueryTerms = <String>{};
-
-    for (final term in queryTerms.expand(tokenize)) {
-      if (!seenQueryTerms.add(term)) {
-        continue;
-      }
-
-      final index = vocab[term];
-      if (index == null) {
-        continue;
-      }
-
-      final termFrequency = frequencies[term] ?? 0;
-      if (termFrequency == 0) {
-        continue;
-      }
-
-      final df = documentFrequency[index];
-      final idf = log(1 + (documentCount - df + 0.5) / (df + 0.5));
-      final numerator = termFrequency * (k1 + 1);
-      final denominator =
-          termFrequency + k1 * (1 - b + b * (docLength / averageDocLength));
-
-      rawScore += idf * (numerator / denominator);
-    }
-
-    return (rawScore / (rawScore + _bm25Normalisation))
-        .clamp(0.0, 1.0)
-        .toDouble();
-  }
-
-  static List<String> _termsForDestination(Destination destination) {
-    return [
-      ..._repeat(destination.name, 3),
-      ..._repeat(destination.district ?? '', 2),
-      ..._repeat(destination.municipality ?? '', 1),
-      ...destination.category.expand((value) => _repeat(value, 4)),
-      ...destination.activities.expand((value) => _repeat(value, 4)),
-      ...destination.tags.expand((value) => _repeat(value, 3)),
-      ..._repeat(destination.shortDescription, 2),
-      destination.fullDescription,
-      destination.priceTier,
-      destination.accessibility ?? '',
-      destination.familyFriendly == true ? 'family friendly safe' : '',
-    ].expand(tokenize).toList();
-  }
-
-  static Iterable<String> _repeat(String value, int times) sync* {
-    for (var index = 0; index < times; index++) {
-      yield value;
-    }
-  }
-
-  static List<String> tokenize(String input) {
-    return input
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
-        .split(RegExp(r'\s+'))
-        .where((term) => term.isNotEmpty && !_stopWords.contains(term))
-        .toList();
-  }
 }

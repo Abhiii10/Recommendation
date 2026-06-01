@@ -42,15 +42,14 @@ def generate_synthetic_data(
 @router.post("/train-ranker")
 def train_ranker():
     """
-    Trains the ML ranking model (GradientBoostingClassifier) from all
-    stored interaction data.
+    Trains the LightGBM LambdaRank model from all stored interaction data.
 
-    Requires at least 20 interactions with both positive and negative labels.
+    Requires at least 20 grouped interactions with at least 2 relevance labels.
     Run /generate-synthetic-data first if no interactions exist.
     """
-    from backend.infrastructure.ml.ranker import RankingModel
+    from backend.infrastructure.ml.ranker import get_ranking_model
 
-    ranker = RankingModel()
+    ranker = get_ranking_model()
     result = ranker.train_from_storage()
     return result
 

@@ -16,6 +16,11 @@ from backend.domain.entities.destination import Destination
 from backend.domain.entities.recommendation import Recommendation
 
 
+_SEMANTIC_REASON_WEIGHT = 0.50
+_COLLABORATIVE_REASON_WEIGHT = 0.20
+_CONTEXTUAL_REASON_WEIGHT = 0.30
+
+
 class RecommendationExplainer:
     """Builds short, factor-aware explanations from weighted score contributions."""
 
@@ -37,7 +42,7 @@ class RecommendationExplainer:
 
         weighted_factors = [
             (
-                recommendation.components.semantic * settings.semantic_weight,
+                recommendation.components.semantic * _SEMANTIC_REASON_WEIGHT,
                 self._semantic_reason(
                     activity=activity,
                     vibe=vibe,
@@ -45,48 +50,48 @@ class RecommendationExplainer:
                 ),
             ),
             (
-                recommendation.components.collaborative * settings.collaborative_weight,
+                recommendation.components.collaborative * _COLLABORATIVE_REASON_WEIGHT,
                 collaborative_reason,
             ),
             (
                 recommendation.components.activity_match
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.activity_weight,
                 self._activity_reason(activity),
             ),
             (
                 recommendation.components.vibe_match
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.vibe_weight,
                 self._vibe_reason(vibe),
             ),
             (
                 recommendation.components.season_match
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.season_weight,
                 self._season_reason(season),
             ),
             (
                 recommendation.components.budget_match
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.budget_weight,
                 self._budget_reason(budget),
             ),
             (
                 recommendation.components.accessibility_fit
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.accessibility_weight,
                 self._accessibility_reason(destination),
             ),
             (
                 recommendation.components.family_fit
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.family_weight,
                 self._family_reason(family_friendly),
             ),
             (
                 recommendation.components.accommodation_fit
-                * settings.contextual_weight
+                * _CONTEXTUAL_REASON_WEIGHT
                 * settings.accommodation_weight,
                 "Accommodation options support this trip well",
             ),

@@ -146,7 +146,10 @@ class SbertEncoder:
             from sentence_transformers import SentenceTransformer
 
             cls._instance = super().__new__(cls)
-            cls._instance._model = SentenceTransformer(settings.model_name)
+            cls._instance._model = SentenceTransformer(
+                settings.model_name,
+                local_files_only=settings.offline_mode,
+            )
         return cls._instance
 
     def encode_texts(self, texts: List[str]) -> np.ndarray:

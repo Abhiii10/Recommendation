@@ -1,0 +1,1 @@
+{"model":"all-MiniLM-L6-v2","dims":384,"count":300,"quantized":true,"dtype":"int8","scale":127,"normalization":"L2","generated_at":"2026-06-01T08:45:40.139900+00:00"}

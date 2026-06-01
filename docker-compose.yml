@@ -17,6 +17,13 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: nepal-tourism-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
   backend:
     build:
       context: .
@@ -31,6 +38,7 @@ services:
     environment:
       INTERACTION_STORAGE_BACKEND: postgres
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nepal_tourism
+      REDIS_URL: redis://redis:6379
       APP_DB_FILE: data/app.sqlite3
     ports:
       - "8000:8000"

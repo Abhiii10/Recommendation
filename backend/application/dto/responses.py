@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class RecommendationResponseItemDto(BaseModel):
@@ -17,6 +17,8 @@ class RecommendationResponseItemDto(BaseModel):
 class RecommendationResponseDto(BaseModel):
     results: List[RecommendationResponseItemDto]
     total: int
+    recommendation_id: Optional[str] = None
+    pipeline_used: Optional[str] = None
 
 
 class SimilarResponseDto(BaseModel):
@@ -25,8 +27,17 @@ class SimilarResponseDto(BaseModel):
 
 class ChatResponseDto(BaseModel):
     answer: str
+    reply: Optional[str] = None
     source: str = "groq"
     used_context: List[str] = Field(default_factory=list)
+    offline: bool = False
+    fallback: Optional[str] = None
+
+    @model_validator(mode="after")
+    def sync_reply(self) -> "ChatResponseDto":
+        if not self.reply:
+            self.reply = self.answer
+        return self
 
 
 class AuthUserDto(BaseModel):
@@ -63,6 +74,17 @@ class DestinationAnalyticsDto(BaseModel):
     save_rate: float = 0.0
 
 
+class RecommendationQualityDto(BaseModel):
+    window_days: int = 7
+    recommendations_shown: int = 0
+    clicks: int = 0
+    saves: int = 0
+    click_through_rate: float = 0.0
+    save_rate: float = 0.0
+    average_clicked_position: float = 0.0
+    pipeline_breakdown: Dict[str, float] = Field(default_factory=dict)
+
+
 class RecommenderAnalyticsDto(BaseModel):
     total_interactions: int
     unique_users: int
@@ -76,5 +98,8 @@ class RecommenderAnalyticsDto(BaseModel):
     detail_view_rate: float
     save_rate: float
     rating_rate: float
+    recommendation_quality_last_7_days: RecommendationQualityDto = Field(
+        default_factory=RecommendationQualityDto
+    )
     event_counts: List[InteractionEventCountDto] = Field(default_factory=list)
     top_destinations: List[DestinationAnalyticsDto] = Field(default_factory=list)

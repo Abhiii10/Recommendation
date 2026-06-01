@@ -51,6 +51,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _botTyping = false;
   bool _ttsPlaying = false;
   bool _showAiProviderNotice = false;
+  bool _showBackendOfflineFallbackNotice = false;
   bool _checkingAiProvider = false;
   bool? _llmOnline;
   String? _ttsSpeaking;
@@ -226,7 +227,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
       if (!mounted) return;
 
-      if (_isAiProviderConfigError(response.statusCode, response.body)) {
+      if (_isBackendOfflineFallback(response.statusCode, response.body)) {
+        _aiProviderProbeCompletedThisSession = true;
+        _showBackendOfflineFallbackBanner();
+        _setLlmOnline(false);
+      } else if (_isAiProviderConfigError(response.statusCode, response.body)) {
         _aiProviderProbeCompletedThisSession = true;
         _showAiProviderConfigBanner();
         _setLlmOnline(false);
@@ -253,14 +258,40 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         lower.contains('not configured');
   }
 
+  bool _isBackendOfflineFallback(int statusCode, String body) {
+    if (statusCode < 200 || statusCode >= 300) {
+      return false;
+    }
+
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded['offline'] == true ||
+            decoded['fallback']?.toString() == 'rule_based';
+      }
+    } catch (_) {}
+
+    return body.toLowerCase().contains('"offline":true') ||
+        body.toLowerCase().contains('"fallback":"rule_based"');
+  }
+
   void _showAiProviderConfigBanner() {
     if (_aiProviderNoticeShownThisSession || !mounted) return;
     _aiProviderNoticeShownThisSession = true;
     setState(() => _showAiProviderNotice = true);
   }
 
+  void _showBackendOfflineFallbackBanner() {
+    if (!mounted) return;
+    setState(() => _showBackendOfflineFallbackNotice = true);
+  }
+
   void _dismissAiProviderConfigBanner() {
     setState(() => _showAiProviderNotice = false);
+  }
+
+  void _dismissBackendOfflineFallbackBanner() {
+    setState(() => _showBackendOfflineFallbackNotice = false);
   }
 
   void _scrollToBottom() {
@@ -598,6 +629,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
                 child: _buildAiProviderNoticeBanner(),
               ),
+            if (_showBackendOfflineFallbackNotice)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+                child: _buildBackendOfflineFallbackBanner(),
+              ),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -639,9 +675,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ? 'Online LLM responses are available.'
         : _llmOnline == null
             ? 'Checking whether the AI server is reachable.'
-            : _showAiProviderNotice
-                ? 'Backend is reachable, but AI provider keys are missing.'
-                : 'Backend is offline. Start FastAPI and check /health; offline fallback answers are active.';
+            : _showBackendOfflineFallbackNotice
+                ? 'AI provider is unavailable, so local rule-based responses are active.'
+                : _showAiProviderNotice
+                    ? 'Backend is reachable, but AI provider keys are missing.'
+                    : 'Backend is offline. Start FastAPI and check /health; offline fallback answers are active.';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -731,6 +769,39 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             IconButton(
               tooltip: 'Dismiss',
               onPressed: _dismissAiProviderConfigBanner,
+              icon: const Icon(Icons.close_rounded, size: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackendOfflineFallbackBanner() {
+    final color = Colors.orange.shade700;
+
+    return Material(
+      color: Colors.orange.shade900.withValues(alpha: 0.14),
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 9, 6, 9),
+        child: Row(
+          children: [
+            Icon(Icons.offline_bolt_rounded, color: color, size: 21),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'AI offline — using local responses',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  height: 1.35,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Dismiss',
+              onPressed: _dismissBackendOfflineFallbackBanner,
               icon: const Icon(Icons.close_rounded, size: 18),
             ),
           ],

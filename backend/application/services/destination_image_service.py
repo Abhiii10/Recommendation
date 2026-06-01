@@ -67,6 +67,12 @@ class DestinationImageService:
 
         destination = self._destinations_by_name.get(normalized, {})
         category = _first(destination.get("category"))
+
+        if settings.offline_mode:
+            fallback = category_fallback_url(category)
+            self._live_cache[normalized] = fallback
+            return {"name": clean_name, "image_url": fallback}
+
         candidates = _candidate_titles(clean_name, destination)
 
         try:

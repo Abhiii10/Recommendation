@@ -18,6 +18,16 @@ import 'package:rural_tourism_app/features/recommendations/data/services/recomme
 
 const Duration _cacheTtl = Duration(hours: 24);
 
+class CachedApiRecommendations {
+  final List<ApiRecommendationItem> items;
+  final bool isStale;
+
+  const CachedApiRecommendations({
+    required this.items,
+    required this.isStale,
+  });
+}
+
 class RecommendationManager {
   final RecommendationApiService _apiService;
   final RecommenderService _offlineService;
@@ -105,13 +115,32 @@ class RecommendationManager {
     } catch (_) {
       final cached = await _loadCache(cacheKey);
 
-      if (cached != null && cached.isNotEmpty) {
+      if (cached != null && cached.items.isNotEmpty) {
+        if (cached.isStale) {
+          unawaited(
+            _refreshStaleCache(
+              cacheKey: cacheKey,
+              activity: activity,
+              budget: budget,
+              season: season,
+              vibe: vibe,
+              familyFriendly: familyFriendly,
+              adventureLevel: adventureLevel,
+              userId: effectiveUserId,
+              topK: topK,
+            ),
+          );
+        }
+
         return UnifiedRecommendationResponse(
           mode: RecommendationMode.cached,
-          results: cached.map(_mapCachedApiResult).toList(),
-          indicatorLabel: 'Cached AI Recommendations',
-          message:
-              'Backend is unavailable. Showing the last cached AI recommendations for this preference profile.',
+          results: cached.items.map(_mapCachedApiResult).toList(),
+          indicatorLabel: cached.isStale
+              ? 'Stale Cached AI Recommendations'
+              : 'Cached AI Recommendations',
+          message: cached.isStale
+              ? 'Cached recommendations are older than 24 hours. Showing them now and refreshing in the background when online.'
+              : 'Backend is unavailable. Showing the last cached AI recommendations for this preference profile.',
           usedFallback: true,
         );
       }
@@ -164,6 +193,8 @@ class RecommendationManager {
         userId: effectiveUserId,
         destinationId: result.destination.id,
         eventType: saved ? 'save' : 'unsave',
+        recommendationId: result.aiItem?.metadata['recommendation_id'],
+        pipelineUsed: result.aiItem?.metadata['pipeline_used'],
       );
     } catch (_) {
       // Saving should not fail the UI when backend is unavailable.
@@ -174,7 +205,13 @@ class RecommendationManager {
     List<UnifiedRecommendationResult> results, {
     String? userId,
   }) async {
-    final aiResults = results.where((result) => result.isAiBacked).toList();
+    final aiResults = results
+        .where(
+          (result) =>
+              result.isAiBacked &&
+              result.aiItem?.metadata['server_logged_impression'] != 'true',
+        )
+        .toList();
 
     if (aiResults.isEmpty) {
       return;
@@ -216,6 +253,8 @@ class RecommendationManager {
         userId: effectiveUserId,
         destinationId: result.destination.id,
         eventType: 'click',
+        recommendationId: result.aiItem?.metadata['recommendation_id'],
+        pipelineUsed: result.aiItem?.metadata['pipeline_used'],
       );
     } catch (_) {
       // Click logging should never block navigation.
@@ -287,31 +326,73 @@ class RecommendationManager {
     try {
       await LocalDataService.instance.cacheJsonPayload(
         key,
-        items.map((item) => item.toJson()).toList(),
+        items.map((item) => _withoutEvaluationMetadata(item).toJson()).toList(),
       );
     } catch (_) {
       // Cache writing is best-effort.
     }
   }
 
-  Future<List<ApiRecommendationItem>?> _loadCache(String key) async {
+  Future<CachedApiRecommendations?> _loadCache(String key) async {
     try {
+      final entry =
+          await LocalDataService.instance.getCachedRecommendationEntry(key);
+      if (entry == null) return null;
+
       final decoded = await LocalDataService.instance.getCachedJsonList(
         key,
         maxAge: _cacheTtl,
+        allowStale: true,
       );
 
       if (decoded == null || decoded.isEmpty) return null;
 
-      return decoded
+      final items = decoded
           .map(
-            (entry) => ApiRecommendationItem.fromJson(
-              Map<String, dynamic>.from(entry as Map),
+            (item) => ApiRecommendationItem.fromJson(
+              Map<String, dynamic>.from(item as Map),
             ),
           )
           .toList();
+
+      return CachedApiRecommendations(
+        items: items,
+        isStale: entry.isOlderThan(_cacheTtl),
+      );
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<void> _refreshStaleCache({
+    required String cacheKey,
+    required String activity,
+    required String budget,
+    required String season,
+    required String vibe,
+    required bool familyFriendly,
+    required int adventureLevel,
+    required String userId,
+    required int topK,
+  }) async {
+    try {
+      final result = await Connectivity().checkConnectivity();
+      if (result.contains(ConnectivityResult.none)) return;
+
+      final apiResults = await _apiService.recommend(
+        activity: activity,
+        budget: budget,
+        season: season,
+        vibe: vibe,
+        familyFriendly: familyFriendly,
+        adventureLevel: adventureLevel,
+        userId: userId,
+        topK: topK,
+      );
+
+      await _saveCache(cacheKey, apiResults);
+    } catch (_) {
+      // Stale refresh is opportunistic and should never affect the UI.
     }
   }
 
@@ -358,6 +439,15 @@ class RecommendationManager {
       item: item,
       mode: mode,
     );
+  }
+
+  ApiRecommendationItem _withoutEvaluationMetadata(ApiRecommendationItem item) {
+    final metadata = Map<String, String>.from(item.metadata)
+      ..remove('recommendation_id')
+      ..remove('pipeline_used')
+      ..remove('server_logged_impression');
+
+    return item.copyWith(metadata: metadata);
   }
 
   Destination _buildFallbackDestination(ApiRecommendationItem item) {

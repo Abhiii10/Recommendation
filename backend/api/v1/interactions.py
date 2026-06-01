@@ -19,6 +19,8 @@ def log_interaction(
     authenticated_user_id = optional_authenticated_user_id(authorization)
     if authenticated_user_id is not None:
         payload = payload.model_copy(update={"user_id": authenticated_user_id})
+    elif not payload.user_id:
+        payload = payload.model_copy(update={"user_id": "anonymous"})
 
     _service.log(payload)
     return {"status": "ok", "message": "Interaction logged"}
@@ -38,6 +40,17 @@ def log_interaction_batch(
                     interaction.model_copy(
                         update={"user_id": authenticated_user_id}
                     )
+                    for interaction in payload.interactions
+                ]
+            }
+        )
+    else:
+        payload = payload.model_copy(
+            update={
+                "interactions": [
+                    interaction
+                    if interaction.user_id
+                    else interaction.model_copy(update={"user_id": "anonymous"})
                     for interaction in payload.interactions
                 ]
             }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 from typing import List
@@ -21,7 +22,15 @@ class SqliteInteractionRepository(InteractionRepository):
         with self._connect() as connection:
             rows = connection.execute(
                 """
-                SELECT user_id, destination_id, event_type, value, timestamp
+                SELECT
+                    user_id,
+                    destination_id,
+                    event_type,
+                    value,
+                    timestamp,
+                    recommendation_id,
+                    recommended_destination_ids,
+                    pipeline_used
                 FROM interactions
                 ORDER BY id ASC
                 """
@@ -34,6 +43,11 @@ class SqliteInteractionRepository(InteractionRepository):
                 event_type=row["event_type"],
                 value=float(row["value"]),
                 timestamp=row["timestamp"],
+                recommendation_id=row["recommendation_id"],
+                recommended_destination_ids=self._decode_recommended_ids(
+                    row["recommended_destination_ids"]
+                ),
+                pipeline_used=row["pipeline_used"],
             )
             for row in rows
         ]
@@ -43,9 +57,16 @@ class SqliteInteractionRepository(InteractionRepository):
             connection.execute(
                 """
                 INSERT INTO interactions (
-                    user_id, destination_id, event_type, value, timestamp
+                    user_id,
+                    destination_id,
+                    event_type,
+                    value,
+                    timestamp,
+                    recommendation_id,
+                    recommended_destination_ids,
+                    pipeline_used
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     interaction.user_id,
@@ -53,6 +74,9 @@ class SqliteInteractionRepository(InteractionRepository):
                     interaction.event_type,
                     interaction.value,
                     interaction.timestamp,
+                    interaction.recommendation_id,
+                    json.dumps(interaction.recommended_destination_ids),
+                    interaction.pipeline_used,
                 ),
             )
             connection.commit()
@@ -75,9 +99,27 @@ class SqliteInteractionRepository(InteractionRepository):
                     event_type TEXT NOT NULL,
                     value REAL NOT NULL DEFAULT 1.0,
                     timestamp TEXT,
+                    recommendation_id TEXT,
+                    recommended_destination_ids TEXT NOT NULL DEFAULT '[]',
+                    pipeline_used TEXT,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )
                 """
+            )
+            self._add_column_if_missing(
+                connection,
+                "recommendation_id",
+                "TEXT",
+            )
+            self._add_column_if_missing(
+                connection,
+                "recommended_destination_ids",
+                "TEXT NOT NULL DEFAULT '[]'",
+            )
+            self._add_column_if_missing(
+                connection,
+                "pipeline_used",
+                "TEXT",
             )
             connection.execute(
                 """
@@ -89,6 +131,12 @@ class SqliteInteractionRepository(InteractionRepository):
                 """
                 CREATE INDEX IF NOT EXISTS idx_interactions_destination_event
                 ON interactions(destination_id, event_type)
+                """
+            )
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_interactions_recommendation
+                ON interactions(recommendation_id)
                 """
             )
             connection.commit()
@@ -110,9 +158,16 @@ class SqliteInteractionRepository(InteractionRepository):
             connection.executemany(
                 """
                 INSERT INTO interactions (
-                    user_id, destination_id, event_type, value, timestamp
+                    user_id,
+                    destination_id,
+                    event_type,
+                    value,
+                    timestamp,
+                    recommendation_id,
+                    recommended_destination_ids,
+                    pipeline_used
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -121,6 +176,9 @@ class SqliteInteractionRepository(InteractionRepository):
                         item.get("event_type", ""),
                         float(item.get("value", 1.0) or 1.0),
                         item.get("timestamp"),
+                        item.get("recommendation_id"),
+                        json.dumps(item.get("recommended_destination_ids") or []),
+                        item.get("pipeline_used"),
                     )
                     for item in seed_items
                     if item.get("user_id")
@@ -129,3 +187,33 @@ class SqliteInteractionRepository(InteractionRepository):
                 ],
             )
             connection.commit()
+
+    def _add_column_if_missing(
+        self,
+        connection: sqlite3.Connection,
+        column_name: str,
+        column_sql: str,
+    ) -> None:
+        columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(interactions)").fetchall()
+        }
+        if column_name not in columns:
+            connection.execute(
+                f"ALTER TABLE interactions ADD COLUMN {column_name} {column_sql}"
+            )
+
+    @staticmethod
+    def _decode_recommended_ids(raw: str | None) -> list[str]:
+        if not raw:
+            return []
+
+        try:
+            decoded = json.loads(raw)
+        except (TypeError, ValueError):
+            return []
+
+        if not isinstance(decoded, list):
+            return []
+
+        return [str(item) for item in decoded]

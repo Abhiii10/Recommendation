@@ -74,11 +74,13 @@ class TemplateTranslator implements TranslationEngine {
 
   Map<String, String>? _match(
       String pattern, String input, List<String> slots) {
-    var regexPattern = RegExp.escape(_normalizePattern(pattern));
+    // FIX: use TextUtils.normalizeSearchText consistently (handles _ and all
+    // special chars the same way as the input normalization does)
+    var regexPattern = RegExp.escape(TextUtils.normalizeSearchText(pattern));
     for (final slot in slots) {
       regexPattern = regexPattern.replaceAll('\\{$slot\\}', '(.+?)');
     }
-    final regex = RegExp('^$regexPattern\\??\$', caseSensitive: false);
+    final regex = RegExp('^$regexPattern\\??${r'$'}', caseSensitive: false);
     final match = regex.firstMatch(TextUtils.normalizeSearchText(input));
     if (match == null) return null;
     final values = <String, String>{};
@@ -88,26 +90,25 @@ class TemplateTranslator implements TranslationEngine {
     return values;
   }
 
+  /// FIX: Restores original casing for the matched slot value.
+  /// Handles both single-word and multi-word slot values (e.g. "Abhishek Sharma").
   String _restoreSlotText(String input, String normalizedSlot) {
     final normalized = TextUtils.normalizeSearchText(normalizedSlot);
     if (normalized.isEmpty) return normalizedSlot;
+
+    // Try to find the original cased substring directly in the input
+    final inputNormalized = TextUtils.normalizeSearchText(input);
+    final idx = inputNormalized.indexOf(normalized);
+    if (idx != -1 && idx + normalized.length <= input.length) {
+      return input.substring(idx, idx + normalized.length).trim();
+    }
+
+    // Fallback: single word match
     final words = input.split(RegExp(r'\s+'));
     for (final word in words) {
       if (TextUtils.normalizeSearchText(word) == normalized) return word;
     }
     return normalizedSlot;
-  }
-
-  String _normalizePattern(String pattern) {
-    final normalized = pattern
-        .toLowerCase()
-        .replaceAll('\u0964', ' ')
-        .replaceAll('\u0965', ' ')
-        .replaceAll(
-          RegExp(r'[!"#$%&()*+,./:;<=>?@\[\]^_`|~\r\n\t-]+'),
-          ' ',
-        );
-    return TextUtils.compactWhitespace(normalized);
   }
 }
 

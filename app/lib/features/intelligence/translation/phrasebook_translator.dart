@@ -94,7 +94,9 @@ class PhrasebookTranslator implements TranslationEngine {
       }
     }
 
-    if (best == null || bestScore < 0.45) return null;
+    // FIX: lowered threshold from 0.45 → 0.38 so short valid phrases
+    // like "thanks" or "sorry" are not incorrectly rejected
+    if (best == null || bestScore < 0.38) return null;
     return TranslationResponse(
       translatedText:
           direction == IntelligenceTranslationDirection.nepaliToEnglish
@@ -103,7 +105,9 @@ class PhrasebookTranslator implements TranslationEngine {
       method: exact
           ? TranslationMethod.exactPhrasebook
           : TranslationMethod.fuzzyPhrasebook,
-      confidence: exact ? 1.0 : bestScore.clamp(0.0, 0.88),
+      // FIX: raised confidence cap from 0.88 → 0.93 so strong fuzzy matches
+      // aren't unfairly penalised and don't unnecessarily fall through to online
+      confidence: exact ? 1.0 : bestScore.clamp(0.0, 0.93),
       isOffline: true,
       alternatives: _alternatives(best, direction),
       romanized: best.romanized.isEmpty ? null : best.romanized.first,

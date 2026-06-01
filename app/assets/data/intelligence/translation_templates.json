@@ -19,6 +19,11 @@
     {"id":"tmpl_017","pattern_en":"i am going to {place}","pattern_ne":"म {place} जाँदैछु","slots":["place"],"category":"transport"},
     {"id":"tmpl_018","pattern_en":"is breakfast included","pattern_ne":"बिहानको खाना समावेश छ?","slots":[],"category":"homestay"},
     {"id":"tmpl_019","pattern_en":"where is the toilet","pattern_ne":"शौचालय कहाँ छ?","slots":[],"category":"general"},
-    {"id":"tmpl_020","pattern_en":"please write the address","pattern_ne":"कृपया ठेगाना लेखिदिनुहोस्","slots":[],"category":"directions"}
+    {"id":"tmpl_020","pattern_en":"please write the address","pattern_ne":"कृपया ठेगाना लेखिदिनुहोस्","slots":[],"category":"directions"},
+    {"id":"tmpl_my_name_is","pattern_en":"my name is {name}","pattern_ne":"मेरो नाम {name} हो","slots":["name"],"category":"greetings"},
+    {"id":"tmpl_i_am_from","pattern_en":"i am from {place}","pattern_ne":"म {place} बाट आएको हुँ","slots":["place"],"category":"greetings"},
+    {"id":"tmpl_how_long_to","pattern_en":"how long to reach {place}","pattern_ne":"{place} पुग्न कति समय लाग्छ?","slots":["place"],"category":"directions"},
+    {"id":"tmpl_book_room","pattern_en":"i want to book a room for {days} days","pattern_ne":"मलाई {days} दिनको लागि कोठा चाहिन्छ","slots":["days"],"category":"homestay"},
+    {"id":"tmpl_take_me_to","pattern_en":"please take me to {place}","pattern_ne":"कृपया मलाई {place} लैजानुहोस्","slots":["place"],"category":"transport"}
   ]
 }

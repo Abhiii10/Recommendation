@@ -27,16 +27,65 @@ class HybridTranslationManager {
     ]);
   }
 
+  /// Splits multi-sentence input (separated by . ! ? or newlines) into
+  /// individual sentences so each one gets translated independently.
+  List<String> _splitSentences(String text) {
+    return text
+        .split(RegExp(r'(?<=[.!?\n])\s*'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
   Future<TranslationResponse> translate(TranslationRequest request) async {
     await load();
 
+    final sentences = _splitSentences(request.text);
+
+    // If there are multiple sentences, translate each independently and join
+    if (sentences.length > 1) {
+      final results = <String>[];
+      var allOffline = true;
+      var lowestConfidence = 1.0;
+
+      for (final sentence in sentences) {
+        final subRequest = TranslationRequest(
+          text: sentence,
+          direction: request.direction,
+          allowNeural: request.allowNeural,
+        );
+        final result = await _translateSingle(subRequest);
+        if (result.translatedText.isNotEmpty) {
+          results.add(result.translatedText);
+        }
+        if (!result.isOffline) allOffline = false;
+        if (result.confidence < lowestConfidence) {
+          lowestConfidence = result.confidence;
+        }
+      }
+
+      if (results.isNotEmpty) {
+        return TranslationResponse(
+          translatedText: results.join('\n'),
+          method: TranslationMethod.template,
+          confidence: lowestConfidence,
+          isOffline: allOffline,
+        );
+      }
+    }
+
+    return _translateSingle(request);
+  }
+
+  Future<TranslationResponse> _translateSingle(
+      TranslationRequest request) async {
     // 1. Exact phrasebook match — always best for known tourism phrases
     final phrase = await phrasebookTranslator.translate(request);
     if (phrase != null && phrase.method == TranslationMethod.exactPhrasebook) {
       return phrase;
     }
 
-    // 2. Template match — structured phrases
+    // 2. Template match — structured phrases with name/place slots
     final template = await templateTranslator.translate(request);
     if (template != null && template.confidence >= 0.80) return template;
 

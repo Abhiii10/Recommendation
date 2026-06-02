@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: nepal-tourism-postgres
+    profiles: ["postgres"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: nepal_tourism
@@ -20,6 +21,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: nepal-tourism-redis
+    profiles: ["postgres"]
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -32,11 +34,8 @@ services:
     restart: on-failure
     env_file:
       - ./backend/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
-      INTERACTION_STORAGE_BACKEND: postgres
+      INTERACTION_STORAGE_BACKEND: sqlite
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nepal_tourism
       REDIS_URL: redis://redis:6379
       APP_DB_FILE: data/app.sqlite3

@@ -8,7 +8,7 @@ import 'package:rural_tourism_app/features/intelligence/dialogue/dialogue_state_
 import 'package:rural_tourism_app/features/intelligence/dialogue/slot_filling_manager.dart';
 
 class DialogueManager {
-  static const double _lastResortClarificationConfidence = 0.25;
+  static const double _lastResortClarificationConfidence = 0.28;
 
   final ConversationMemory memory;
   final SlotFillingManager slotFillingManager;

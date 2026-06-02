@@ -10,12 +10,14 @@ void main() {
     await orchestrator.initialize();
 
     final cases = {
-      'I need a homestay in Ghandruk tonight': 'homestay_search',
+      'I need a homestay in Ghandruk tonight': 'homestay_query',
       'I want a cheap and peaceful village': 'budget_relaxation',
-      'Is vegetarian food available?': 'vegetarian_food',
+      'Is vegetarian food available?': 'food_query',
       'How do I reach Sikles from Pokhara?': 'transport_query',
       'What cultural etiquette should I follow?': 'culture_etiquette',
-      'What should I know before trekking?': 'adventure_activity',
+      'What should I know before trekking?': 'trekking_info',
+      'Is it safe to trek alone?': 'safety_info',
+      'Where can I eat dal bhat?': 'food_query',
       'mardi': 'destination_query',
     };
 

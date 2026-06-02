@@ -70,6 +70,7 @@ class NamedEntityRecognizer {
     List<EntityMention> entities,
   ) {
     final matchedCanonicalIds = <String>{};
+    final inputTokens = TextUtils.simpleTokens(normalized).toSet();
     final entries = gazetteer.entries.toList()
       ..sort((a, b) => b.key.length.compareTo(a.key.length));
 
@@ -78,7 +79,8 @@ class NamedEntityRecognizer {
         continue;
       }
       final name = TextUtils.normalizeSearchText(entry.key);
-      if (name.length < 3 || !TextUtils.containsPhrase(normalized, name)) {
+      if (name.length < 3 ||
+          !_matchesGazetteerEntry(normalized, inputTokens, name, type)) {
         continue;
       }
       final start = normalized.indexOf(name);
@@ -94,6 +96,31 @@ class NamedEntityRecognizer {
         ),
       );
     }
+  }
+
+  bool _matchesGazetteerEntry(
+    String normalizedInput,
+    Set<String> inputTokens,
+    String normalizedName,
+    EntityType type,
+  ) {
+    if (TextUtils.containsPhrase(normalizedInput, normalizedName)) {
+      return true;
+    }
+    if (type != EntityType.destination) return false;
+
+    final nameTokens = TextUtils.simpleTokens(normalizedName)
+        .where((token) => !_genericDestinationTokens.contains(token))
+        .where((token) => token.length >= 3)
+        .toSet();
+    if (inputTokens.isEmpty || nameTokens.isEmpty) return false;
+
+    final matchingTokens = inputTokens.intersection(nameTokens);
+    if (matchingTokens.isEmpty) return false;
+
+    if (inputTokens.length == 1) return true;
+    if (matchingTokens.length >= 2) return true;
+    return nameTokens.length == 1 && matchingTokens.length == 1;
   }
 
   static Map<String, String> _expandDestinationGazetteer(

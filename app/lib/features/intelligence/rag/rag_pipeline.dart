@@ -70,6 +70,7 @@ class RagPipeline {
   String _effectiveIntent(String intent) {
     if (intent == 'trekking_info') return 'adventure_activity';
     if (intent == 'safety_info') return 'safety_concern';
+    if (intent == 'homestay_query') return 'homestay_search';
     if (intent == 'destination_query') return 'destination_recommendation';
     return intent;
   }
@@ -83,8 +84,6 @@ class RagPipeline {
     if (!_trekkingTriggers.any(text.contains)) {
       return '';
     }
-    return _safetyTriggers.any(text.contains)
-        ? 'safety_concern'
-        : 'adventure_activity';
+    return _safetyTriggers.any(text.contains) ? 'safety_info' : 'trekking_info';
   }
 }

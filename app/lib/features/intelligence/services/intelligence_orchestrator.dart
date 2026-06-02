@@ -204,7 +204,8 @@ class IntelligenceOrchestrator {
       text = _appendLowConfidenceClarification(text);
     } else if (rag.contexts.isEmpty &&
         destinationMatch == null &&
-        intent.confidence < 0.25 &&
+        !_hasForcedKeywordTrigger(intent) &&
+        intent.confidence < 0.28 &&
         dialogue.shouldClarify &&
         dialogue.clarificationQuestion != null) {
       text = dialogue.clarificationQuestion!;
@@ -270,16 +271,22 @@ class IntelligenceOrchestrator {
     switch (intent) {
       case 'food_query':
         return ['Best local food', 'Vegetarian options', 'Dal bhat places'];
+      case 'homestay_query':
       case 'homestay_search':
         return [
           'Find homestay nearby',
           'Budget accommodation',
           'Village stays'
         ];
+      case 'safety_info':
+      case 'safety_concern':
+        return ['Trekking safety', 'Permit info', 'Emergency contacts'];
       case 'transport_query':
         return ['Bus routes', 'Jeep hire', 'Walking distance'];
       case 'best_time_to_visit':
         return ['Spring season', 'Autumn trekking', 'Monsoon travel'];
+      case 'trekking_info':
+      case 'adventure_activity':
       case 'trekking':
         return ['Easy treks', 'Popular routes', 'Permit info'];
       default:
@@ -291,7 +298,13 @@ class IntelligenceOrchestrator {
     String intent,
     double confidence,
   ) {
-    return intent != 'fallback' && confidence >= 0.30 && confidence < 0.55;
+    return intent != 'fallback' && confidence >= 0.28 && confidence < 0.55;
+  }
+
+  bool _hasForcedKeywordTrigger(IntentClassificationResult intent) {
+    return intent.matchedFeatures.any(
+      (feature) => feature.startsWith('forced_keyword:'),
+    );
   }
 
   String _appendLowConfidenceClarification(String text) {

@@ -7,26 +7,27 @@ import 'package:rural_tourism_app/features/intelligence/intent/intent_training_d
 import 'package:rural_tourism_app/features/intelligence/intent/semantic_intent_classifier.dart';
 
 class HybridIntentClassifier implements IntentClassifierBase {
-  static const double _minimumIntentConfidence = 0.30;
+  static const double _minimumIntentConfidence = 0.28;
   static const _trekkingTriggers = [
     'trekking',
     'trek',
     'hiking',
-    'what to know',
-    'tips',
-    'safety',
-    'prepare',
-    'pack',
-    'permit',
-    'tims',
   ];
-  static const _trekkingSafetyTerms = [
+  static const _homestayTriggers = [
+    'homestay',
+    'stay',
+    'lodge',
+  ];
+  static const _foodTriggers = [
+    'food',
+    'eat',
+    'dal bhat',
+  ];
+  static const _safetyTriggers = [
     'safe',
     'safety',
-    'alone',
-    'risk',
-    'danger',
-    'emergency',
+    'permit',
+    'tims',
   ];
 
   final SemanticIntentClassifier semanticClassifier;
@@ -58,9 +59,9 @@ class HybridIntentClassifier implements IntentClassifierBase {
       );
     }
 
-    final trekkingOverride = _trekkingIntentOverride(nlp);
-    if (trekkingOverride != null) {
-      return trekkingOverride;
+    final keywordOverride = _forcedKeywordIntentOverride(nlp);
+    if (keywordOverride != null) {
+      return keywordOverride;
     }
 
     final semantic = semanticClassifier.classify(nlp);
@@ -235,27 +236,74 @@ class HybridIntentClassifier implements IntentClassifierBase {
   bool _hasEntity(NlpProcessingResult nlp, EntityType type) =>
       nlp.entities.any((entity) => entity.type == type);
 
-  IntentClassificationResult? _trekkingIntentOverride(
+  IntentClassificationResult? _forcedKeywordIntentOverride(
     NlpProcessingResult nlp,
   ) {
     final text = TextUtils.normalizeSearchText(
       '${nlp.normalizedText} ${nlp.romanizedNormalizedText}',
     );
-    final matched = _trekkingTriggers.where(text.contains).toList();
-    if (matched.isEmpty) return null;
 
-    final safetyFocused = _trekkingSafetyTerms.any(text.contains);
-    final intent = safetyFocused ? 'safety_concern' : 'adventure_activity';
+    final safetyMatch = _firstMatch(text, _safetyTriggers);
+    if (safetyMatch != null) {
+      return _forcedIntent(
+        intent: 'safety_info',
+        legacyIntent: 'safety_concern',
+        matchedKeyword: safetyMatch,
+      );
+    }
+
+    final homestayMatch = _firstMatch(text, _homestayTriggers);
+    if (homestayMatch != null) {
+      return _forcedIntent(
+        intent: 'homestay_query',
+        legacyIntent: 'homestay_search',
+        matchedKeyword: homestayMatch,
+      );
+    }
+
+    final foodMatch = _firstMatch(text, _foodTriggers);
+    if (foodMatch != null) {
+      return _forcedIntent(
+        intent: 'food_query',
+        legacyIntent: 'food_query',
+        matchedKeyword: foodMatch,
+      );
+    }
+
+    final trekkingMatch = _firstMatch(text, _trekkingTriggers);
+    if (trekkingMatch != null) {
+      return _forcedIntent(
+        intent: 'trekking_info',
+        legacyIntent: 'adventure_activity',
+        matchedKeyword: trekkingMatch,
+      );
+    }
+
+    return null;
+  }
+
+  String? _firstMatch(String text, List<String> triggers) {
+    for (final trigger in triggers) {
+      if (TextUtils.containsPhrase(text, trigger)) return trigger;
+    }
+    return null;
+  }
+
+  IntentClassificationResult _forcedIntent({
+    required String intent,
+    required String legacyIntent,
+    required String matchedKeyword,
+  }) {
     return IntentClassificationResult(
       intent: intent,
       confidence: 0.90,
       alternatives: {
         intent: 0.90,
-        safetyFocused ? 'adventure_activity' : 'safety_concern': 0.72,
+        legacyIntent: 0.90,
       },
       matchedFeatures: [
-        'trekking_keyword:${matched.first}',
-        if (safetyFocused) 'trekking_safety_override',
+        'forced_keyword:$matchedKeyword',
+        if (intent != legacyIntent) 'legacy_intent:$legacyIntent',
       ],
     );
   }
@@ -304,6 +352,7 @@ class HybridIntentClassifier implements IntentClassifierBase {
       'safety',
     ];
     if (blockers.any(text.contains)) return false;
+    if (entity.confidence >= 0.90) return true;
 
     final infoPatterns = [
       'tell me about',

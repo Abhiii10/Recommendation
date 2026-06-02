@@ -363,7 +363,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               SizedBox(width: 16),
-              Expanded(child: Text('Translating to Nepali…')),
+              Expanded(child: Text('Translating to Nepali...')),
             ],
           ),
         );
@@ -397,7 +397,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '${translated.strategyLabel} · ${translated.confidencePercent}',
+                  '${translated.strategyLabel} / ${translated.confidencePercent}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -621,7 +621,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: _buildModeBanner(),
+              child: _buildModeBanner(isOffline: isOffline),
             ),
             if (_showAiProviderNotice)
               Padding(
@@ -663,22 +663,35 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
     );
   }
 
-  Widget _buildModeBanner() {
+  Widget _buildModeBanner({required bool isOffline}) {
     final cs = Theme.of(context).colorScheme;
-    final isOnline = _llmOnline == true;
-    final color = isOnline ? cs.primary : cs.tertiary;
-    final icon =
-        isOnline ? Icons.auto_awesome_rounded : Icons.offline_bolt_rounded;
-    final label = isOnline ? 'AI Mode' : 'Offline Mode';
-    final body = isOnline
-        ? 'Online LLM responses are available.'
-        : _llmOnline == null
-            ? 'Checking whether the AI server is reachable.'
-            : _showBackendOfflineFallbackNotice
-                ? 'AI provider is unavailable, so local rule-based responses are active.'
-                : _showAiProviderNotice
-                    ? 'Backend is reachable, but AI provider keys are missing.'
-                    : 'Backend is offline. Start FastAPI and check /health; offline fallback answers are active.';
+    final backendReachable = _llmOnline == true;
+    final checkingBackend = _llmOnline == null && !isOffline;
+    final isOnlineMode = !isOffline && backendReachable;
+    final color = isOnlineMode
+        ? cs.primary
+        : isOffline
+            ? cs.tertiary
+            : cs.error;
+    final icon = isOnlineMode
+        ? Icons.auto_awesome_rounded
+        : isOffline
+            ? Icons.offline_bolt_rounded
+            : checkingBackend
+                ? Icons.sync_rounded
+                : Icons.cloud_off_rounded;
+    final label = isOnlineMode ? 'AI Mode' : 'Offline Mode';
+    final body = isOffline
+        ? 'Device is offline. Local fallback responses are active.'
+        : backendReachable
+            ? 'Online LLM ready.'
+            : checkingBackend
+                ? 'Checking whether the backend is reachable.'
+                : _showBackendOfflineFallbackNotice
+                    ? 'Backend is reachable, but it returned local rule-based responses.'
+                    : _showAiProviderNotice
+                        ? 'Backend is reachable, but AI provider keys are missing.'
+                        : 'Backend unavailable. Offline fallback answers are active.';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),

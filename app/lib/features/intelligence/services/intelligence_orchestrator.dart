@@ -176,7 +176,8 @@ class IntelligenceOrchestrator {
     if (safety != null) return safety;
 
     final destinationMatch = _bestDestinationMatch(nlp.entities);
-    if (destinationMatch != null) {
+    if (destinationMatch != null &&
+        _shouldAnswerDestinationDirectly(request.text, destinationMatch)) {
       return _directDestinationResponse(
         destinationMatch,
         nlp.language,
@@ -202,6 +203,7 @@ class IntelligenceOrchestrator {
     if (shouldAppendClarification && rag.contexts.isNotEmpty) {
       text = _appendLowConfidenceClarification(text);
     } else if (rag.contexts.isEmpty &&
+        destinationMatch == null &&
         intent.confidence < 0.25 &&
         dialogue.shouldClarify &&
         dialogue.clarificationQuestion != null) {
@@ -289,7 +291,7 @@ class IntelligenceOrchestrator {
     String intent,
     double confidence,
   ) {
-    return intent != 'fallback' && confidence >= 0.35 && confidence < 0.55;
+    return intent != 'fallback' && confidence >= 0.30 && confidence < 0.55;
   }
 
   String _appendLowConfidenceClarification(String text) {
@@ -307,6 +309,59 @@ class IntelligenceOrchestrator {
     return destinations.reduce(
       (best, entity) => entity.confidence > best.confidence ? entity : best,
     );
+  }
+
+  bool _shouldAnswerDestinationDirectly(String input, EntityMention entity) {
+    final text = _normalizeIntentText(input);
+    final entityText = _normalizeIntentText(entity.text);
+    if (text.isEmpty || entityText.isEmpty) return false;
+    if (text == entityText) return true;
+
+    final blockers = [
+      'homestay',
+      'hotel',
+      'room',
+      'stay',
+      'tonight',
+      'booking',
+      'route',
+      'reach',
+      'transport',
+      'bus',
+      'jeep',
+      'taxi',
+      'go to',
+      'get to',
+      'food',
+      'eat',
+      'price',
+      'budget',
+      'cheap',
+      'safe',
+      'safety',
+    ];
+    if (blockers.any(text.contains)) return false;
+
+    if (entity.confidence >= 0.90) return true;
+
+    final infoPatterns = [
+      'tell me about',
+      'information about',
+      'info about',
+      'about',
+      'what is',
+      'where is',
+      'describe',
+    ];
+    return infoPatterns.any(text.contains);
+  }
+
+  String _normalizeIntentText(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\s\u0900-\u097F]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   ChatbotResponse _directDestinationResponse(

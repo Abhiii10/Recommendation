@@ -29,11 +29,19 @@ docker compose exec backend python backend/scripts/fetch_destination_images.py
 
 ### 4. Run the Flutter app
 ```bash
-# Find your PC IP, then edit app/.env:
-# AI_BACKEND_BASE_URL=http://YOUR_IP:8000
+# Find your PC IP, then pass it to Flutter:
 ipconfig
 cd app
-flutter run
+flutter run --dart-define=AI_BACKEND_BASE_URL=http://YOUR_IP:8000
+```
+
+For an APK that works away from your laptop or on any Wi-Fi, deploy the backend
+to a public HTTPS URL and build with that URL:
+
+```bash
+cd app
+flutter build apk --release \
+  --dart-define=AI_BACKEND_BASE_URL=https://your-public-backend.example.com
 ```
 
 ### 5. Verify everything works
@@ -329,11 +337,11 @@ In another terminal, run Flutter:
 ```powershell
 cd app
 flutter pub get
-flutter run
+flutter run --dart-define=AI_BACKEND_BASE_URL=http://<your-laptop-ip>:8000
 ```
 
-Do not commit machine-specific `app/.env` changes. Set
-`AI_BACKEND_BASE_URL=http://<your-laptop-ip>:8000` per developer machine.
+Do not commit machine-specific backend URLs. Pass the reachable backend URL with
+`--dart-define` per developer machine.
 
 ## Local Setup: Mac/Linux
 
@@ -363,11 +371,12 @@ In another terminal, run Flutter:
 ```bash
 cd app
 flutter pub get
-flutter run
+flutter run --dart-define=AI_BACKEND_BASE_URL=http://<your-laptop-ip>:8000
 ```
 
-Keep `app/.env` local to each machine and set `AI_BACKEND_BASE_URL` to the URL
-reachable from your emulator or phone.
+Pass the backend URL reachable from your emulator or phone with
+`--dart-define`. Android emulator defaults to `http://10.0.2.2:8000` when no
+value is provided.
 
 ## Destination Images
 
@@ -434,6 +443,8 @@ http://127.0.0.1:8000/docs
 ## Android Phone Setup
 
 For a real Android phone, the backend URL must use the laptop Wi-Fi IPv4 address.
+This works only while the phone and laptop are on the same network. It is a
+development setup, not a public APK setup.
 
 Check your laptop IP:
 
@@ -451,7 +462,6 @@ Pass the phone-reachable backend URL to Flutter with `--dart-define`:
 
 ```powershell
 flutter run `
-  --dart-define=ANTHROPIC_API_KEY=sk-ant-... `
   --dart-define=AI_BACKEND_BASE_URL=http://192.168.x.x:8000
 ```
 
@@ -465,6 +475,14 @@ Test from phone browser:
 
 ```text
 http://192.168.x.x:8000/health
+```
+
+For a release APK that works on any internet connection, run the backend on a
+public server or tunnel with HTTPS, then build the APK with:
+
+```powershell
+flutter build apk --release `
+  --dart-define=AI_BACKEND_BASE_URL=https://your-public-backend.example.com
 ```
 
 ---
@@ -486,17 +504,15 @@ cd app
 flutter clean
 flutter pub get
 flutter run `
-  --dart-define=ANTHROPIC_API_KEY=sk-ant-... `
   --dart-define=AI_BACKEND_BASE_URL=http://192.168.x.x:8000
 ```
 
-Keep API keys and backend URLs out of APK assets. Pass runtime values with
-`--dart-define`. The app asserts in debug mode when `ANTHROPIC_API_KEY` is
-missing:
+Keep server-side AI provider keys out of APK assets. Configure `GROQ_API_KEY`,
+`GEMINI_API_KEY`, and `ANTHROPIC_API_KEY` only in `backend/.env`, then restart
+Docker. The Flutter app should only receive the backend URL:
 
 ```powershell
 flutter run `
-  --dart-define=ANTHROPIC_API_KEY=sk-ant-... `
   --dart-define=AI_BACKEND_BASE_URL=http://192.168.x.x:8000
 ```
 

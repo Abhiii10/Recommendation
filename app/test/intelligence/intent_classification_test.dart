@@ -15,6 +15,8 @@ void main() {
       'Is vegetarian food available?': 'vegetarian_food',
       'How do I reach Sikles from Pokhara?': 'transport_query',
       'What cultural etiquette should I follow?': 'culture_etiquette',
+      'What should I know before trekking?': 'adventure_activity',
+      'mardi': 'destination_query',
     };
 
     for (final entry in cases.entries) {

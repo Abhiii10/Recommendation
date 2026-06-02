@@ -534,10 +534,13 @@ class _MapScreenState extends State<MapScreen>
   Widget build(BuildContext context) {
     final mapped = _mappedDestinations;
     final cs = Theme.of(context).colorScheme;
-    final usingOfflineTiles = _offlineTileProvider != null;
+    final offlineTilesReady = _offlineTileProvider != null;
+    final usingOfflineTiles = !_isOnline && offlineTilesReady;
     final tileStyle = _tileStyles[_tileStyle] ?? _tileStyles['voyager']!;
-    final pinBorderColor =
-        tileStyle.dark ? Colors.white : cs.surface.withValues(alpha: 0.95);
+    final activeTileIsDark = !usingOfflineTiles && tileStyle.dark;
+    final pinBorderColor = activeTileIsDark
+        ? Colors.white
+        : cs.surface.withValues(alpha: 0.95);
 
     return Scaffold(
       appBar: AppBar(
@@ -673,7 +676,8 @@ class _MapScreenState extends State<MapScreen>
                     left: 14,
                     top: 14,
                     child: _MapStatusChip(
-                      offlineReady: usingOfflineTiles,
+                      offlineReady: offlineTilesReady,
+                      usingOfflineTiles: usingOfflineTiles,
                       attempted: _offlineTileLoadAttempted,
                       isOnline: _isOnline,
                     ),
@@ -1291,11 +1295,13 @@ class _MapControls extends StatelessWidget {
 
 class _MapStatusChip extends StatelessWidget {
   final bool offlineReady;
+  final bool usingOfflineTiles;
   final bool attempted;
   final bool isOnline;
 
   const _MapStatusChip({
     required this.offlineReady,
+    required this.usingOfflineTiles,
     required this.attempted,
     required this.isOnline,
   });
@@ -1303,13 +1309,13 @@ class _MapStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final color = offlineReady
+    final color = usingOfflineTiles
         ? cs.tertiary
         : isOnline
             ? cs.secondary
             : cs.error;
-    final label = offlineReady
-        ? (isOnline ? 'Offline map ready' : 'Offline map')
+    final label = usingOfflineTiles
+        ? 'Offline map'
         : attempted
             ? (isOnline ? 'Online map' : 'Offline unavailable')
             : 'Preparing map';
@@ -1325,7 +1331,7 @@ class _MapStatusChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              offlineReady
+              usingOfflineTiles
                   ? Icons.offline_bolt_rounded
                   : isOnline
                       ? Icons.public_rounded

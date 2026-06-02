@@ -111,7 +111,7 @@ class _RecommendTabState extends ConsumerState<RecommendTab> {
   @override
   void initState() {
     super.initState();
-    unawaited(_configureRecommendations());
+    _configureRecommendationsAfterBuild();
   }
 
   @override
@@ -120,7 +120,7 @@ class _RecommendTabState extends ConsumerState<RecommendTab> {
     if (oldWidget.service != widget.service ||
         oldWidget.destinations.length != widget.destinations.length ||
         oldWidget.accommodations.length != widget.accommodations.length) {
-      unawaited(_configureRecommendations());
+      _configureRecommendationsAfterBuild();
     }
   }
 
@@ -225,6 +225,13 @@ class _RecommendTabState extends ConsumerState<RecommendTab> {
           destinations: widget.destinations,
           accommodations: widget.accommodations,
         );
+  }
+
+  void _configureRecommendationsAfterBuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_configureRecommendations());
+    });
   }
 
   Future<void> _checkHealth() async {

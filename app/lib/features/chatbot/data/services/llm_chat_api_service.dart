@@ -31,8 +31,10 @@ class LlmChatApiService {
         : _history.sublist(_history.length - 6);
 
     final url = _uri('/chat');
-    debugPrint('🔵 Chat POST → $url');
-    debugPrint('🔵 Chat question → $question');
+    if (kDebugMode) {
+      debugPrint('Chat POST -> $url');
+      debugPrint('Chat question length -> ${question.length}');
+    }
 
     try {
       final response = await http
@@ -48,9 +50,10 @@ class LlmChatApiService {
           )
           .timeout(timeout);
 
-      debugPrint('🔵 Chat response status → ${response.statusCode}');
-      debugPrint(
-          '🔵 Chat response body → ${response.body.substring(0, response.body.length.clamp(0, 300))}');
+      if (kDebugMode) {
+        debugPrint('Chat response status -> ${response.statusCode}');
+        debugPrint('Chat response bytes -> ${response.body.length}');
+      }
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
@@ -67,12 +70,15 @@ class LlmChatApiService {
       _history.add({'role': 'user', 'text': question});
       _history.add({'role': 'model', 'text': answer});
 
-      debugPrint(
-          '✅ Chat success → ${answer.substring(0, answer.length.clamp(0, 100))}');
+      if (kDebugMode) {
+        debugPrint('Chat success, answer length -> ${answer.length}');
+      }
       return answer;
     } catch (e, stack) {
-      debugPrint('🔴 Chat POST failed → $e');
-      debugPrint('🔴 Stack → $stack');
+      if (kDebugMode) {
+        debugPrint('Chat POST failed -> $e');
+        debugPrint('Stack -> $stack');
+      }
       rethrow;
     }
   }
@@ -83,7 +89,7 @@ class LlmChatApiService {
     final result = await BackendConfig.checkBackendHealth(
       timeout: healthTimeout,
     );
-    if (!result.reachable) {
+    if (!result.reachable && kDebugMode) {
       debugPrint('Chat backend offline -> ${result.userMessage}');
     }
     return result.reachable;

@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:rural_tourism_app/core/observability/app_telemetry.dart';
 import 'package:rural_tourism_app/core/storage/hive_storage_service.dart';
+import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/data/datasources/user_profile_local_datasource.dart';
 import 'package:rural_tourism_app/data/repositories/shared_preferences_user_profile_repository.dart';
 import 'package:rural_tourism_app/data/repositories/user_profile_repository_impl.dart';
@@ -27,16 +27,9 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // ── Step 1: Load .env FIRST before anything else ──────────────────────
-      try {
-        await dotenv.load(fileName: '.env');
-        debugPrint(
-            '✅ .env loaded — backend: ${dotenv.maybeGet('AI_BACKEND_BASE_URL')}');
-      } catch (e) {
-        debugPrint('⚠️ .env not found, using hardcoded fallback: $e');
-      }
+      // Backend and telemetry config are supplied with --dart-define.
+      unawaited(BackendConfig.startHealthMonitor());
 
-      // ── Step 2: Telemetry (now reads from dotenv correctly) ───────────────
       await HiveStorageService.instance.init();
       await AppTelemetry.instance.initialize();
 

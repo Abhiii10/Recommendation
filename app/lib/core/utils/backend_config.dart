@@ -2,8 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+
+const String backendBaseUrl = String.fromEnvironment(
+  'AI_BACKEND_BASE_URL',
+  defaultValue: 'http://10.0.2.2:8000',
+);
 
 class BackendHealthResult {
   final bool reachable;
@@ -35,22 +39,11 @@ class BackendHealthResult {
 class BackendConfig {
   const BackendConfig._();
 
-  static String get anthropicApiKey {
-    final key = dotenv.maybeGet('ANTHROPIC_API_KEY')?.trim() ?? '';
-    assert(
-      key.isNotEmpty,
-      '\n\nWARNING: ANTHROPIC_API_KEY not set.\n'
-      'Add ANTHROPIC_API_KEY=your_key to your app/.env file\n',
-    );
-    return key;
-  }
+  static final ValueNotifier<BackendHealthResult?> health =
+      ValueNotifier<BackendHealthResult?>(null);
 
-  static void debugAssertAnthropicApiKeyConfigured() {
-    assert(() {
-      anthropicApiKey;
-      return true;
-    }());
-  }
+  static Timer? _healthMonitorTimer;
+  static bool _healthCheckInFlight = false;
 
   static Uri uri(String path, {String? baseUrl}) {
     final resolvedBaseUrl = baseUrl ?? backendBaseUrl;
@@ -70,7 +63,7 @@ class BackendConfig {
     String? baseUrl,
     int attempts = 3,
     Duration retryDelay = const Duration(seconds: 2),
-    Duration timeout = const Duration(seconds: 3),
+    Duration timeout = const Duration(seconds: 5),
   }) async {
     final healthUri = uri('/health', baseUrl: baseUrl);
     Object? lastError;
@@ -79,7 +72,11 @@ class BackendConfig {
 
     for (var attempt = 1; attempt <= attempts; attempt++) {
       try {
-        debugPrint('Backend health attempt $attempt/$attempts -> $healthUri');
+        if (kDebugMode) {
+          debugPrint(
+            'Backend health attempt $attempt/$attempts -> $healthUri',
+          );
+        }
         final response = await http.get(healthUri).timeout(timeout);
         lastStatusCode = response.statusCode;
 
@@ -88,19 +85,23 @@ class BackendConfig {
           if (decoded is Map<String, dynamic>) {
             lastStatus = decoded['status']?.toString();
             if (isHealthyStatus(lastStatus)) {
-              return BackendHealthResult(
+              final result = BackendHealthResult(
                 reachable: true,
                 healthUri: healthUri,
                 attempts: attempt,
                 statusCode: response.statusCode,
                 status: lastStatus,
               );
+              health.value = result;
+              return result;
             }
           }
         }
       } catch (error) {
         lastError = error;
-        debugPrint('Backend health attempt $attempt failed -> $error');
+        if (kDebugMode) {
+          debugPrint('Backend health attempt $attempt failed -> $error');
+        }
       }
 
       if (attempt < attempts) {
@@ -108,7 +109,7 @@ class BackendConfig {
       }
     }
 
-    return BackendHealthResult(
+    final result = BackendHealthResult(
       reachable: false,
       healthUri: healthUri,
       attempts: attempts,
@@ -116,27 +117,60 @@ class BackendConfig {
       status: lastStatus,
       error: lastError,
     );
-  }
-}
-
-String get backendBaseUrl {
-  String fromEnv = '';
-
-  try {
-    fromEnv = dotenv.maybeGet('AI_BACKEND_BASE_URL')?.trim() ?? '';
-  } catch (_) {
-    fromEnv = '';
-  }
-  if (fromEnv.isNotEmpty) {
-    debugPrint('backendBaseUrl from .env -> $fromEnv');
-    return fromEnv;
+    health.value = result;
+    return result;
   }
 
-  // Hardcoded fallback; update this to your LAN IP when app/.env is missing.
-  const fallback = 'http://192.168.1.200:8000';
-  debugPrint('backendBaseUrl fallback -> $fallback');
+  static Future<void> startHealthMonitor({
+    Duration interval = const Duration(seconds: 30),
+  }) async {
+    debugPrint('Backend configured URL -> $backendBaseUrl');
+    await refreshBackendHealth(logResult: true);
+    _healthMonitorTimer?.cancel();
+    _healthMonitorTimer = Timer.periodic(
+      interval,
+      (_) => unawaited(refreshBackendHealth(logResult: true)),
+    );
+  }
 
-  if (kIsWeb) return 'http://127.0.0.1:8000';
-  if (defaultTargetPlatform == TargetPlatform.android) return fallback;
-  return 'http://127.0.0.1:8000';
+  static Future<BackendHealthResult> refreshBackendHealth({
+    bool logResult = false,
+  }) async {
+    if (_healthCheckInFlight) {
+      return health.value ??
+          BackendHealthResult(
+            reachable: false,
+            healthUri: uri('/health'),
+            attempts: 0,
+            error: 'Backend health check already running',
+          );
+    }
+
+    _healthCheckInFlight = true;
+    try {
+      final result = await checkBackendHealth(
+        attempts: 1,
+        timeout: const Duration(seconds: 5),
+      );
+      health.value = result;
+      if (logResult) {
+        final mode = result.reachable ? 'online mode' : 'offline mode';
+        debugPrint(
+          'Backend health -> $mode (${result.healthUri}, '
+          'status: ${result.statusCode ?? 'n/a'}, '
+          'error: ${result.error ?? 'none'})',
+        );
+      }
+      return result;
+    } finally {
+      _healthCheckInFlight = false;
+    }
+  }
+
+  static bool get isBackendReachable => health.value?.reachable == true;
+
+  static void stopHealthMonitor() {
+    _healthMonitorTimer?.cancel();
+    _healthMonitorTimer = null;
+  }
 }

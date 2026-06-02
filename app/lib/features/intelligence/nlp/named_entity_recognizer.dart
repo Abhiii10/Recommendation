@@ -2,13 +2,43 @@ import 'package:rural_tourism_app/features/intelligence/models/entity_mention.da
 import 'package:rural_tourism_app/features/intelligence/utils/text_utils.dart';
 
 class NamedEntityRecognizer {
+  static const _genericDestinationTokens = {
+    'area',
+    'base',
+    'bazaar',
+    'camp',
+    'community',
+    'corridor',
+    'cultural',
+    'culture',
+    'danda',
+    'forest',
+    'hill',
+    'khola',
+    'lake',
+    'monastery',
+    'river',
+    'riverside',
+    'rural',
+    'scenic',
+    'spiritual',
+    'temple',
+    'trail',
+    'trek',
+    'tourism',
+    'valley',
+    'village',
+    'view',
+    'viewpoint',
+  };
+
   final Map<String, String> destinationGazetteer;
   final Map<String, String> accommodationGazetteer;
 
-  const NamedEntityRecognizer({
-    this.destinationGazetteer = const {},
+  NamedEntityRecognizer({
+    Map<String, String> destinationGazetteer = const {},
     this.accommodationGazetteer = const {},
-  });
+  }) : destinationGazetteer = _expandDestinationGazetteer(destinationGazetteer);
 
   List<EntityMention> recognize(String text) {
     final entities = <EntityMention>[];
@@ -64,6 +94,34 @@ class NamedEntityRecognizer {
         ),
       );
     }
+  }
+
+  static Map<String, String> _expandDestinationGazetteer(
+    Map<String, String> gazetteer,
+  ) {
+    final expanded = <String, String>{...gazetteer};
+    final tokenOwners = <String, Set<String>>{};
+
+    for (final entry in gazetteer.entries) {
+      final tokens = TextUtils.simpleTokens(entry.key)
+          .where((token) => !_genericDestinationTokens.contains(token))
+          .toList();
+      for (final token in tokens) {
+        if (token.length < 3) continue;
+        tokenOwners.putIfAbsent(token, () => <String>{}).add(entry.value);
+      }
+      if (tokens.length >= 2) {
+        expanded.putIfAbsent(tokens.take(2).join(' '), () => entry.value);
+      }
+    }
+
+    for (final entry in tokenOwners.entries) {
+      if (entry.value.length == 1) {
+        expanded.putIfAbsent(entry.key, () => entry.value.first);
+      }
+    }
+
+    return expanded;
   }
 
   void _matchPatterns(String text, List<EntityMention> entities) {

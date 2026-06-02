@@ -17,6 +17,7 @@ enum TranslationDirection {
 
 enum TranslationSource {
   phrasebook,
+  template,
   online,
   fallback,
 }
@@ -104,6 +105,241 @@ class TranslationService {
   static const _myMemoryDailyLimit = 5000;
   static const _myMemoryWarningLimit = 4500;
   static const _myMemoryCounterPrefix = 'mymemory_words_';
+  static const _genericPlaceSuffixes = {
+    'base',
+    'camp',
+    'high',
+    'village',
+    'lake',
+    'temple',
+    'dham',
+    'hill',
+    'view',
+    'viewpoint',
+    'homestay',
+    'reserve',
+    'trail',
+    'trek',
+    'area',
+  };
+  static const _genericSingleWordAliases = {
+    'lake',
+    'temple',
+    'village',
+    'hill',
+    'camp',
+    'homestay',
+    'reserve',
+    'bridge',
+    'bridges',
+    'trek',
+    'trail',
+  };
+  static const _nepaliNouns = {
+    'apple': 'स्याउ',
+    'banana': 'केरा',
+    'orange': 'सुन्तला',
+    'room': 'कोठा',
+    'bed': 'ओछ्यान',
+    'blanket': 'कम्बल',
+    'hotel': 'होटल',
+    'homestay': 'होमस्टे',
+    'guesthouse': 'गेस्टहाउस',
+    'water': 'पानी',
+    'food': 'खाना',
+    'meal': 'खाना',
+    'rice': 'भात',
+    'dal': 'दाल',
+    'tea': 'चिया',
+    'coffee': 'कफी',
+    'milk': 'दूध',
+    'vegetarian food': 'शाकाहारी खाना',
+    'medicine': 'औषधि',
+    'doctor': 'डाक्टर',
+    'hospital': 'अस्पताल',
+    'ambulance': 'एम्बुलेन्स',
+    'help': 'मद्दत',
+    'toilet': 'शौचालय',
+    'bathroom': 'शौचालय',
+    'bus': 'बस',
+    'jeep': 'जिप',
+    'taxi': 'ट्याक्सी',
+    'ticket': 'टिकट',
+    'guide': 'गाइड',
+    'porter': 'भरिया',
+    'map': 'नक्सा',
+    'wifi': 'वाइफाइ',
+    'charger': 'चार्जर',
+    'phone': 'फोन',
+    'price': 'मूल्य',
+    'discount': 'छुट',
+    'fever': 'ज्वरो',
+    'headache': 'टाउको दुखाइ',
+    'stomach pain': 'पेट दुखाइ',
+    'pain': 'दुखाइ',
+    'bus stop': 'बस स्टप',
+    'trail': 'बाटो',
+    'trekking permit': 'ट्रेकिङ अनुमति',
+    'permit': 'अनुमति',
+    'tims': 'टिम्स',
+    'english': 'अंग्रेजी',
+  };
+  static const _englishNouns = {
+    'स्याउ': 'apple',
+    'केरा': 'banana',
+    'सुन्तला': 'orange',
+    'कोठा': 'a room',
+    'ओछ्यान': 'a bed',
+    'कम्बल': 'a blanket',
+    'होटल': 'a hotel',
+    'होमस्टे': 'a homestay',
+    'गेस्टहाउस': 'a guesthouse',
+    'पानी': 'water',
+    'खाना': 'food',
+    'भात': 'rice',
+    'दाल': 'dal',
+    'चिया': 'tea',
+    'कफी': 'coffee',
+    'दूध': 'milk',
+    'शाकाहारी खाना': 'vegetarian food',
+    'औषधि': 'medicine',
+    'डाक्टर': 'a doctor',
+    'अस्पताल': 'a hospital',
+    'एम्बुलेन्स': 'an ambulance',
+    'मद्दत': 'help',
+    'शौचालय': 'the toilet',
+    'बस': 'a bus',
+    'जिप': 'a jeep',
+    'ट्याक्सी': 'a taxi',
+    'टिकट': 'a ticket',
+    'गाइड': 'a guide',
+    'भरिया': 'a porter',
+    'नक्सा': 'a map',
+    'ज्वरो': 'fever',
+    'टाउको दुखाइ': 'a headache',
+    'पेट दुखाइ': 'stomach pain',
+    'दुखाइ': 'pain',
+    'बस स्टप': 'the bus stop',
+    'बाटो': 'the trail',
+    'ट्रेकिङ अनुमति': 'a trekking permit',
+    'अनुमति': 'a permit',
+    'टिम्स': 'TIMS',
+    'अंग्रेजी': 'English',
+  };
+  static const _romanEnglishNouns = {
+    'syau': 'apple',
+    'kera': 'banana',
+    'suntala': 'orange',
+    'kotha': 'a room',
+    'hotel': 'a hotel',
+    'homestay': 'a homestay',
+    'paani': 'water',
+    'pani': 'water',
+    'khana': 'food',
+    'bhat': 'rice',
+    'dal': 'dal',
+    'daal': 'dal',
+    'chiya': 'tea',
+    'chai': 'tea',
+    'kafi': 'coffee',
+    'ausadhi': 'medicine',
+    'doctor': 'a doctor',
+    'aspatal': 'a hospital',
+    'madat': 'help',
+    'maddat': 'help',
+    'shauchalaya': 'the toilet',
+    'toilet': 'the toilet',
+    'bus': 'a bus',
+    'jeep': 'a jeep',
+    'taxi': 'a taxi',
+    'ticket': 'a ticket',
+    'guide': 'a guide',
+    'porter': 'a porter',
+    'jhwaro': 'fever',
+    'jaro': 'fever',
+    'tauko dukheko': 'a headache',
+    'pet dukheko': 'stomach pain',
+    'bus stop': 'the bus stop',
+    'permit': 'a permit',
+    'tims': 'TIMS',
+  };
+  static const _properNounTransliterations = {
+    'ram': 'राम',
+    'sita': 'सीता',
+    'gita': 'गीता',
+    'geeta': 'गीता',
+    'hari': 'हरि',
+    'shyam': 'श्याम',
+    'maya': 'माया',
+    'anjali': 'अञ्जली',
+    'suman': 'सुमन',
+    'sujan': 'सुजन',
+    'bikash': 'विकास',
+    'bikas': 'विकास',
+    'ramesh': 'रमेश',
+    'suresh': 'सुरेश',
+    'paila': 'पाइला',
+    'nepal': 'नेपाल',
+    'nepali': 'नेपाली',
+    'pokhara': 'पोखरा',
+    'kathmandu': 'काठमाडौं',
+    'gandaki': 'गण्डकी',
+    'kaski': 'कास्की',
+    'lamjung': 'लमजुङ',
+    'tanahun': 'तनहुँ',
+    'mustang': 'मुस्ताङ',
+    'gorkha': 'गोरखा',
+    'baglung': 'बागलुङ',
+    'parbat': 'पर्वत',
+    'myagdi': 'म्याग्दी',
+    'nawalpur': 'नवलपुर',
+    'syangja': 'स्याङ्जा',
+    'ghandruk': 'घान्द्रुक',
+    'dhampus': 'धम्पुस',
+    'sikles': 'सिक्लेस',
+    'lwang': 'ल्वाङ',
+    'astam': 'अस्ताम',
+    'begnas': 'बेगनास',
+    'rupa': 'रुपा',
+    'lake': 'ताल',
+    'jomsom': 'जोमसोम',
+    'marpha': 'मार्फा',
+    'kagbeni': 'कागबेनी',
+    'muktinath': 'मुक्तिनाथ',
+    'manang': 'मनाङ',
+    'pisang': 'पिसाङ',
+    'braga': 'ब्रागा',
+    'ghalegaun': 'घलेगाउँ',
+    'bhujung': 'भुजुङ',
+    'rainaskot': 'राइनासकोट',
+    'bandipur': 'बन्दीपुर',
+    'sirubari': 'सिरुबारी',
+    'lo': 'लो',
+    'manthang': 'मन्थाङ',
+    'tilicho': 'तिलिचो',
+    'barpak': 'बारपाक',
+    'laprak': 'लाप्राक',
+    'mardi': 'मार्दी',
+    'himal': 'हिमाल',
+    'annapurna': 'अन्नपूर्ण',
+    'machhapuchhre': 'माछापुच्छ्रे',
+    'dhorpatan': 'ढोरपाटन',
+    'panchase': 'पञ्चासे',
+    'kushma': 'कुश्मा',
+    'kalika': 'कालिका',
+    'devghat': 'देवघाट',
+    'dham': 'धाम',
+    'amaltari': 'अमलटारी',
+    'chitwan': 'चितवन',
+    'temple': 'मन्दिर',
+    'village': 'गाउँ',
+    'hill': 'डाँडा',
+    'camp': 'क्याम्प',
+    'high': 'हाई',
+    'base': 'बेस',
+    'reserve': 'आरक्ष',
+    'homestay': 'होमस्टे',
+  };
 
   final http.Client _client;
   final RomanNepaliDetector _romanDetector;
@@ -112,6 +348,7 @@ class TranslationService {
   late final LanguageDetector _languageDetector;
   bool _initialized = false;
   List<TourismPhrasebookEntry> _phrasebook = [];
+  List<_DestinationTerm> _destinationTerms = [];
 
   TranslationService({
     http.Client? client,
@@ -131,13 +368,15 @@ class TranslationService {
     await Future.wait([
       _romanDetector.load(),
       _loadPhrasebook(),
+      _loadDestinationTerms(),
     ]);
     _initialized = true;
   }
 
   // Translation priority chain:
-  // exact phrasebook -> fuzzy phrasebook -> Roman Nepali conversion
-  // -> MyMemory (>0.6) -> backend Claude fallback -> graceful failure
+  // exact phrasebook -> fuzzy phrasebook -> offline slot templates
+  // -> Roman Nepali conversion -> MyMemory (>0.6)
+  // -> backend Claude fallback -> graceful failure
   Future<TranslationResult> translateText(
     String text,
     TranslationDirection direction,
@@ -160,6 +399,9 @@ class TranslationService {
 
     final fuzzy = _matchPhrasebook(trimmed, pair);
     if (fuzzy != null && fuzzy.confidence > 0.80) return fuzzy;
+
+    final template = _tryOfflineTemplate(trimmed, pair, detected.isRomanNepali);
+    if (template != null) return template;
 
     if (detected.isRomanNepali) {
       final devanagari = _romanConverter.convert(trimmed);
@@ -207,14 +449,8 @@ class TranslationService {
       case TranslationDirection.autoDetect:
         return _LanguagePair(detectedSource, detectedTarget);
       case TranslationDirection.englishToNepali:
-        if (detectedSource == 'ne-NP') {
-          return const _LanguagePair('ne-NP', 'en-US');
-        }
         return const _LanguagePair('en-US', 'ne-NP');
       case TranslationDirection.nepaliToEnglish:
-        if (detectedSource == 'en-US') {
-          return const _LanguagePair('en-US', 'ne-NP');
-        }
         return const _LanguagePair('ne-NP', 'en-US');
     }
   }
@@ -276,6 +512,647 @@ class TranslationService {
       best = math.max(best, _similarity(inputNorm, candidateNorm));
     }
     return best;
+  }
+
+  TranslationResult? _tryOfflineTemplate(
+    String input,
+    _LanguagePair pair,
+    bool romanDetected,
+  ) {
+    final directPlace = _findDestinationTerm(input);
+    if (directPlace != null) {
+      return TranslationResult(
+        translatedText: pair.targetLang == 'ne-NP'
+            ? directPlace.nepaliName
+            : directPlace.englishName,
+        detectedSourceLang: pair.sourceLang,
+        confidence: 0.95,
+        source: TranslationSource.template,
+        isOffline: true,
+        romanized: pair.targetLang == 'ne-NP' ? directPlace.englishName : null,
+        matchedCategory: 'destination',
+      );
+    }
+
+    if (pair.targetLang == 'ne-NP') {
+      return _tryEnglishToNepaliTemplate(input, pair, romanDetected);
+    }
+    return _tryNepaliToEnglishTemplate(input, pair, romanDetected);
+  }
+
+  TranslationResult? _tryEnglishToNepaliTemplate(
+    String input,
+    _LanguagePair pair,
+    bool romanDetected,
+  ) {
+    final staticTemplate = _englishStaticTemplate(input, pair, romanDetected);
+    if (staticTemplate != null) return staticTemplate;
+
+    final name = _firstCapture(
+      input,
+      RegExp(
+        r"^(?:my name is|my name's|i am called|call me)\s+(.+)$",
+        caseSensitive: false,
+      ),
+    );
+    if (name != null) {
+      final translatedName = _toNepaliProperNoun(name);
+      return _templateResult(
+        'मेरो नाम $translatedName हो।',
+        pair,
+        romanized: 'Mero naam ${_cleanSlot(name)} ho.',
+        romanDetected: romanDetected,
+        category: 'identity',
+      );
+    }
+
+    final placeQuestion = _firstCapture(
+      input,
+      RegExp(
+        r"^(?:where is|where's)\s+(?:the\s+)?(.+?)\??$",
+        caseSensitive: false,
+      ),
+    );
+    if (placeQuestion != null) {
+      final place = _toNepaliNounOrPlace(placeQuestion);
+      return _templateResult(
+        '$place कहाँ छ?',
+        pair,
+        romanized: '${_cleanSlot(placeQuestion)} kaha cha?',
+        romanDetected: romanDetected,
+        category: 'directions',
+      );
+    }
+
+    final goToPlace = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:i want to go to|i need to go to|i would like to go to|take me to|please take me to|can you take me to)\s+(.+)$',
+        caseSensitive: false,
+      ),
+    );
+    if (goToPlace != null) {
+      final place = _toNepaliProperNoun(goToPlace);
+      return _templateResult(
+        'म $place जान चाहन्छु।',
+        pair,
+        romanized: 'Ma ${_cleanSlot(goToPlace)} jana chahanchu.',
+        romanDetected: romanDetected,
+        category: 'transport',
+      );
+    }
+
+    final goingToPlace = _firstCapture(
+      input,
+      RegExp(
+        r"^(?:i am going to|i'm going to)\s+(.+)$",
+        caseSensitive: false,
+      ),
+    );
+    if (goingToPlace != null) {
+      final place = _toNepaliProperNoun(goingToPlace);
+      return _templateResult(
+        'म $place जाँदै छु।',
+        pair,
+        romanized: 'Ma ${_cleanSlot(goingToPlace)} jandai chu.',
+        romanDetected: romanDetected,
+        category: 'transport',
+      );
+    }
+
+    final needThing = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:i need|i want|i would like)\s+(?:a\s+|an\s+|the\s+)?(.+)$',
+        caseSensitive: false,
+      ),
+    );
+    if (needThing != null) {
+      final thing = _toNepaliNounOrPlace(needThing);
+      return _templateResult(
+        'मलाई $thing चाहिन्छ।',
+        pair,
+        romanized: 'Malai ${_cleanSlot(needThing)} chahincha.',
+        romanDetected: romanDetected,
+        category: 'tourism',
+      );
+    }
+
+    final hasThing = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:do you have|have you got)\s+(?:a\s+|an\s+|the\s+)?(.+?)\??$',
+        caseSensitive: false,
+      ),
+    );
+    if (hasThing != null) {
+      final thing = _toNepaliNounOrPlace(hasThing);
+      return _templateResult(
+        'के तपाईंसँग $thing छ?',
+        pair,
+        romanized: 'Ke tapaisanga ${_cleanSlot(hasThing)} cha?',
+        romanDetected: romanDetected,
+        category: 'tourism',
+      );
+    }
+
+    final priceThing = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:how much is|what is the price of)\s+(?:a\s+|an\s+|the\s+)?(.+?)\??$',
+        caseSensitive: false,
+      ),
+    );
+    if (priceThing != null) {
+      final thing = _toNepaliNounOrPlace(priceThing);
+      return _templateResult(
+        '$thing कति पर्छ?',
+        pair,
+        romanized: '${_cleanSlot(priceThing)} kati parcha?',
+        romanDetected: romanDetected,
+        category: 'shopping',
+      );
+    }
+
+    final findThing = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:where can i find|where do i find|where is the nearest)\s+(?:a\s+|an\s+|the\s+)?(.+?)\??$',
+        caseSensitive: false,
+      ),
+    );
+    if (findThing != null) {
+      final thing = _toNepaliNounOrPlace(findThing);
+      return _templateResult(
+        'नजिकै $thing कहाँ पाइन्छ?',
+        pair,
+        romanized: 'Najikai ${_cleanSlot(findThing)} kaha paincha?',
+        romanDetected: romanDetected,
+        category: 'directions',
+      );
+    }
+
+    final farPlace = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:how far is|how far to)\s+(?:the\s+)?(.+?)\??$',
+        caseSensitive: false,
+      ),
+    );
+    if (farPlace != null) {
+      final place = _toNepaliProperNoun(farPlace);
+      return _templateResult(
+        '$place कति टाढा छ?',
+        pair,
+        romanized: '${_cleanSlot(farPlace)} kati tadha cha?',
+        romanDetected: romanDetected,
+        category: 'directions',
+      );
+    }
+
+    final timePlace = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:how long does it take to|how long to)\s+(?:go to\s+)?(.+?)\??$',
+        caseSensitive: false,
+      ),
+    );
+    if (timePlace != null) {
+      final place = _toNepaliProperNoun(timePlace);
+      return _templateResult(
+        '$place पुग्न कति समय लाग्छ?',
+        pair,
+        romanized: '${_cleanSlot(timePlace)} pugna kati samaya lagcha?',
+        romanDetected: romanDetected,
+        category: 'transport',
+      );
+    }
+
+    final giveThing = _firstCapture(
+      input,
+      RegExp(
+        r'^(?:please give me|give me|can i get|may i get)\s+(?:a\s+|an\s+|the\s+)?(.+)$',
+        caseSensitive: false,
+      ),
+    );
+    if (giveThing != null) {
+      final thing = _toNepaliNounOrPlace(giveThing);
+      return _templateResult(
+        'कृपया मलाई $thing दिनुहोस्।',
+        pair,
+        romanized: 'Kripaya malai ${_cleanSlot(giveThing)} dinuhos.',
+        romanDetected: romanDetected,
+        category: 'tourism',
+      );
+    }
+
+    return null;
+  }
+
+  TranslationResult? _englishStaticTemplate(
+    String input,
+    _LanguagePair pair,
+    bool romanDetected,
+  ) {
+    final normalized = _normalize(input);
+    final templates = <String, ({String ne, String roman, String category})>{
+      'i am hungry': (
+        ne: 'मलाई भोक लाग्यो।',
+        roman: 'Malai bhok lagyo.',
+        category: 'food',
+      ),
+      'i m hungry': (
+        ne: 'मलाई भोक लाग्यो।',
+        roman: 'Malai bhok lagyo.',
+        category: 'food',
+      ),
+      'i am thirsty': (
+        ne: 'मलाई तिर्खा लाग्यो।',
+        roman: 'Malai tirkha lagyo.',
+        category: 'food',
+      ),
+      'i m thirsty': (
+        ne: 'मलाई तिर्खा लाग्यो।',
+        roman: 'Malai tirkha lagyo.',
+        category: 'food',
+      ),
+      'i am sick': (
+        ne: 'म बिरामी छु।',
+        roman: 'Ma birami chu.',
+        category: 'emergency',
+      ),
+      'i m sick': (
+        ne: 'म बिरामी छु।',
+        roman: 'Ma birami chu.',
+        category: 'emergency',
+      ),
+      'i am lost': (
+        ne: 'म बाटो हराएँ।',
+        roman: 'Ma bato haraye.',
+        category: 'directions',
+      ),
+      'i am tired': (
+        ne: 'म थाकेको छु।',
+        roman: 'Ma thakeko chu.',
+        category: 'tourism',
+      ),
+      'i have fever': (
+        ne: 'मलाई ज्वरो आएको छ।',
+        roman: 'Malai jhwaro aayeko cha.',
+        category: 'emergency',
+      ),
+      'i have a fever': (
+        ne: 'मलाई ज्वरो आएको छ।',
+        roman: 'Malai jhwaro aayeko cha.',
+        category: 'emergency',
+      ),
+      'i have headache': (
+        ne: 'मेरो टाउको दुखेको छ।',
+        roman: 'Mero tauko dukheko cha.',
+        category: 'emergency',
+      ),
+      'i have a headache': (
+        ne: 'मेरो टाउको दुखेको छ।',
+        roman: 'Mero tauko dukheko cha.',
+        category: 'emergency',
+      ),
+      'my stomach hurts': (
+        ne: 'मेरो पेट दुखेको छ।',
+        roman: 'Mero pet dukheko cha.',
+        category: 'emergency',
+      ),
+      'call a doctor': (
+        ne: 'डाक्टरलाई बोलाउनुहोस्।',
+        roman: 'Doctorlai bolaunuhos.',
+        category: 'emergency',
+      ),
+      'call the police': (
+        ne: 'प्रहरीलाई बोलाउनुहोस्।',
+        roman: 'Praharilai bolaunuhos.',
+        category: 'emergency',
+      ),
+      'call an ambulance': (
+        ne: 'एम्बुलेन्स बोलाउनुहोस्।',
+        roman: 'Ambulance bolaunuhos.',
+        category: 'emergency',
+      ),
+      'i am vegetarian': (
+        ne: 'म शाकाहारी हुँ।',
+        roman: 'Ma shakahari hu.',
+        category: 'food',
+      ),
+      'i need vegetarian food': (
+        ne: 'मलाई शाकाहारी खाना चाहिन्छ।',
+        roman: 'Malai shakahari khana chahincha.',
+        category: 'food',
+      ),
+      'do you speak english': (
+        ne: 'के तपाईं अंग्रेजी बोल्नुहुन्छ?',
+        roman: 'Ke tapai angreji bolnuhuncha?',
+        category: 'communication',
+      ),
+      'please speak slowly': (
+        ne: 'कृपया बिस्तारै बोल्नुहोस्।',
+        roman: 'Kripaya bistaarai bolnuhos.',
+        category: 'communication',
+      ),
+      'i do not understand': (
+        ne: 'मैले बुझिनँ।',
+        roman: 'Maile bujhina.',
+        category: 'communication',
+      ),
+      'i dont understand': (
+        ne: 'मैले बुझिनँ।',
+        roman: 'Maile bujhina.',
+        category: 'communication',
+      ),
+      'i don t understand': (
+        ne: 'मैले बुझिनँ।',
+        roman: 'Maile bujhina.',
+        category: 'communication',
+      ),
+      'can you help me': (
+        ne: 'के तपाईं मलाई मद्दत गर्न सक्नुहुन्छ?',
+        roman: 'Ke tapai malai maddat garna saknuhuncha?',
+        category: 'emergency',
+      ),
+    };
+
+    final template = templates[normalized];
+    if (template == null) return null;
+    return _templateResult(
+      template.ne,
+      pair,
+      romanized: template.roman,
+      romanDetected: romanDetected,
+      category: template.category,
+    );
+  }
+
+  TranslationResult? _tryNepaliToEnglishTemplate(
+    String input,
+    _LanguagePair pair,
+    bool romanDetected,
+  ) {
+    final staticTemplate = _nepaliStaticTemplate(input, pair, romanDetected);
+    if (staticTemplate != null) return staticTemplate;
+
+    final devanagariName = _firstCapture(
+      input,
+      RegExp(r'^मेरो\s+नाम\s+(.+?)\s+हो[।.!?]*$'),
+    );
+    if (devanagariName != null) {
+      return _templateResult(
+        'My name is ${_toEnglishPhrase(devanagariName)}.',
+        pair,
+        romanDetected: romanDetected,
+        category: 'identity',
+      );
+    }
+
+    final devanagariNeed = _firstCapture(
+      input,
+      RegExp(r'^मलाई\s+(.+?)\s+चाहिन्छ[।.!?]*$'),
+    );
+    if (devanagariNeed != null) {
+      return _templateResult(
+        'I need ${_toEnglishPhrase(devanagariNeed)}.',
+        pair,
+        romanDetected: romanDetected,
+        category: 'tourism',
+      );
+    }
+
+    final devanagariWhere = _firstCapture(
+      input,
+      RegExp(r'^(.+?)\s+कहाँ\s+छ[।.!?]*$'),
+    );
+    if (devanagariWhere != null) {
+      return _templateResult(
+        'Where is ${_toEnglishPhrase(devanagariWhere)}?',
+        pair,
+        romanDetected: romanDetected,
+        category: 'directions',
+      );
+    }
+
+    final roman = _normalize(input);
+    final romanName = _firstCapture(
+      roman,
+      RegExp(r'^mero\s+(?:naam|nam|name)\s+(.+?)\s+ho$'),
+    );
+    if (romanName != null) {
+      return _templateResult(
+        'My name is ${_toTitleCase(romanName)}.',
+        pair,
+        romanDetected: romanDetected,
+        category: 'identity',
+      );
+    }
+
+    final romanNeed = _firstCapture(
+      roman,
+      RegExp(
+        r'^malai\s+(.+?)\s+(?:chahincha|chahinchha|chaincha|chahiye|chaiyo|chahiyo)$',
+      ),
+    );
+    if (romanNeed != null) {
+      return _templateResult(
+        'I need ${_toEnglishPhrase(romanNeed)}.',
+        pair,
+        romanDetected: romanDetected,
+        category: 'tourism',
+      );
+    }
+
+    final romanWhere = _firstCapture(
+      roman,
+      RegExp(r'^(.+?)\s+(?:kaha|kata)\s+(?:cha|chha|ho)$'),
+    );
+    if (romanWhere != null) {
+      return _templateResult(
+        'Where is ${_toEnglishPhrase(romanWhere)}?',
+        pair,
+        romanDetected: romanDetected,
+        category: 'directions',
+      );
+    }
+
+    final romanGo = _firstCapture(
+      roman,
+      RegExp(r'^ma\s+(.+?)\s+jana\s+chahanchu$'),
+    );
+    if (romanGo != null) {
+      return _templateResult(
+        'I want to go to ${_toEnglishPhrase(romanGo)}.',
+        pair,
+        romanDetected: romanDetected,
+        category: 'transport',
+      );
+    }
+
+    return null;
+  }
+
+  TranslationResult? _nepaliStaticTemplate(
+    String input,
+    _LanguagePair pair,
+    bool romanDetected,
+  ) {
+    final normalized = _normalize(input);
+    final templates = <String, ({String en, String category})>{
+      'मलाई भोक लाग्यो': (en: 'I am hungry.', category: 'food'),
+      'malai bhok lagyo': (en: 'I am hungry.', category: 'food'),
+      'मलाई तिर्खा लाग्यो': (en: 'I am thirsty.', category: 'food'),
+      'malai tirkha lagyo': (en: 'I am thirsty.', category: 'food'),
+      'म बिरामी छु': (en: 'I am sick.', category: 'emergency'),
+      'ma birami chu': (en: 'I am sick.', category: 'emergency'),
+      'म बाटो हराएँ': (en: 'I am lost.', category: 'directions'),
+      'ma bato haraye': (en: 'I am lost.', category: 'directions'),
+      'मलाई ज्वरो आएको छ': (en: 'I have a fever.', category: 'emergency'),
+      'malai jhwaro aayeko cha': (
+        en: 'I have a fever.',
+        category: 'emergency',
+      ),
+      'मेरो टाउको दुखेको छ': (
+        en: 'I have a headache.',
+        category: 'emergency',
+      ),
+      'mero tauko dukheko cha': (
+        en: 'I have a headache.',
+        category: 'emergency',
+      ),
+      'मेरो पेट दुखेको छ': (
+        en: 'My stomach hurts.',
+        category: 'emergency',
+      ),
+      'mero pet dukheko cha': (
+        en: 'My stomach hurts.',
+        category: 'emergency',
+      ),
+      'मैले बुझिनँ': (
+        en: 'I do not understand.',
+        category: 'communication',
+      ),
+      'maile bujhina': (
+        en: 'I do not understand.',
+        category: 'communication',
+      ),
+      'कृपया बिस्तारै बोल्नुहोस्': (
+        en: 'Please speak slowly.',
+        category: 'communication',
+      ),
+      'kripaya bistaarai bolnuhos': (
+        en: 'Please speak slowly.',
+        category: 'communication',
+      ),
+      'म शाकाहारी हुँ': (en: 'I am vegetarian.', category: 'food'),
+      'ma shakahari hu': (en: 'I am vegetarian.', category: 'food'),
+    };
+
+    final template = templates[normalized];
+    if (template == null) return null;
+    return _templateResult(
+      template.en,
+      pair,
+      romanDetected: romanDetected,
+      category: template.category,
+    );
+  }
+
+  TranslationResult _templateResult(
+    String translatedText,
+    _LanguagePair pair, {
+    String? romanized,
+    required bool romanDetected,
+    required String category,
+  }) {
+    return TranslationResult(
+      translatedText: translatedText,
+      detectedSourceLang: pair.sourceLang,
+      confidence: _displayConfidence(0.88, romanDetected: romanDetected),
+      source: TranslationSource.template,
+      isOffline: true,
+      romanized: romanized,
+      matchedCategory: category,
+    );
+  }
+
+  String? _firstCapture(String input, RegExp pattern) {
+    final match = pattern.firstMatch(input.trim());
+    if (match == null || match.groupCount < 1) return null;
+    return _cleanSlot(match.group(1) ?? '');
+  }
+
+  String _cleanSlot(String value) {
+    return value
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[।.!?]+$'), '')
+        .trim();
+  }
+
+  String _toNepaliNounOrPlace(String value) {
+    final place = _findDestinationTerm(value);
+    if (place != null) return place.nepaliName;
+
+    final cleaned = _cleanSlot(value);
+    final normalized = _normalize(cleaned);
+    final whole = _nepaliNouns[normalized];
+    if (whole != null) return whole;
+
+    final converted = cleaned.split(RegExp(r'\s+')).map((token) {
+      final key = _normalize(token);
+      return _nepaliNouns[key] ??
+          _properNounTransliterations[key] ??
+          RomanNepaliConverter.wordMap[key] ??
+          token;
+    }).join(' ');
+    return converted.trim().isEmpty ? cleaned : converted;
+  }
+
+  String _toNepaliProperNoun(String value) {
+    final place = _findDestinationTerm(value);
+    if (place != null) return place.nepaliName;
+
+    final cleaned = _cleanSlot(value);
+    final normalized = _normalize(cleaned);
+    final direct = _properNounTransliterations[normalized];
+    if (direct != null) return direct;
+
+    final converted = cleaned.split(RegExp(r'\s+')).map((token) {
+      final key = _normalize(token);
+      return _properNounTransliterations[key] ??
+          RomanNepaliConverter.wordMap[key] ??
+          token;
+    }).join(' ');
+    return converted.trim().isEmpty ? cleaned : converted;
+  }
+
+  String _toEnglishPhrase(String value) {
+    final cleaned = _cleanSlot(value);
+    final place = _findDestinationTerm(cleaned);
+    if (place != null) return place.englishName;
+
+    final normalized = _normalize(cleaned);
+    final roman = _romanEnglishNouns[normalized];
+    if (roman != null) return roman;
+
+    final direct = _englishNouns[cleaned] ?? _englishNouns[normalized];
+    if (direct != null) return direct;
+
+    return cleaned;
+  }
+
+  String _toTitleCase(String value) {
+    return value
+        .split(RegExp(r'\s+'))
+        .where((token) => token.isNotEmpty)
+        .map(
+          (token) => token.length == 1
+              ? token.toUpperCase()
+              : token[0].toUpperCase() + token.substring(1),
+        )
+        .join(' ');
   }
 
   double _similarity(String a, String b) {
@@ -521,6 +1398,115 @@ class TranslationService {
       );
     } catch (_) {}
   }
+
+  Future<void> _loadDestinationTerms() async {
+    try {
+      final raw = await rootBundle.loadString('assets/data/destinations.json');
+      final decoded = jsonDecode(raw);
+      final items = decoded is List
+          ? decoded
+          : decoded is Map
+              ? decoded['destinations'] as List? ?? const []
+              : const [];
+
+      final terms = <_DestinationTerm>[];
+      for (final item in items.whereType<Map>()) {
+        final name = item['name']?.toString().trim() ?? '';
+        if (name.isEmpty) continue;
+        terms.add(_buildDestinationTerm(name));
+      }
+
+      _destinationTerms = terms;
+    } catch (_) {
+      _destinationTerms = const [
+        _DestinationTerm(
+          englishName: 'Pokhara',
+          nepaliName: 'पोखरा',
+          aliases: {'pokhara'},
+        ),
+        _DestinationTerm(
+          englishName: 'Ghandruk',
+          nepaliName: 'घान्द्रुक',
+          aliases: {'ghandruk'},
+        ),
+        _DestinationTerm(
+          englishName: 'Mardi Himal',
+          nepaliName: 'मार्दी हिमाल',
+          aliases: {'mardi himal', 'mardi'},
+        ),
+      ];
+    }
+  }
+
+  _DestinationTerm _buildDestinationTerm(String name) {
+    final aliases = _destinationAliases(name);
+    final nepaliName = _transliterateDestinationName(name);
+    final normalizedNepali = _normalize(nepaliName);
+    if (normalizedNepali.isNotEmpty) aliases.add(normalizedNepali);
+    return _DestinationTerm(
+      englishName: name,
+      nepaliName: nepaliName,
+      aliases: aliases,
+    );
+  }
+
+  Set<String> _destinationAliases(String name) {
+    final normalized = _normalize(name);
+    final aliases = <String>{if (normalized.isNotEmpty) normalized};
+    final tokens = normalized
+        .split(' ')
+        .where((token) => token.isNotEmpty)
+        .toList(growable: false);
+
+    if (tokens.length > 1) {
+      var end = tokens.length;
+      while (end > 1 && _genericPlaceSuffixes.contains(tokens[end - 1])) {
+        end--;
+      }
+      if (end > 0 && end < tokens.length) {
+        aliases.add(tokens.take(end).join(' '));
+      }
+
+      aliases.add(tokens.take(2).join(' '));
+
+      final first = tokens.first;
+      if (first.length >= 5 && !_genericSingleWordAliases.contains(first)) {
+        aliases.add(first);
+      }
+    }
+
+    return aliases.where((alias) => alias.length >= 3).toSet();
+  }
+
+  String _transliterateDestinationName(String name) {
+    return name.replaceAll('&', 'and').split(RegExp(r'\s+')).map((token) {
+      final clean = token.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+      final key = clean.toLowerCase();
+      if (key.isEmpty) return token;
+      return _properNounTransliterations[key] ?? token;
+    }).join(' ');
+  }
+
+  _DestinationTerm? _findDestinationTerm(String value) {
+    final normalized = _normalize(value);
+    if (normalized.isEmpty) return null;
+    for (final term in _destinationTerms) {
+      if (term.aliases.contains(normalized)) return term;
+    }
+    return null;
+  }
+}
+
+class _DestinationTerm {
+  final String englishName;
+  final String nepaliName;
+  final Set<String> aliases;
+
+  const _DestinationTerm({
+    required this.englishName,
+    required this.nepaliName,
+    required this.aliases,
+  });
 }
 
 class _LanguagePair {

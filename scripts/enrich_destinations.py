@@ -10,7 +10,10 @@ from typing import Any
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_FILE = ROOT_DIR / "data" / "destinations.json"
 BACKUP_FILE = ROOT_DIR / "data" / "destinations_backup.json"
-APP_DATA_FILE = ROOT_DIR / "app" / "assets" / "data" / "destinations.json"
+APP_DATA_FILES = [
+    ROOT_DIR / "app" / "assets" / "data" / "destinations.json",
+    ROOT_DIR / "app" / "assets" / "data" / "backend_destinations.json",
+]
 
 ACCOMMODATION_TYPES = {
     "homestay",
@@ -184,16 +187,20 @@ def main() -> None:
         json.dumps(enriched, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    APP_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
-    APP_DATA_FILE.write_text(
-        json.dumps(enriched, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    for app_data_file in APP_DATA_FILES:
+        app_data_file.parent.mkdir(parents=True, exist_ok=True)
+        app_data_file.write_text(
+            json.dumps(enriched, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
     new_texts = [item["sbert_text"] for item in enriched]
     print(f"Enriched destinations: {len(enriched)}")
     print(f"Backup: {BACKUP_FILE.relative_to(ROOT_DIR)}")
-    print(f"Updated app asset: {APP_DATA_FILE.relative_to(ROOT_DIR)}")
+    print(
+        "Updated app assets: "
+        + ", ".join(str(path.relative_to(ROOT_DIR)) for path in APP_DATA_FILES)
+    )
     print(
         "Average SBERT text length before/after: "
         f"{_avg_len(original_texts):.1f} -> {_avg_len(new_texts):.1f} chars"
@@ -518,10 +525,10 @@ def _build_sbert_text(
     return (
         f"{name}. {full_description} "
         f"Activities: {', '.join(activities)}. "
-        f"Best season: {', '.join(best_season)}. "
+        f"Season: {', '.join(best_season)}. "
         f"Vibe: {', '.join(category)}. "
         f"Highlights: {', '.join(highlights)}. "
-        f"{how_to_reach}"
+        f"How to reach: {how_to_reach}"
     ).strip()
 
 

@@ -23,6 +23,8 @@ class Destination(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     tags: List[str] = []
+    images: List[str] = Field(default_factory=list)
+    image: str = ""
     confidence: str = ""
     highlights: List[str] = Field(default_factory=list)
     how_to_reach: str = ""

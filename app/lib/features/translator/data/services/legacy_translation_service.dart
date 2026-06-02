@@ -49,7 +49,10 @@ class TranslationService {
         trimmed,
         _toTourismDirection(mode),
       );
-      if (offline.source != tourism.TranslationSource.phrasebook) {
+      final isOfflineResult =
+          offline.source == tourism.TranslationSource.phrasebook ||
+              offline.source == tourism.TranslationSource.template;
+      if (!isOfflineResult) {
         return const TranslationResult(
           translatedText: '',
           strategy: TranslationStrategy.noResult,
@@ -104,12 +107,14 @@ class TranslationService {
     final strategy = switch (result.source) {
       tourism.TranslationSource.phrasebook =>
         TranslationStrategy.phrasebookMatch,
+      tourism.TranslationSource.template => TranslationStrategy.intentModel,
       tourism.TranslationSource.online => TranslationStrategy.onlineFallback,
       tourism.TranslationSource.fallback => TranslationStrategy.onlineFallback,
     };
 
     final methodLabel = switch (result.source) {
       tourism.TranslationSource.phrasebook => 'Offline phrasebook',
+      tourism.TranslationSource.template => 'Offline template',
       tourism.TranslationSource.online => 'MyMemory ne-NP',
       tourism.TranslationSource.fallback => 'Claude fallback',
     };

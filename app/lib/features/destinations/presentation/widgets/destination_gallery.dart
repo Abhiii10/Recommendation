@@ -79,19 +79,7 @@ class _DestinationGalleryState extends State<DestinationGallery> {
                 controller: _pageController,
                 itemCount: _urls.length,
                 onPageChanged: (index) => setState(() => _current = index),
-                itemBuilder: (_, index) => CachedNetworkImage(
-                  imageUrl: _urls[index],
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: widget.height,
-                  placeholder: (_, __) => _loadingFallback(),
-                  errorWidget: (_, __, ___) => DestinationImage(
-                    destinationName: widget.destination.name,
-                    category: widget.destination.primaryCategory,
-                    height: widget.height,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                itemBuilder: (_, index) => _galleryImage(_urls[index]),
               ),
             const DecoratedBox(
               decoration: BoxDecoration(
@@ -215,6 +203,39 @@ class _DestinationGalleryState extends State<DestinationGallery> {
       ],
     );
   }
+
+  Widget _galleryImage(String image) {
+    if (_isAssetImage(image)) {
+      return Image.asset(
+        image,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: widget.height,
+        errorBuilder: (_, __, ___) => DestinationImage(
+          destinationName: widget.destination.name,
+          category: widget.destination.primaryCategory,
+          height: widget.height,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: image,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: widget.height,
+      placeholder: (_, __) => _loadingFallback(),
+      errorWidget: (_, __, ___) => DestinationImage(
+        destinationName: widget.destination.name,
+        category: widget.destination.primaryCategory,
+        height: widget.height,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  bool _isAssetImage(String image) => image.startsWith('assets/');
 
   Widget _localFallbackImage() {
     return Image.asset(

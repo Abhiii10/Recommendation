@@ -1,7 +1,13 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+
+const String _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+const String _posthogApiKey = String.fromEnvironment('POSTHOG_API_KEY');
+const String _posthogHost = String.fromEnvironment(
+  'POSTHOG_HOST',
+  defaultValue: 'https://us.i.posthog.com',
+);
 
 class AppTelemetry {
   AppTelemetry._();
@@ -62,7 +68,7 @@ class AppTelemetry {
   }
 
   Future<void> _initializeSentry() async {
-    final dsn = dotenv.maybeGet('SENTRY_DSN')?.trim() ?? '';
+    final dsn = _sentryDsn.trim();
 
     if (dsn.isEmpty) {
       _sentryReady = false;
@@ -84,7 +90,7 @@ class AppTelemetry {
   }
 
   Future<void> _initializePostHog() async {
-    final token = dotenv.maybeGet('POSTHOG_API_KEY')?.trim() ?? '';
+    final token = _posthogApiKey.trim();
 
     if (token.isEmpty) {
       _posthogReady = false;
@@ -93,7 +99,7 @@ class AppTelemetry {
 
     try {
       final config = PostHogConfig(token);
-      final host = dotenv.maybeGet('POSTHOG_HOST')?.trim() ?? '';
+      final host = _posthogHost.trim();
 
       if (host.isNotEmpty) {
         config.host = host;

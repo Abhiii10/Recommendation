@@ -22,8 +22,9 @@ class DestinationTextBuilder:
     """
 
     def build(self, destination: Destination) -> str:
-        if destination.sbert_text.strip():
-            return destination.sbert_text.strip()
+        enriched_text = (destination.sbert_text or "").strip()
+        if enriched_text:
+            return enriched_text
 
         parts: List[str] = []
 

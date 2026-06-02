@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
 import 'package:rural_tourism_app/features/recommendations/presentation/recommend_tab.dart';
@@ -11,15 +12,17 @@ void main() {
     final destination = _destination();
 
     await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.theme,
-        home: RecommendTab(
-          destinations: [destination],
-          accommodations: const <Accommodation>[],
-          service: RecommenderService(const {}),
-          onToggleSaved: (_) async {},
-          isSaved: (_) => false,
+      ProviderScope(
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.theme,
+          home: RecommendTab(
+            destinations: [destination],
+            accommodations: const <Accommodation>[],
+            service: RecommenderService(const {}),
+            onToggleSaved: (_) async {},
+            isSaved: (_) => false,
+          ),
         ),
       ),
     );

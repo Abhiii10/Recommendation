@@ -85,19 +85,7 @@ class _DestinationImageGalleryState extends State<DestinationImageGallery> {
                       setState(() => _current = index);
                     },
                     itemBuilder: (context, index) {
-                      return CachedNetworkImage(
-                        imageUrl: images[index],
-                        fit: widget.fit,
-                        width: double.infinity,
-                        height: widget.height,
-                        placeholder: (_, __) => _loadingPlaceholder(context),
-                        errorWidget: (_, __, ___) => DestinationImage(
-                          destinationName: widget.destinationName,
-                          category: widget.category,
-                          height: widget.height,
-                          fit: widget.fit,
-                        ),
-                      );
+                      return _galleryImage(context, images[index]);
                     },
                   ),
                   if (images.length > 1)
@@ -134,6 +122,39 @@ class _DestinationImageGalleryState extends State<DestinationImageGallery> {
       ),
     );
   }
+
+  Widget _galleryImage(BuildContext context, String image) {
+    if (_isAssetImage(image)) {
+      return Image.asset(
+        image,
+        fit: widget.fit,
+        width: double.infinity,
+        height: widget.height,
+        errorBuilder: (_, __, ___) => DestinationImage(
+          destinationName: widget.destinationName,
+          category: widget.category,
+          height: widget.height,
+          fit: widget.fit,
+        ),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: image,
+      fit: widget.fit,
+      width: double.infinity,
+      height: widget.height,
+      placeholder: (_, __) => _loadingPlaceholder(context),
+      errorWidget: (_, __, ___) => DestinationImage(
+        destinationName: widget.destinationName,
+        category: widget.category,
+        height: widget.height,
+        fit: widget.fit,
+      ),
+    );
+  }
+
+  bool _isAssetImage(String image) => image.startsWith('assets/');
 }
 
 class _DotIndicator extends StatelessWidget {

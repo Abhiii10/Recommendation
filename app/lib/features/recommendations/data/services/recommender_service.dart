@@ -171,12 +171,8 @@ class RecommenderService {
       return [];
     }
 
-    final seedEmbedding = _semanticVectorFor(seed);
-    if (seedEmbedding.isEmpty) {
-      return [];
-    }
-
     final explicitMatches = _offlineSimilarMatches(seed);
+    final seedEmbedding = _semanticVectorFor(seed);
     final scored = <RecommendationResult>[];
 
     for (final destination in destinations) {
@@ -184,20 +180,25 @@ class RecommenderService {
         continue;
       }
 
-      final destinationEmbedding = _semanticVectorFor(destination);
-      if (destinationEmbedding.isEmpty) {
-        continue;
-      }
-
-      var similarity = _clamp(
-        _normalisedDotProduct(seedEmbedding, destinationEmbedding),
-      );
-      final reasons = <String>[];
-
       final normalizedId = destination.id.toLowerCase();
       final normalizedName = destination.name.toLowerCase();
-      if (explicitMatches.contains(normalizedId) ||
-          explicitMatches.contains(normalizedName)) {
+      final isExplicitMatch = explicitMatches.contains(normalizedId) ||
+          explicitMatches.contains(normalizedName);
+      final destinationEmbedding = _semanticVectorFor(destination);
+      var similarity = 0.0;
+      final reasons = <String>[];
+
+      if (seedEmbedding.isNotEmpty && destinationEmbedding.isNotEmpty) {
+        similarity = _clamp(
+          _normalisedDotProduct(seedEmbedding, destinationEmbedding),
+        );
+      } else if (isExplicitMatch) {
+        similarity = 0.70;
+      } else {
+        similarity = _textSimilarity(seed, destination);
+      }
+
+      if (isExplicitMatch) {
         similarity = _clamp(similarity + 0.20);
         reasons.add('Similar to selected place in the offline knowledge base');
       }
@@ -867,6 +868,19 @@ class RecommenderService {
     }
 
     return reasons;
+  }
+
+  double _textSimilarity(Destination seed, Destination destination) {
+    final seedTerms = _allTerms(seed);
+    final destinationTerms = _allTerms(destination);
+    if (seedTerms.isEmpty || destinationTerms.isEmpty) {
+      return 0.0;
+    }
+
+    final shared = seedTerms.intersection(destinationTerms).length;
+    final union = seedTerms.union(destinationTerms).length;
+    if (union == 0) return 0.0;
+    return _clamp(shared / union);
   }
 
   List<String> _activityAliases(String activity) {

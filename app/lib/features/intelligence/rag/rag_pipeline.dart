@@ -6,6 +6,27 @@ import 'package:rural_tourism_app/features/intelligence/rag/context_retriever.da
 import 'package:rural_tourism_app/features/intelligence/rag/response_generator.dart';
 
 class RagPipeline {
+  static const _trekkingTriggers = [
+    'trekking',
+    'trek',
+    'hiking',
+    'what to know',
+    'tips',
+    'safety',
+    'prepare',
+    'pack',
+    'permit',
+    'tims',
+  ];
+  static const _safetyTriggers = [
+    'safe',
+    'safety',
+    'alone',
+    'risk',
+    'danger',
+    'emergency',
+  ];
+
   final ContextRetriever contextRetriever;
   final ResponseGenerator responseGenerator;
 
@@ -19,7 +40,9 @@ class RagPipeline {
     required String intent,
     required DialogueState dialogueState,
   }) {
-    final effectiveIntent = _effectiveIntent(intent);
+    final trekkingIntent = _trekkingIntentForText(nlp);
+    final effectiveIntent =
+        trekkingIntent.isNotEmpty ? trekkingIntent : _effectiveIntent(intent);
     final retrievalResults = contextRetriever.retrieve(
       nlp,
       intent: effectiveIntent,
@@ -45,7 +68,23 @@ class RagPipeline {
   }
 
   String _effectiveIntent(String intent) {
+    if (intent == 'trekking_info') return 'adventure_activity';
+    if (intent == 'safety_info') return 'safety_concern';
     if (intent == 'destination_query') return 'destination_recommendation';
     return intent;
+  }
+
+  String _trekkingIntentForText(NlpProcessingResult nlp) {
+    final text = [
+      nlp.normalizedText,
+      nlp.romanizedNormalizedText,
+      nlp.expandedTerms.join(' '),
+    ].join(' ').toLowerCase();
+    if (!_trekkingTriggers.any(text.contains)) {
+      return '';
+    }
+    return _safetyTriggers.any(text.contains)
+        ? 'safety_concern'
+        : 'adventure_activity';
   }
 }

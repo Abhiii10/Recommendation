@@ -440,7 +440,7 @@ class _HomeTabState extends State<HomeTab> {
           if (_isOffline)
             MaterialBanner(
               content:
-                  const Text('Offline mode — showing local recommendations'),
+                  const Text('Offline mode - showing local recommendations'),
               leading: const Icon(
                 Icons.cloud_off_rounded,
                 color: Colors.orange,
@@ -548,13 +548,32 @@ class _HomeTabState extends State<HomeTab> {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                'Hidden villages · Sacred trails · Authentic culture',
+                                'Hidden villages / Sacred trails / Authentic culture',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.3,
+                                  letterSpacing: 0,
                                 ),
+                              ),
+                              SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _HeroPill(
+                                    icon: Icons.offline_bolt_rounded,
+                                    label: 'Offline-ready',
+                                  ),
+                                  _HeroPill(
+                                    icon: Icons.map_rounded,
+                                    label: '300 places',
+                                  ),
+                                  _HeroPill(
+                                    icon: Icons.auto_awesome_rounded,
+                                    label: 'AI picks',
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -1051,6 +1070,46 @@ class _SectionLabel extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+class _HeroPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _HeroPill({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.38),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // Quick action row
 // ─────────────────────────────────────────────────────────────────────────────
 class _QuickActionRow extends StatelessWidget {
@@ -1575,7 +1634,7 @@ class _CompactDestinationCard extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
-                                    locationParts.join(' · '),
+                                    locationParts.join(' / '),
                                     style: tt.bodySmall?.copyWith(
                                       color: cs.onSurfaceVariant,
                                     ),

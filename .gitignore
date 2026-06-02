@@ -46,6 +46,10 @@ evaluation/*.md
 *.sqlite3-wal
 data/auth_users.json
 data/destination_images.json
+data/coordinate_manual_review.csv
+data/coordinate_verification_cache.json
+data/coordinate_verification_report.json
+data/destinations_before_coordinate_verify_*.json
 data/interactions.json
 data/users.json
 data/app.sqlite3

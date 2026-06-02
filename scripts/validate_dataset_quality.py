@@ -7,6 +7,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+APP_ROOT = ROOT / "app"
 
 DESTINATION_FILES = [
     ROOT / "app" / "assets" / "data" / "backend_destinations.json",
@@ -113,6 +114,21 @@ def validate_destinations(path: Path) -> list[dict[str, Any]]:
         )
         require(len(item.get("tags", [])) >= 8, f"{prefix}: need richer tags")
 
+        images = item.get("images", [])
+        require(isinstance(images, list) and images, f"{prefix}: missing destination image")
+        for image in images:
+            image_path = str(image).strip()
+            require(image_path, f"{prefix}: blank destination image path")
+            if image_path.startswith("assets/"):
+                require((APP_ROOT / image_path).exists(), f"{prefix}: image asset does not exist: {image_path}")
+
+        latitude = item.get("latitude")
+        longitude = item.get("longitude")
+        require(isinstance(latitude, (int, float)), f"{prefix}: latitude must be numeric")
+        require(isinstance(longitude, (int, float)), f"{prefix}: longitude must be numeric")
+        require(27.0 <= float(latitude) <= 30.5, f"{prefix}: latitude outside expected Gandaki/Nepal range")
+        require(82.5 <= float(longitude) <= 86.0, f"{prefix}: longitude outside expected Gandaki/Nepal range")
+
     return destinations
 
 
@@ -158,10 +174,25 @@ def main() -> None:
         validate_accommodations(path, baseline_ids)
 
     district_counts = Counter(item["district"] for item in baseline)
+    unresolved_low_precision = [
+        item
+        for item in baseline
+        if min(_decimal_places(item["latitude"]), _decimal_places(item["longitude"])) <= 2
+        and item.get("coordinate_accuracy") not in {"verified", "verified_area", "reviewed_proxy"}
+    ]
     print("Dataset quality validation passed.")
     print(f"Destinations: {len(baseline)}")
     print(f"Districts: {dict(sorted(district_counts.items()))}")
+    print(f"Destination images validated: {len(baseline)}")
+    print(f"Unresolved low precision coordinate warnings: {len(unresolved_low_precision)}")
     print(f"Accommodation files validated: {len(ACCOMMODATION_FILES)}")
+
+
+def _decimal_places(value: Any) -> int:
+    text = str(value)
+    if "." not in text:
+        return 0
+    return len(text.split(".", 1)[1])
 
 
 if __name__ == "__main__":

@@ -74,11 +74,19 @@ class TemplateTranslator implements TranslationEngine {
 
   Map<String, String>? _match(
       String pattern, String input, List<String> slots) {
-    // FIX: use TextUtils.normalizeSearchText consistently (handles _ and all
-    // special chars the same way as the input normalization does)
-    var regexPattern = RegExp.escape(TextUtils.normalizeSearchText(pattern));
-    for (final slot in slots) {
-      regexPattern = regexPattern.replaceAll('\\{$slot\\}', '(.+?)');
+    var patternWithMarkers = pattern;
+    for (var i = 0; i < slots.length; i++) {
+      patternWithMarkers = patternWithMarkers.replaceAll(
+        '{${slots[i]}}',
+        'slot${i}marker',
+      );
+    }
+
+    var regexPattern = RegExp.escape(
+      TextUtils.normalizeSearchText(patternWithMarkers),
+    );
+    for (var i = 0; i < slots.length; i++) {
+      regexPattern = regexPattern.replaceAll('slot${i}marker', '(.+?)');
     }
     final regex = RegExp('^$regexPattern\\??${r'$'}', caseSensitive: false);
     final match = regex.firstMatch(TextUtils.normalizeSearchText(input));

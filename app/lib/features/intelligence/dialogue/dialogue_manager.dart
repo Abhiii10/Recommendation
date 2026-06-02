@@ -8,6 +8,8 @@ import 'package:rural_tourism_app/features/intelligence/dialogue/dialogue_state_
 import 'package:rural_tourism_app/features/intelligence/dialogue/slot_filling_manager.dart';
 
 class DialogueManager {
+  static const double _lastResortClarificationConfidence = 0.25;
+
   final ConversationMemory memory;
   final SlotFillingManager slotFillingManager;
   final ClarificationGenerator clarificationGenerator;
@@ -38,16 +40,18 @@ class DialogueManager {
       confidence: intent.confidence,
       language: nlp.language,
     );
+    final shouldClarify = clarification != null &&
+        intent.confidence < _lastResortClarificationConfidence;
     final updated = stateTracker.update(
       state: state,
       intent: intent.intent,
       newSlots: extracted,
-      pendingQuestions: clarification == null ? const [] : [clarification],
+      pendingQuestions: shouldClarify ? [clarification] : const [],
     );
     memory.save(updated);
     return DialogueDecision(
       state: updated,
-      shouldClarify: clarification != null,
+      shouldClarify: shouldClarify,
       clarificationQuestion: clarification,
       missingSlots: missing,
     );

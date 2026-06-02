@@ -5,12 +5,16 @@ import threading
 from typing import Dict, Iterable, List, Set
 import weakref
 
-import faiss
 import numpy as np
 
 from backend.core.config import settings
 from backend.domain.entities.destination import Destination
 from backend.infrastructure.ml.sbert_encoder import DestinationTextBuilder, SbertEncoder
+
+try:
+    import faiss
+except ImportError:  # pragma: no cover - exercised only when faiss-cpu is absent.
+    faiss = None
 
 
 _FAISS_RETRIEVAL_POOL_SIZE = 500
@@ -20,7 +24,7 @@ _FAISS_RETRIEVAL_POOL_SIZE = 500
 class _FaissIndexCache:
     signature: tuple[str, ...]
     matrix: np.ndarray
-    index: faiss.IndexFlatIP
+    index: object | None
     id_to_idx: Dict[str, int]
 
 
@@ -89,10 +93,12 @@ class CandidateRetriever:
         texts = [self._text_builder.build(destination) for destination in destinations]
         matrix = self._encoder.encode_texts(texts).astype("float32")
         matrix = np.ascontiguousarray(matrix)
-        faiss.normalize_L2(matrix)
+        self._normalize_l2(matrix)
 
-        faiss_index = faiss.IndexFlatIP(matrix.shape[1])
-        faiss_index.add(matrix)
+        faiss_index = None
+        if faiss is not None:
+            faiss_index = faiss.IndexFlatIP(matrix.shape[1])
+            faiss_index.add(matrix)
 
         id_to_idx = {
             destination.id: idx for idx, destination in enumerate(destinations)
@@ -122,7 +128,7 @@ class CandidateRetriever:
             len(self.destinations),
             max(top_k, _FAISS_RETRIEVAL_POOL_SIZE),
         )
-        similarities, indices = self._index.search(query_vector, search_k)
+        similarities, indices = self._search(query_vector, search_k)
         query_terms = self._build_query_terms(
             query_text=query_text,
             activity=activity,
@@ -164,9 +170,9 @@ class CandidateRetriever:
         source_index = self._id_to_idx[destination_id]
         source_vector = self._matrix[source_index].reshape(1, -1).astype("float32")
         source_vector = np.ascontiguousarray(source_vector)
-        faiss.normalize_L2(source_vector)
+        self._normalize_l2(source_vector)
         search_k = min(len(self.destinations), top_k + 1)
-        similarities, indices = self._index.search(source_vector, search_k)
+        similarities, indices = self._search(source_vector, search_k)
 
         results: List[Dict] = []
         for raw_score, index in zip(similarities[0], indices[0]):
@@ -195,8 +201,28 @@ class CandidateRetriever:
     def _query_matrix(self, query_text: str) -> np.ndarray:
         query_vector = self._encoder.encode_text(query_text).astype("float32")
         query_matrix = np.ascontiguousarray(query_vector.reshape(1, -1))
-        faiss.normalize_L2(query_matrix)
+        self._normalize_l2(query_matrix)
         return query_matrix
+
+    def _search(self, query_matrix: np.ndarray, search_k: int) -> tuple[np.ndarray, np.ndarray]:
+        if self._index is not None:
+            return self._index.search(query_matrix, search_k)
+
+        scores = np.dot(self._matrix, query_matrix[0])
+        top_indices = np.argsort(scores)[::-1][:search_k].astype("int64")
+        return (
+            scores[top_indices].reshape(1, -1).astype("float32"),
+            top_indices.reshape(1, -1),
+        )
+
+    def _normalize_l2(self, matrix: np.ndarray) -> None:
+        if faiss is not None:
+            faiss.normalize_L2(matrix)
+            return
+
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        matrix /= norms
 
     def _normalize_score(self, value: float) -> float:
         return float(np.clip((value + 1.0) / 2.0, 0.0, 1.0))
@@ -324,10 +350,15 @@ def rebuild_index() -> dict:
         CandidateRetriever(destinations)
 
     cache = CandidateRetriever._cache
+    index_type = (
+        "faiss.IndexFlatIP"
+        if cache is not None and cache.index is not None
+        else "numpy.dot_fallback"
+    )
     return {
         "status": "ok",
         "destinations": len(destinations),
         "dimensions": int(cache.matrix.shape[1]) if cache is not None else 0,
-        "index_type": "faiss.IndexFlatIP",
+        "index_type": index_type,
         "message": "Candidate retrieval FAISS index rebuilt.",
     }

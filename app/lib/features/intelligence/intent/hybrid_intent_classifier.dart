@@ -8,6 +8,26 @@ import 'package:rural_tourism_app/features/intelligence/intent/semantic_intent_c
 
 class HybridIntentClassifier implements IntentClassifierBase {
   static const double _minimumIntentConfidence = 0.30;
+  static const _trekkingTriggers = [
+    'trekking',
+    'trek',
+    'hiking',
+    'what to know',
+    'tips',
+    'safety',
+    'prepare',
+    'pack',
+    'permit',
+    'tims',
+  ];
+  static const _trekkingSafetyTerms = [
+    'safe',
+    'safety',
+    'alone',
+    'risk',
+    'danger',
+    'emergency',
+  ];
 
   final SemanticIntentClassifier semanticClassifier;
   final Future<IntentTrainingData> Function() trainingDataLoader;
@@ -28,13 +48,19 @@ class HybridIntentClassifier implements IntentClassifierBase {
   @override
   IntentClassificationResult classify(NlpProcessingResult nlp) {
     final destinationEntity = _destinationEntity(nlp);
-    if (destinationEntity != null) {
+    if (destinationEntity != null &&
+        _shouldForceDestinationIntent(nlp, destinationEntity)) {
       return IntentClassificationResult(
         intent: 'destination_query',
         confidence: 0.95,
         alternatives: const {'destination_recommendation': 0.95},
         matchedFeatures: ['destination_gazetteer:${destinationEntity.text}'],
       );
+    }
+
+    final trekkingOverride = _trekkingIntentOverride(nlp);
+    if (trekkingOverride != null) {
+      return trekkingOverride;
     }
 
     final semantic = semanticClassifier.classify(nlp);
@@ -209,6 +235,31 @@ class HybridIntentClassifier implements IntentClassifierBase {
   bool _hasEntity(NlpProcessingResult nlp, EntityType type) =>
       nlp.entities.any((entity) => entity.type == type);
 
+  IntentClassificationResult? _trekkingIntentOverride(
+    NlpProcessingResult nlp,
+  ) {
+    final text = TextUtils.normalizeSearchText(
+      '${nlp.normalizedText} ${nlp.romanizedNormalizedText}',
+    );
+    final matched = _trekkingTriggers.where(text.contains).toList();
+    if (matched.isEmpty) return null;
+
+    final safetyFocused = _trekkingSafetyTerms.any(text.contains);
+    final intent = safetyFocused ? 'safety_concern' : 'adventure_activity';
+    return IntentClassificationResult(
+      intent: intent,
+      confidence: 0.90,
+      alternatives: {
+        intent: 0.90,
+        safetyFocused ? 'adventure_activity' : 'safety_concern': 0.72,
+      },
+      matchedFeatures: [
+        'trekking_keyword:${matched.first}',
+        if (safetyFocused) 'trekking_safety_override',
+      ],
+    );
+  }
+
   EntityMention? _destinationEntity(NlpProcessingResult nlp) {
     final destinations =
         nlp.entities.where((entity) => entity.type == EntityType.destination);
@@ -216,5 +267,53 @@ class HybridIntentClassifier implements IntentClassifierBase {
     return destinations.reduce(
       (best, entity) => entity.confidence > best.confidence ? entity : best,
     );
+  }
+
+  bool _shouldForceDestinationIntent(
+    NlpProcessingResult nlp,
+    EntityMention entity,
+  ) {
+    final text = TextUtils.normalizeSearchText(
+      '${nlp.normalizedText} ${nlp.romanizedNormalizedText}',
+    );
+    final entityText = TextUtils.normalizeSearchText(entity.text);
+    if (text.isEmpty || entityText.isEmpty) return false;
+    if (text == entityText || text == '$entityText $entityText') return true;
+
+    final blockers = [
+      'homestay',
+      'hotel',
+      'room',
+      'stay',
+      'tonight',
+      'booking',
+      'route',
+      'reach',
+      'transport',
+      'bus',
+      'jeep',
+      'taxi',
+      'go to',
+      'get to',
+      'food',
+      'eat',
+      'price',
+      'budget',
+      'cheap',
+      'safe',
+      'safety',
+    ];
+    if (blockers.any(text.contains)) return false;
+
+    final infoPatterns = [
+      'tell me about',
+      'information about',
+      'info about',
+      'about',
+      'what is',
+      'where is',
+      'describe',
+    ];
+    return infoPatterns.any(text.contains);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'package:rural_tourism_app/core/utils/backend_config.dart';
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/core/utils/stable_user_id.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation_model.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/api_recommendation_item.dart';
@@ -40,7 +40,7 @@ class _AiDestinationDetailScreenState extends State<AiDestinationDetailScreen>
   @override
   void initState() {
     super.initState();
-    _api = RecommendationApiService(baseUrl: backendBaseUrl);
+    _api = RecommendationApiService(baseUrl: AppConfig.baseUrl);
     _tabController = TabController(length: 3, vsync: this);
     _logView();
     _loadAccommodations();

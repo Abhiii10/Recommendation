@@ -4,7 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:rural_tourism_app/core/utils/backend_config.dart';
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/api_recommendation_item.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/destination.dart';
@@ -48,7 +48,7 @@ class RecommendationManager {
         _interactionSyncService =
             interactionSyncService ?? InteractionSyncService.instance,
         _apiService =
-            apiService ?? RecommendationApiService(baseUrl: backendBaseUrl) {
+            apiService ?? RecommendationApiService(baseUrl: AppConfig.baseUrl) {
     _destinationById = {
       for (final destination in _destinations)
         destination.id.toLowerCase(): destination,

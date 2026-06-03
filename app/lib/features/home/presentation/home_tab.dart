@@ -143,7 +143,7 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _checkHealth() async {
     if (_checkingHealth) return;
     setState(() => _checkingHealth = true);
-    final result = await BackendConfig.checkBackendHealth(attempts: 1);
+    final result = await BackendConfig.checkBackendHealth();
     final localDestinations = result.reachable
         ? const <Destination>[]
         : await LocalDataService.instance.loadLocalDestinations();

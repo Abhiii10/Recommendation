@@ -114,7 +114,7 @@ class RecommendationsNotifier extends StateNotifier<RecommendationsState> {
       checkingBackend: true,
     );
 
-    final result = await BackendConfig.checkBackendHealth(attempts: 1);
+    final result = await BackendConfig.checkBackendHealth();
     final localDestinations = result.reachable
         ? const <Destination>[]
         : await LocalDataService.instance.loadLocalDestinations();

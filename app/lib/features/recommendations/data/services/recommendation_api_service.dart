@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/features/destinations/domain/models/accommodation_model.dart';
 import 'package:rural_tourism_app/features/recommendations/domain/models/api_recommendation_item.dart';
@@ -35,7 +36,7 @@ class RecommendationApiService {
   RecommendationApiService({
     required this.baseUrl,
     this.timeout = const Duration(seconds: 20),
-    this.healthTimeout = const Duration(seconds: 3),
+    this.healthTimeout = AppConfig.backendHealthTimeout,
   });
 
   Future<Map<String, String>> _headers() async {

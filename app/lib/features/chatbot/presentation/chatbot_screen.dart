@@ -198,10 +198,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
   }
 
   Uri _backendUri(String path) {
-    final base = backendBaseUrl.endsWith('/')
-        ? backendBaseUrl.substring(0, backendBaseUrl.length - 1)
-        : backendBaseUrl;
-    return Uri.parse('$base$path');
+    return BackendConfig.uri(path);
   }
 
   Future<void> _checkBackendAiProvider() async {
@@ -666,8 +663,11 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
   Widget _buildModeBanner({required bool isOffline}) {
     final cs = Theme.of(context).colorScheme;
     final backendReachable = _llmOnline == true;
+    final backendFallbackActive =
+        _showBackendOfflineFallbackNotice || _showAiProviderNotice;
     final checkingBackend = _llmOnline == null && !isOffline;
-    final isOnlineMode = !isOffline && backendReachable;
+    final isOnlineMode =
+        !isOffline && backendReachable && !backendFallbackActive;
     final color = isOnlineMode
         ? cs.primary
         : isOffline
@@ -683,14 +683,14 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
     final label = isOnlineMode ? 'AI Mode' : 'Offline Mode';
     final body = isOffline
         ? 'Device is offline. Local fallback responses are active.'
-        : backendReachable
-            ? 'Online LLM ready.'
-            : checkingBackend
-                ? 'Checking whether the backend is reachable.'
-                : _showBackendOfflineFallbackNotice
-                    ? 'Backend is reachable, but it returned local rule-based responses.'
-                    : _showAiProviderNotice
-                        ? 'Backend is reachable, but AI provider keys are missing.'
+        : _showBackendOfflineFallbackNotice
+            ? 'Backend is reachable, but it returned local rule-based responses.'
+            : _showAiProviderNotice
+                ? 'Backend is reachable, but AI provider keys are missing.'
+                : backendReachable
+                    ? 'Online LLM ready.'
+                    : checkingBackend
+                        ? 'Checking whether the backend is reachable.'
                         : 'Backend unavailable. Offline fallback answers are active.';
 
     return AnimatedContainer(
@@ -760,6 +760,9 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
 
   String _headerSubtitle({required bool isOffline}) {
     if (isOffline) return 'Offline fallback active';
+    if (_showBackendOfflineFallbackNotice || _showAiProviderNotice) {
+      return 'Offline fallback active';
+    }
     if (_llmOnline == true) return 'Online LLM ready';
     if (_llmOnline == false) return 'Backend unavailable';
     return 'Checking LLM status';

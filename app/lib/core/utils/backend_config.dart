@@ -4,10 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-const String backendBaseUrl = String.fromEnvironment(
-  'AI_BACKEND_BASE_URL',
-  defaultValue: 'http://10.0.2.2:8000',
-);
+import 'package:rural_tourism_app/config/app_config.dart';
 
 class BackendHealthResult {
   final bool reachable;
@@ -31,8 +28,7 @@ class BackendHealthResult {
       return 'Backend is online.';
     }
 
-    return 'Backend is offline. Start the FastAPI server and make sure '
-        '$healthUri is reachable from this device.';
+    return AppConfig.backendUnavailableMessage;
   }
 }
 
@@ -46,7 +42,7 @@ class BackendConfig {
   static bool _healthCheckInFlight = false;
 
   static Uri uri(String path, {String? baseUrl}) {
-    final resolvedBaseUrl = baseUrl ?? backendBaseUrl;
+    final resolvedBaseUrl = baseUrl ?? AppConfig.baseUrl;
     final base = resolvedBaseUrl.endsWith('/')
         ? resolvedBaseUrl.substring(0, resolvedBaseUrl.length - 1)
         : resolvedBaseUrl;
@@ -61,9 +57,9 @@ class BackendConfig {
 
   static Future<BackendHealthResult> checkBackendHealth({
     String? baseUrl,
-    int attempts = 3,
-    Duration retryDelay = const Duration(seconds: 2),
-    Duration timeout = const Duration(seconds: 5),
+    int attempts = AppConfig.backendHealthAttempts,
+    Duration retryDelay = AppConfig.backendHealthInitialRetryDelay,
+    Duration timeout = AppConfig.backendHealthTimeout,
   }) async {
     final healthUri = uri('/health', baseUrl: baseUrl);
     Object? lastError;
@@ -105,7 +101,7 @@ class BackendConfig {
       }
 
       if (attempt < attempts) {
-        await Future<void>.delayed(retryDelay);
+        await Future<void>.delayed(_retryDelayFor(attempt, retryDelay));
       }
     }
 
@@ -124,7 +120,7 @@ class BackendConfig {
   static Future<void> startHealthMonitor({
     Duration interval = const Duration(seconds: 30),
   }) async {
-    debugPrint('Backend configured URL -> $backendBaseUrl');
+    debugPrint('Backend configured URL -> ${AppConfig.baseUrl}');
     await refreshBackendHealth(logResult: true);
     _healthMonitorTimer?.cancel();
     _healthMonitorTimer = Timer.periodic(
@@ -149,8 +145,8 @@ class BackendConfig {
     _healthCheckInFlight = true;
     try {
       final result = await checkBackendHealth(
-        attempts: 1,
-        timeout: const Duration(seconds: 5),
+        attempts: AppConfig.backendHealthAttempts,
+        timeout: AppConfig.backendHealthTimeout,
       );
       health.value = result;
       if (logResult) {
@@ -168,6 +164,11 @@ class BackendConfig {
   }
 
   static bool get isBackendReachable => health.value?.reachable == true;
+
+  static Duration _retryDelayFor(int completedAttempt, Duration initialDelay) {
+    final multiplier = 1 << (completedAttempt - 1);
+    return Duration(milliseconds: initialDelay.inMilliseconds * multiplier);
+  }
 
   static void stopHealthMonitor() {
     _healthMonitorTimer?.cancel();

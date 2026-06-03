@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -215,7 +216,7 @@ class _TranslationScreenState extends State<TranslationScreen>
       return await _service.translate(
         input: text,
         mode: _mode,
-        allowOnline: true,
+        allowOnline: await _canUseOnlineTranslation(),
       );
     } catch (_) {
       return const TranslationResult(
@@ -226,6 +227,12 @@ class _TranslationScreenState extends State<TranslationScreen>
             'Translation failed. Try again or use the offline phrasebook.',
       );
     }
+  }
+
+  Future<bool> _canUseOnlineTranslation() async {
+    final connectivity = await Connectivity().checkConnectivity();
+    return connectivity.isNotEmpty &&
+        !connectivity.contains(ConnectivityResult.none);
   }
 
   Future<void> _listenInto(TextEditingController controller) async {

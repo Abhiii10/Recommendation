@@ -50,10 +50,7 @@ class _OfflineChatScreenState extends State<OfflineChatScreen> {
   }
 
   Uri _uri(String path) {
-    final base = backendBaseUrl.endsWith('/')
-        ? backendBaseUrl.substring(0, backendBaseUrl.length - 1)
-        : backendBaseUrl;
-    return Uri.parse('$base$path');
+    return BackendConfig.uri(path);
   }
 
   Future<void> _sendMessage(String text) async {

@@ -48,6 +48,7 @@ class TranslationService {
       final offline = await _translator.translateText(
         trimmed,
         _toTourismDirection(mode),
+        allowOnline: false,
       );
       final isOfflineResult =
           offline.source == tourism.TranslationSource.phrasebook ||

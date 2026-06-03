@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/core/utils/backend_config.dart';
 
 class LlmChatApiService {
@@ -13,14 +14,11 @@ class LlmChatApiService {
 
   LlmChatApiService({
     this.timeout = const Duration(seconds: 30),
-    this.healthTimeout = const Duration(seconds: 5),
+    this.healthTimeout = AppConfig.backendHealthTimeout,
   });
 
   Uri _uri(String path) {
-    final base = backendBaseUrl.endsWith('/')
-        ? backendBaseUrl.substring(0, backendBaseUrl.length - 1)
-        : backendBaseUrl;
-    return Uri.parse('$base$path');
+    return BackendConfig.uri(path);
   }
 
   Future<String> ask(String question) => chat(question);

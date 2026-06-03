@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'package:rural_tourism_app/core/utils/backend_config.dart';
+import 'package:rural_tourism_app/config/app_config.dart';
 
 class AuthApiException implements Exception {
   final String message;
@@ -78,7 +78,7 @@ class AuthApiService {
   AuthApiService({
     String? baseUrl,
     this.timeout = const Duration(seconds: 60),
-  }) : baseUrl = baseUrl ?? backendBaseUrl;
+  }) : baseUrl = baseUrl ?? AppConfig.baseUrl;
 
   Uri _uri(String path) {
     final normalizedBaseUrl = baseUrl.endsWith('/')

@@ -379,8 +379,9 @@ class TranslationService {
   // -> backend Claude fallback -> graceful failure
   Future<TranslationResult> translateText(
     String text,
-    TranslationDirection direction,
-  ) async {
+    TranslationDirection direction, {
+    bool allowOnline = true,
+  }) async {
     if (!_initialized) await initialize();
 
     final trimmed = text.trim();
@@ -413,6 +414,14 @@ class TranslationService {
       if (romanMatch != null && romanMatch.confidence > 0.80) {
         return romanMatch;
       }
+    }
+
+    if (!allowOnline) {
+      return _failure(
+        detectedSourceLang: pair.sourceLang,
+        message:
+            'No offline translation match found. Check your connection to use online translation.',
+      );
     }
 
     final onlineInput =
@@ -1235,6 +1244,10 @@ class TranslationService {
     _LanguagePair pair, {
     required bool romanDetected,
   }) async {
+    if (BackendConfig.health.value?.reachable == false) {
+      return null;
+    }
+
     try {
       final response = await _client
           .post(

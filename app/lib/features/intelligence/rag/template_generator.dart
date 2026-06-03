@@ -14,7 +14,7 @@ class TemplateGenerator {
     final nepali = language.languageCode == 'ne';
     if (contexts.isEmpty) {
       return nepali
-          ? 'मैले यस प्रश्नको लागि ठ्याक्कै मिल्ने जानकारी भेटिनँ। गन्तव्य, होमस्टे, खाना, यातायात वा सुरक्षा बारे फेरि सोध्नुहोस्।'
+          ? 'मैले यस प्रश्नका लागि ठ्याक्कै मिल्ने जानकारी भेटिनँ। गन्तव्य, होमस्टे, खाना, यातायात वा सुरक्षा बारे फेरि सोध्नुहोस्।'
           : 'I could not find an exact match for that. Try asking about destinations, homestays, food, transport, safety, or cultural tips.';
     }
 

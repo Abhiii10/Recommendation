@@ -36,8 +36,9 @@ services:
       - ./backend/.env
     environment:
       INTERACTION_STORAGE_BACKEND: sqlite
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nepal_tourism
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ""
+      REDIS_URL: redis://localhost:6379
+      REDIS_ENABLED: "false"
       APP_DB_FILE: data/app.sqlite3
     ports:
       - "8000:8000"

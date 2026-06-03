@@ -178,10 +178,18 @@ class IntelligenceOrchestrator {
     final destinationMatch = _bestDestinationMatch(nlp.entities);
     if (destinationMatch != null &&
         _shouldAnswerDestinationDirectly(request.text, destinationMatch)) {
-      return _directDestinationResponse(
+      final response = _directDestinationResponse(
         destinationMatch,
         nlp.language,
       );
+      dialogueManager.completeTurn(
+        conversationId: request.conversationId,
+        userText: request.text,
+        assistantText: response.text,
+        intent: response.intent,
+        confidence: response.confidence,
+      );
+      return response;
     }
 
     final intent = intentClassifier.classify(nlp);
@@ -224,6 +232,13 @@ class IntelligenceOrchestrator {
       if (enhanced != null) {
         text = enhanced;
         source = ChatbotResponseSource.onlineEnhancement;
+        dialogueManager.completeTurn(
+          conversationId: request.conversationId,
+          userText: request.text,
+          assistantText: text,
+          intent: intent.intent,
+          confidence: 0.95,
+        );
         return ChatbotResponse(
           text: text,
           intent: intent.intent,

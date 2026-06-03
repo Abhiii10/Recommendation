@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
+import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/l10n/app_localizations.dart';
 import 'package:rural_tourism_app/shared/theme/app_theme.dart';
 
@@ -80,28 +81,45 @@ class _OfflineBannerState extends State<OfflineBanner> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
-          child: _offline
-              ? _Banner(
-                  key: const ValueKey('offline'),
-                  icon: Icons.wifi_off_rounded,
-                  label: AppLocalizations.of(context).noInternet,
-                  color: AppTheme.earthOchre,
-                )
-              : _showBackOnline
+    return ValueListenableBuilder<BackendHealthResult?>(
+      valueListenable: BackendConfig.health,
+      builder: (context, backendHealth, _) {
+        final showBackendOffline = !_offline &&
+            backendHealth != null &&
+            backendHealth.attempts > 0 &&
+            !backendHealth.reachable;
+
+        return Column(
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              child: _offline
                   ? _Banner(
-                      key: const ValueKey('online'),
-                      icon: Icons.wifi_rounded,
-                      label: AppLocalizations.of(context).backOnline,
-                      color: AppTheme.mountainTeal,
+                      key: const ValueKey('offline'),
+                      icon: Icons.wifi_off_rounded,
+                      label: AppLocalizations.of(context).noInternet,
+                      color: AppTheme.earthOchre,
                     )
-                  : const SizedBox.shrink(key: ValueKey('hidden')),
-        ),
-        Expanded(child: widget.child),
-      ],
+                  : showBackendOffline
+                      ? _Banner(
+                          key: const ValueKey('backend-offline'),
+                          icon: Icons.cloud_off_rounded,
+                          label: backendHealth.userMessage,
+                          color: Theme.of(context).colorScheme.error,
+                        )
+                      : _showBackOnline
+                          ? _Banner(
+                              key: const ValueKey('online'),
+                              icon: Icons.wifi_rounded,
+                              label: AppLocalizations.of(context).backOnline,
+                              color: AppTheme.mountainTeal,
+                            )
+                          : const SizedBox.shrink(key: ValueKey('hidden')),
+            ),
+            Expanded(child: widget.child),
+          ],
+        );
+      },
     );
   }
 }
@@ -145,7 +163,7 @@ class _Banner extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,

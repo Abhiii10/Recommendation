@@ -13,7 +13,7 @@ class WikiImageService {
   static Future<String> getImageUrl({
     required String placeName,
     String? category,
-    String backendBaseUrl = '',
+    String baseUrl = '',
   }) async {
     final cacheKey = _cacheKey(placeName);
     final cached = _cache[cacheKey];
@@ -21,7 +21,7 @@ class WikiImageService {
 
     final backendUrl = await _fromBackend(
       placeName: placeName,
-      backendBaseUrl: backendBaseUrl,
+      baseUrl: baseUrl,
     );
     if (backendUrl != null) {
       _cache[cacheKey] = backendUrl;
@@ -67,9 +67,9 @@ class WikiImageService {
 
   static Future<String?> _fromBackend({
     required String placeName,
-    required String backendBaseUrl,
+    required String baseUrl,
   }) async {
-    final base = backendBaseUrl.trim();
+    final base = baseUrl.trim();
     if (base.isEmpty) return null;
 
     try {

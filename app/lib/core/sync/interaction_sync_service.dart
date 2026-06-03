@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:rural_tourism_app/core/utils/backend_config.dart';
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/core/data/local_data_service.dart';
 import 'package:rural_tourism_app/features/recommendations/data/services/recommendation_api_service.dart';
 
@@ -9,7 +9,7 @@ class InteractionSyncService {
     RecommendationApiService? apiService,
     LocalDataService? localDataService,
   })  : _apiService =
-            apiService ?? RecommendationApiService(baseUrl: backendBaseUrl),
+            apiService ?? RecommendationApiService(baseUrl: AppConfig.baseUrl),
         _localDataService = localDataService ?? LocalDataService.instance;
 
   static final InteractionSyncService instance = InteractionSyncService();

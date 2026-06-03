@@ -2,9 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/core/media/local_destination_image_service.dart';
 import 'package:rural_tourism_app/core/media/wiki_image_service.dart';
-import 'package:rural_tourism_app/core/utils/backend_config.dart';
 
 class DestinationImage extends StatefulWidget {
   final String destinationName;
@@ -137,7 +137,7 @@ class _DestinationImageState extends State<DestinationImage> {
     final url = await WikiImageService.getImageUrl(
       placeName: widget.destinationName,
       category: widget.category,
-      backendBaseUrl: backendBaseUrl,
+      baseUrl: AppConfig.baseUrl,
     );
 
     if (!mounted || requestId != _requestId) return;

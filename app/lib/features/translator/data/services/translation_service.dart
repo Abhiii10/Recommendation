@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:rural_tourism_app/config/app_config.dart';
 import 'package:rural_tourism_app/core/utils/backend_config.dart';
 import 'package:rural_tourism_app/features/translator/data/services/language_detector.dart';
 import 'package:rural_tourism_app/features/translator/data/services/roman_nepali_converter.dart';
@@ -99,8 +102,6 @@ class TourismPhrasebookEntry {
 }
 
 class TranslationService {
-  static const _failureMessage =
-      'Translation unavailable offline. Please check your connection.';
   static const _onlineTimeout = Duration(seconds: 10);
   static const _myMemoryDailyLimit = 5000;
   static const _myMemoryWarningLimit = 4500;
@@ -171,6 +172,8 @@ class TranslationService {
     'wifi': 'वाइफाइ',
     'charger': 'चार्जर',
     'phone': 'फोन',
+    'project': 'प्रोजेक्ट',
+    'my project': 'मेरो प्रोजेक्ट',
     'price': 'मूल्य',
     'discount': 'छुट',
     'fever': 'ज्वरो',
@@ -375,7 +378,7 @@ class TranslationService {
 
   // Translation priority chain:
   // exact phrasebook -> fuzzy phrasebook -> offline slot templates
-  // -> Roman Nepali conversion -> MyMemory (>0.6)
+  // -> Roman Nepali conversion -> MyMemory
   // -> backend Claude fallback -> graceful failure
   Future<TranslationResult> translateText(
     String text,
@@ -394,34 +397,70 @@ class TranslationService {
 
     final detected = _languageDetector.detect(trimmed);
     final pair = _resolvePair(detected, direction);
+    _log(
+      'start input="${_debugPreview(trimmed)}" direction=${direction.name} '
+      'allowOnline=$allowOnline detected=${detected.languageCode} '
+      'roman=${detected.isRomanNepali} pair=${pair.sourceLang}->${pair.targetLang}',
+    );
 
     final exact = _matchPhrasebook(trimmed, pair, exactOnly: true);
-    if (exact != null) return exact;
+    if (exact != null) {
+      _logResult('exact phrasebook', exact);
+      return exact;
+    }
+    _log('exact phrasebook -> no match');
 
     final fuzzy = _matchPhrasebook(trimmed, pair);
-    if (fuzzy != null && fuzzy.confidence > 0.80) return fuzzy;
+    if (fuzzy != null && fuzzy.confidence > 0.80) {
+      _logResult('fuzzy phrasebook', fuzzy);
+      return fuzzy;
+    }
+    if (fuzzy == null) {
+      _log('fuzzy phrasebook -> no match');
+    } else {
+      _logResult(
+        'fuzzy phrasebook',
+        fuzzy,
+        fallthrough: 'confidence <= 0.80',
+      );
+    }
 
     final template = _tryOfflineTemplate(trimmed, pair, detected.isRomanNepali);
-    if (template != null) return template;
+    if (template != null) {
+      _logResult('offline template', template);
+      return template;
+    }
+    _log('offline template -> no match');
 
     if (detected.isRomanNepali) {
       final devanagari = _romanConverter.convert(trimmed);
+      _log('roman nepali conversion -> "${_debugPreview(devanagari)}"');
       final romanMatch = _matchPhrasebook(
         devanagari,
         pair,
         romanDetected: true,
       );
       if (romanMatch != null && romanMatch.confidence > 0.80) {
+        _logResult('roman phrasebook', romanMatch);
         return romanMatch;
+      }
+      if (romanMatch == null) {
+        _log('roman phrasebook -> no match');
+      } else {
+        _logResult(
+          'roman phrasebook',
+          romanMatch,
+          fallthrough: 'confidence <= 0.80',
+        );
       }
     }
 
     if (!allowOnline) {
-      return _failure(
+      final result = _backendOfflineFailure(
         detectedSourceLang: pair.sourceLang,
-        message:
-            'No offline translation match found. Check your connection to use online translation.',
       );
+      _logResult('failure', result, fallthrough: 'online disabled');
+      return result;
     }
 
     final onlineInput =
@@ -431,7 +470,15 @@ class TranslationService {
       pair,
       romanDetected: detected.isRomanNepali,
     );
-    if (online != null && online.confidence > 0.60) return online;
+    if (online != null && online.source == TranslationSource.online) {
+      _logResult('MyMemory', online);
+      return online;
+    }
+    if (online == null) {
+      _log('MyMemory -> no usable translation');
+    } else {
+      _logResult('MyMemory', online, fallthrough: 'warning only');
+    }
 
     final backend = await _tryClaudeBackend(
       trimmed,
@@ -439,12 +486,22 @@ class TranslationService {
       pair,
       romanDetected: detected.isRomanNepali,
     );
-    if (backend != null) return backend;
+    if (backend != null) {
+      _logResult('backend', backend);
+      return backend;
+    }
 
-    return _failure(
-      detectedSourceLang: pair.sourceLang,
-      warningMessage: online?.warningMessage,
-    );
+    final result = BackendConfig.health.value?.reachable == false
+        ? _backendOfflineFailure(
+            detectedSourceLang: pair.sourceLang,
+            warningMessage: online?.warningMessage,
+          )
+        : _allMethodsFailed(
+            detectedSourceLang: pair.sourceLang,
+            warningMessage: online?.warningMessage,
+          );
+    _logResult('failure', result);
+    return result;
   }
 
   _LanguagePair _resolvePair(
@@ -629,6 +686,24 @@ class TranslationService {
       );
     }
 
+    final currentlyDoing = _firstCapture(
+      input,
+      RegExp(
+        r"^(?:i am currently doing|i'm currently doing)\s+(.+)$",
+        caseSensitive: false,
+      ),
+    );
+    if (currentlyDoing != null) {
+      final thing = _toNepaliNounOrPlace(currentlyDoing);
+      return _templateResult(
+        'म हाल $thing गर्दैछु।',
+        pair,
+        romanized: 'Ma haal ${_cleanSlot(currentlyDoing)} gardai chu.',
+        romanDetected: romanDetected,
+        category: 'communication',
+      );
+    }
+
     final needThing = _firstCapture(
       input,
       RegExp(
@@ -765,6 +840,41 @@ class TranslationService {
   ) {
     final normalized = _normalize(input);
     final templates = <String, ({String ne, String roman, String category})>{
+      'hi': (ne: 'नमस्ते', roman: 'Namaste', category: 'greetings'),
+      'hello there': (
+        ne: 'नमस्ते',
+        roman: 'Namaste',
+        category: 'greetings',
+      ),
+      'hey': (ne: 'नमस्ते', roman: 'Namaste', category: 'greetings'),
+      'bye': (ne: 'बिदाइ', roman: 'Bidai', category: 'greetings'),
+      'goodbye': (ne: 'बिदाइ', roman: 'Bidai', category: 'greetings'),
+      'see you': (ne: 'बिदाइ', roman: 'Bidai', category: 'greetings'),
+      'ok': (ne: 'ठिक छ', roman: 'Thik cha', category: 'communication'),
+      'okay': (ne: 'ठिक छ', roman: 'Thik cha', category: 'communication'),
+      'alright': (
+        ne: 'ठिक छ',
+        roman: 'Thik cha',
+        category: 'communication',
+      ),
+      'yes': (ne: 'हो', roman: 'Ho', category: 'communication'),
+      'no': (ne: 'होइन', roman: 'Hoina', category: 'communication'),
+      'maybe': (ne: 'सायद', roman: 'Sayad', category: 'communication'),
+      'sorry': (
+        ne: 'माफ गर्नुहोस्',
+        roman: 'Maaf garnuhos',
+        category: 'communication',
+      ),
+      'i am sorry': (
+        ne: 'माफ गर्नुहोस्',
+        roman: 'Maaf garnuhos',
+        category: 'communication',
+      ),
+      'thank you very much': (
+        ne: 'धेरै धन्यवाद',
+        roman: 'Dherai dhanyabad',
+        category: 'greetings',
+      ),
       'i am hungry': (
         ne: 'मलाई भोक लाग्यो।',
         roman: 'Malai bhok lagyo.',
@@ -1188,15 +1298,13 @@ class TranslationService {
     _LanguagePair pair, {
     required bool romanDetected,
   }) async {
+    _log('MyMemory -> request "${_debugPreview(input)}"');
     final quota = await _reserveMyMemoryWords(input);
     if (!quota.allowed) {
-      return TranslationResult(
-        translatedText: _failureMessage,
-        detectedSourceLang: pair.sourceLang,
-        confidence: 0,
-        source: TranslationSource.fallback,
-        isOffline: false,
-        warningMessage: quota.warning,
+      _log('MyMemory -> quota exceeded');
+      return _onlineFailureNotice(
+        pair,
+        'Daily limit reached. Try again tomorrow.',
       );
     }
 
@@ -1210,31 +1318,74 @@ class TranslationService {
         },
       );
       final response = await _client.get(uri).timeout(_onlineTimeout);
-      if (response.statusCode != 200) return null;
+      _log('MyMemory -> status ${response.statusCode}');
+      if (response.statusCode == 429) {
+        return _onlineFailureNotice(
+          pair,
+          'Daily limit reached. Try again tomorrow.',
+        );
+      }
+      if (response.statusCode != 200) {
+        _log('MyMemory -> ignored non-200 response');
+        return null;
+      }
 
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final data = decoded['responseData'] as Map<String, dynamic>?;
       final translated = data?['translatedText']?.toString().trim() ?? '';
-      if (translated.isEmpty ||
-          translated.startsWith('MYMEMORY WARNING') ||
-          _normalize(translated) == _normalize(input)) {
+      final translatedLower = translated.toLowerCase();
+      if (translatedLower.startsWith('mymemory warning')) {
+        final warning = translatedLower.contains('limit') ||
+                translatedLower.contains('quota') ||
+                translatedLower.contains('daily')
+            ? 'Daily limit reached. Try again tomorrow.'
+            : 'No internet connection for online translation.';
+        _log('MyMemory -> warning response: ${_debugPreview(translated)}');
+        return _onlineFailureNotice(pair, warning);
+      }
+      if (translated.isEmpty || _normalize(translated) == _normalize(input)) {
+        _log('MyMemory -> empty or unchanged translation');
         return null;
       }
 
       final confidence = _parseMatch(data?['match']);
+      final displayedConfidence = _displayConfidence(
+        confidence,
+        romanDetected: romanDetected,
+      );
+      final lowConfidenceWarning = confidence < 0.4
+          ? 'Low confidence online translation. Please verify before using.'
+          : null;
+      _log(
+        'MyMemory -> translated confidence=$displayedConfidence '
+        'raw=$confidence warning=${lowConfidenceWarning ?? quota.warning ?? 'none'}',
+      );
       return TranslationResult(
         translatedText: translated,
         detectedSourceLang: pair.sourceLang,
-        confidence: _displayConfidence(
-          confidence,
-          romanDetected: romanDetected,
-        ),
+        confidence: displayedConfidence,
         source: TranslationSource.online,
         isOffline: false,
-        warningMessage: quota.warning,
+        warningMessage: lowConfidenceWarning ?? quota.warning,
       );
-    } catch (_) {
-      return null;
+    } on TimeoutException catch (error) {
+      _log('MyMemory -> timeout: $error');
+      return _onlineFailureNotice(
+        pair,
+        'No internet connection for online translation.',
+      );
+    } on http.ClientException catch (error) {
+      _log('MyMemory -> network error: $error');
+      return _onlineFailureNotice(
+        pair,
+        'No internet connection for online translation.',
+      );
+    } catch (error) {
+      _log('MyMemory -> failed: $error');
+      return _onlineFailureNotice(
+        pair,
+        'No internet connection for online translation.',
+      );
     }
   }
 
@@ -1245,10 +1396,12 @@ class TranslationService {
     required bool romanDetected,
   }) async {
     if (BackendConfig.health.value?.reachable == false) {
+      _log('backend -> skipped because health is unreachable');
       return null;
     }
 
     try {
+      _log('backend -> POST ${BackendConfig.uri('/translate')}');
       final response = await _client
           .post(
             BackendConfig.uri('/translate'),
@@ -1261,10 +1414,14 @@ class TranslationService {
           )
           .timeout(_onlineTimeout);
 
+      _log('backend -> status ${response.statusCode}');
       if (response.statusCode != 200) return null;
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final translated = decoded['translated']?.toString().trim() ?? '';
-      if (translated.isEmpty) return null;
+      if (translated.isEmpty) {
+        _log('backend -> empty translation');
+        return null;
+      }
 
       return TranslationResult(
         translatedText: translated,
@@ -1277,7 +1434,8 @@ class TranslationService {
         isOffline: false,
         romanized: decoded['roman']?.toString(),
       );
-    } catch (_) {
+    } catch (error) {
+      _log('backend -> failed: $error');
       return null;
     }
   }
@@ -1296,7 +1454,7 @@ class TranslationService {
     if (next > _myMemoryDailyLimit) {
       return const _QuotaReservation(
         allowed: false,
-        warning: 'MyMemory daily free limit reached. Try again tomorrow.',
+        warning: 'Daily limit reached. Try again tomorrow.',
       );
     }
 
@@ -1335,9 +1493,46 @@ class TranslationService {
     return pair.targetLang == 'ne-NP' ? entry.nepali : entry.english;
   }
 
+  TranslationResult _backendOfflineFailure({
+    required String detectedSourceLang,
+    String? warningMessage,
+  }) {
+    return _failure(
+      detectedSourceLang: detectedSourceLang,
+      message:
+          'No match found offline. Start the backend at ${AppConfig.baseUrl} for full translation.',
+      warningMessage: warningMessage,
+    );
+  }
+
+  TranslationResult _allMethodsFailed({
+    required String detectedSourceLang,
+    String? warningMessage,
+  }) {
+    return _failure(
+      detectedSourceLang: detectedSourceLang,
+      message: 'Could not translate. Try a simpler or common tourism phrase.',
+      warningMessage: warningMessage,
+    );
+  }
+
+  TranslationResult _onlineFailureNotice(
+    _LanguagePair pair,
+    String message,
+  ) {
+    return TranslationResult(
+      translatedText: message,
+      detectedSourceLang: pair.sourceLang,
+      confidence: 0,
+      source: TranslationSource.fallback,
+      isOffline: false,
+      warningMessage: message,
+    );
+  }
+
   TranslationResult _failure({
     required String detectedSourceLang,
-    String message = _failureMessage,
+    required String message,
     String? warningMessage,
   }) {
     return TranslationResult(
@@ -1348,6 +1543,32 @@ class TranslationService {
       isOffline: false,
       warningMessage: warningMessage,
     );
+  }
+
+  void _log(String message) {
+    if (kDebugMode) {
+      debugPrint('TranslationService: $message');
+    }
+  }
+
+  void _logResult(
+    String step,
+    TranslationResult result, {
+    String? fallthrough,
+  }) {
+    final suffix = fallthrough == null ? '' : ' -> $fallthrough';
+    _log(
+      '$step -> source=${result.source.name} offline=${result.isOffline} '
+      'confidence=${result.confidence.toStringAsFixed(2)} '
+      'text="${_debugPreview(result.translatedText)}"'
+      '${result.warningMessage == null ? '' : ' warning="${result.warningMessage}"'}'
+      '$suffix',
+    );
+  }
+
+  String _debugPreview(String value) {
+    final compact = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+    return compact.length <= 80 ? compact : '${compact.substring(0, 77)}...';
   }
 
   String _normalize(String text) {

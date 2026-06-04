@@ -76,6 +76,10 @@ class TourismPhrasebookEntry {
         .map((item) => item.toString().trim())
         .where((item) => item.isNotEmpty)
         .toList();
+    final aliases = (json['aliases'] as List? ?? const [])
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
 
     return TourismPhrasebookEntry(
       id: json['id']?.toString() ?? '',
@@ -84,7 +88,10 @@ class TourismPhrasebookEntry {
       romanNepali: (romanNepali != null && romanNepali.isNotEmpty)
           ? romanNepali
           : (romanized.isEmpty ? '' : romanized.first),
-      aliases: romanized,
+      aliases: [
+        ...aliases,
+        ...romanized,
+      ],
       category: _normalizeCategory(json['category']?.toString() ?? 'general'),
       context: json['context']?.toString() ?? 'tourism',
       urgent: json['urgent'] == true,
@@ -102,6 +109,8 @@ class TourismPhrasebookEntry {
 }
 
 class TranslationService {
+  static const _phrasebookFuzzyThreshold = 0.70;
+  static const _phrasebookLowConfidenceThreshold = 0.80;
   static const _onlineTimeout = Duration(seconds: 10);
   static const _myMemoryDailyLimit = 5000;
   static const _myMemoryWarningLimit = 4500;
@@ -352,6 +361,8 @@ class TranslationService {
   bool _initialized = false;
   List<TourismPhrasebookEntry> _phrasebook = [];
   List<_DestinationTerm> _destinationTerms = [];
+  List<_TranslationTemplate> _translationTemplates = [];
+  Map<String, String> _romanDictionary = const {};
 
   TranslationService({
     http.Client? client,
@@ -372,6 +383,8 @@ class TranslationService {
       _romanDetector.load(),
       _loadPhrasebook(),
       _loadDestinationTerms(),
+      _loadTranslationTemplates(),
+      _loadRomanDictionary(),
     ]);
     _initialized = true;
   }
@@ -411,19 +424,11 @@ class TranslationService {
     _log('exact phrasebook -> no match');
 
     final fuzzy = _matchPhrasebook(trimmed, pair);
-    if (fuzzy != null && fuzzy.confidence > 0.80) {
+    if (fuzzy != null) {
       _logResult('fuzzy phrasebook', fuzzy);
       return fuzzy;
     }
-    if (fuzzy == null) {
-      _log('fuzzy phrasebook -> no match');
-    } else {
-      _logResult(
-        'fuzzy phrasebook',
-        fuzzy,
-        fallthrough: 'confidence <= 0.80',
-      );
-    }
+    _log('fuzzy phrasebook -> no match');
 
     final template = _tryOfflineTemplate(trimmed, pair, detected.isRomanNepali);
     if (template != null) {
@@ -433,26 +438,18 @@ class TranslationService {
     _log('offline template -> no match');
 
     if (detected.isRomanNepali) {
-      final devanagari = _romanConverter.convert(trimmed);
+      final devanagari = _convertRomanNepali(trimmed);
       _log('roman nepali conversion -> "${_debugPreview(devanagari)}"');
       final romanMatch = _matchPhrasebook(
         devanagari,
         pair,
         romanDetected: true,
       );
-      if (romanMatch != null && romanMatch.confidence > 0.80) {
+      if (romanMatch != null) {
         _logResult('roman phrasebook', romanMatch);
         return romanMatch;
       }
-      if (romanMatch == null) {
-        _log('roman phrasebook -> no match');
-      } else {
-        _logResult(
-          'roman phrasebook',
-          romanMatch,
-          fallthrough: 'confidence <= 0.80',
-        );
-      }
+      _log('roman phrasebook -> no match');
     }
 
     if (!allowOnline) {
@@ -464,7 +461,7 @@ class TranslationService {
     }
 
     final onlineInput =
-        detected.isRomanNepali ? _romanConverter.convert(trimmed) : trimmed;
+        detected.isRomanNepali ? _convertRomanNepali(trimmed) : trimmed;
     final online = await _tryMyMemory(
       onlineInput,
       pair,
@@ -542,7 +539,7 @@ class TranslationService {
     final best = scored.first;
     final exact = best.score >= 0.999;
     if (exactOnly && !exact) return null;
-    if (!exactOnly && best.score <= 0.80) return null;
+    if (!exactOnly && best.score < _phrasebookFuzzyThreshold) return null;
 
     return TranslationResult(
       translatedText: _outputFor(best.entry, pair),
@@ -557,6 +554,9 @@ class TranslationService {
       romanized: pair.targetLang == 'ne-NP' ? best.entry.romanNepali : null,
       matchedEnglish: best.entry.english,
       matchedCategory: best.entry.category,
+      warningMessage: !exact && best.score < _phrasebookLowConfidenceThreshold
+          ? 'Low confidence offline phrasebook match. Please verify before using.'
+          : null,
     );
   }
 
@@ -567,7 +567,7 @@ class TranslationService {
   ) {
     final inputNorm = _normalize(input);
     final candidates = pair.sourceLang == 'en-US'
-        ? [entry.english]
+        ? [entry.english, ...entry.aliases]
         : [entry.nepali, entry.romanNepali, ...entry.aliases];
 
     var best = 0.0;
@@ -829,6 +829,9 @@ class TranslationService {
         category: 'tourism',
       );
     }
+
+    final assetTemplate = _matchAssetTemplate(input, pair, romanDetected);
+    if (assetTemplate != null) return assetTemplate;
 
     return null;
   }
@@ -1110,7 +1113,74 @@ class TranslationService {
       );
     }
 
+    final assetTemplate = _matchAssetTemplate(input, pair, romanDetected);
+    if (assetTemplate != null) return assetTemplate;
+
     return null;
+  }
+
+  TranslationResult? _matchAssetTemplate(
+    String input,
+    _LanguagePair pair,
+    bool romanDetected,
+  ) {
+    final toNepali = pair.targetLang == 'ne-NP';
+    for (final template in _translationTemplates) {
+      final sourcePattern = toNepali ? template.patternEn : template.patternNe;
+      final targetPattern = toNepali ? template.patternNe : template.patternEn;
+      if (sourcePattern.isEmpty || targetPattern.isEmpty) continue;
+
+      final slots = _matchTemplatePattern(sourcePattern, input, template.slots);
+      if (slots == null) continue;
+
+      var translated = targetPattern;
+      var romanized = targetPattern;
+      for (final entry in slots.entries) {
+        final value = toNepali
+            ? _toNepaliNounOrPlace(entry.value)
+            : _toEnglishPhrase(entry.value);
+        translated = translated.replaceAll('{${entry.key}}', value);
+        romanized = romanized.replaceAll('{${entry.key}}', entry.value);
+      }
+
+      return _templateResult(
+        translated,
+        pair,
+        romanized: toNepali ? romanized : null,
+        romanDetected: romanDetected,
+        category: template.category,
+      );
+    }
+    return null;
+  }
+
+  Map<String, String>? _matchTemplatePattern(
+    String pattern,
+    String input,
+    List<String> slots,
+  ) {
+    var markerPattern = pattern;
+    for (var i = 0; i < slots.length; i++) {
+      markerPattern = markerPattern.replaceAll('{${slots[i]}}', 'slot$i');
+    }
+
+    var regexPattern = RegExp.escape(_normalize(markerPattern));
+    for (var i = 0; i < slots.length; i++) {
+      regexPattern = regexPattern.replaceAll('slot$i', '(.+?)');
+    }
+
+    final normalizedInput = _normalize(input);
+    final match = RegExp(
+      '^$regexPattern\\??\$',
+      caseSensitive: false,
+    ).firstMatch(normalizedInput);
+    if (match == null) return null;
+
+    final values = <String, String>{};
+    for (var i = 0; i < slots.length; i++) {
+      values[slots[i]] = _cleanSlot(match.group(i + 1) ?? '');
+    }
+    return values;
   }
 
   TranslationResult? _nepaliStaticTemplate(
@@ -1167,6 +1237,18 @@ class TranslationService {
       ),
       'म शाकाहारी हुँ': (en: 'I am vegetarian.', category: 'food'),
       'ma shakahari hu': (en: 'I am vegetarian.', category: 'food'),
+      'tapai kasari hunuhuncha': (
+        en: 'How are you?',
+        category: 'communication',
+      ),
+      'tapai kasto hunuhuncha': (
+        en: 'How are you?',
+        category: 'communication',
+      ),
+      'sanchai hunuhuncha': (
+        en: 'How are you?',
+        category: 'communication',
+      ),
     };
 
     final template = templates[normalized];
@@ -1223,6 +1305,7 @@ class TranslationService {
       final key = _normalize(token);
       return _nepaliNouns[key] ??
           _properNounTransliterations[key] ??
+          _romanDictionary[key] ??
           RomanNepaliConverter.wordMap[key] ??
           token;
     }).join(' ');
@@ -1241,6 +1324,7 @@ class TranslationService {
     final converted = cleaned.split(RegExp(r'\s+')).map((token) {
       final key = _normalize(token);
       return _properNounTransliterations[key] ??
+          _romanDictionary[key] ??
           RomanNepaliConverter.wordMap[key] ??
           token;
     }).join(' ');
@@ -1272,6 +1356,21 @@ class TranslationService {
               : token[0].toUpperCase() + token.substring(1),
         )
         .join(' ');
+  }
+
+  String _convertRomanNepali(String text) {
+    if (text.trim().isEmpty) return text;
+
+    return text.replaceAllMapped(
+      RegExp(r"[A-Za-z']+|[^A-Za-z']+"),
+      (match) {
+        final token = match.group(0) ?? '';
+        final normalized = token.toLowerCase().replaceAll("'", '');
+        return _romanDictionary[normalized] ??
+            RomanNepaliConverter.wordMap[normalized] ??
+            _romanConverter.convert(token);
+      },
+    );
   }
 
   double _similarity(String a, String b) {
@@ -1633,6 +1732,77 @@ class TranslationService {
     } catch (_) {}
   }
 
+  Future<void> _loadTranslationTemplates() async {
+    final loaded = <_TranslationTemplate>[
+      ..._supplementalTemplates,
+    ];
+
+    try {
+      final raw = await rootBundle.loadString(
+        'assets/data/intelligence/translation_templates.json',
+      );
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final items = decoded['templates'] as List? ?? const [];
+      loaded.addAll(
+        items.whereType<Map>().map(
+              (item) => _TranslationTemplate.fromJson(
+                Map<String, dynamic>.from(item),
+              ),
+            ),
+      );
+    } catch (error) {
+      _log('translation templates asset failed -> $error');
+    }
+
+    final byId = <String, _TranslationTemplate>{};
+    for (final template in loaded) {
+      if (template.patternEn.isEmpty || template.patternNe.isEmpty) continue;
+      byId.putIfAbsent(template.id, () => template);
+    }
+    _translationTemplates = byId.values.toList(growable: false);
+  }
+
+  Future<void> _loadRomanDictionary() async {
+    try {
+      final raw = await rootBundle.loadString(
+        'assets/data/intelligence/romanized_dictionary.json',
+      );
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final mappings = decoded['mappings'] as Map? ?? const {};
+      _romanDictionary = {
+        for (final entry in mappings.entries)
+          _normalize(entry.key.toString()): entry.value.toString(),
+      }..remove('');
+    } catch (error) {
+      _romanDictionary = const {};
+      _log('roman dictionary asset failed -> $error');
+    }
+  }
+
+  static const List<_TranslationTemplate> _supplementalTemplates = [
+    _TranslationTemplate(
+      id: 'supp_is_there_place_nearby',
+      patternEn: 'is there a {place} nearby',
+      patternNe: 'नजिकै {place} छ?',
+      slots: ['place'],
+      category: 'general',
+    ),
+    _TranslationTemplate(
+      id: 'supp_is_there_place',
+      patternEn: 'is there a {place}',
+      patternNe: '{place} छ?',
+      slots: ['place'],
+      category: 'general',
+    ),
+    _TranslationTemplate(
+      id: 'supp_how_do_i_get_to_place',
+      patternEn: 'how do i get to {place}',
+      patternNe: '{place} कसरी पुग्ने?',
+      slots: ['place'],
+      category: 'directions',
+    ),
+  ];
+
   Future<void> _loadDestinationTerms() async {
     try {
       final raw = await rootBundle.loadString('assets/data/destinations.json');
@@ -1755,6 +1925,34 @@ class _PhraseScore {
   final double score;
 
   const _PhraseScore(this.entry, this.score);
+}
+
+class _TranslationTemplate {
+  final String id;
+  final String patternEn;
+  final String patternNe;
+  final List<String> slots;
+  final String category;
+
+  const _TranslationTemplate({
+    required this.id,
+    required this.patternEn,
+    required this.patternNe,
+    required this.slots,
+    required this.category,
+  });
+
+  factory _TranslationTemplate.fromJson(Map<String, dynamic> json) {
+    return _TranslationTemplate(
+      id: json['id']?.toString() ?? '',
+      patternEn: json['pattern_en']?.toString() ?? '',
+      patternNe: json['pattern_ne']?.toString() ?? '',
+      slots: (json['slots'] as List? ?? const [])
+          .map((item) => item.toString())
+          .toList(),
+      category: json['category']?.toString() ?? 'general',
+    );
+  }
 }
 
 class _QuotaReservation {

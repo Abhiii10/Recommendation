@@ -1,0 +1,1697 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\emergencystretch}{3em}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+\usepackage{csquotes}
+\usepackage[backend=biber, style=authoryear, natbib=true]{biblatex}
+\addbibresource{references.bib}
+\usepackage{cleveref}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,decorations.pathreplacing,fit,matrix,backgrounds,mindmap}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{algorithm2e}
+\usepackage{appendix}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  columns=fullflexible,
+  frame=single,
+  keepspaces=true,
+  showstringspaces=false
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\chead{\textit{Paila Nepal: AI-Driven Offline-First Tourism Mobile Application}}
+\rfoot{\thepage}
+\setlength{\headheight}{15pt}
+
+\title{\textbf{Paila Nepal:\\An Offline-First Rural Tourism Mobile Application\\for Gandaki Province, Nepal}\\[1.2cm]\large Individual Honours Project Report}
+\author{Abhishek Paudel \\ Student ID: 23140737 \\[0.8cm] BSc (Hons) Computer and Data Science \\ Birmingham City University \\[0.8cm] Module: CMP6200 \\ Supervisor: Sumanta Silwal \\ Word Count: 8,000}
+\date{May 2026}
+
+\begin{document}
+
+\pagenumbering{roman}
+\hypersetup{pageanchor=false}
+\maketitle
+\hypersetup{pageanchor=true}
+
+\newpage
+\chapter*{Abstract}
+
+Paila Nepal is an offline-first rural tourism mobile application designed to provide destination discovery, map access, route guidance, and personalized recommendations for travelers exploring Gandaki Province, Nepal, particularly in regions with limited or unstable internet connectivity. The application addresses a critical gap in existing tourism platforms: most popular map and travel applications rely on continuous internet access and are optimised for well-known commercial destinations, leaving rural tourism locations with inadequate digital representation.
+
+This project implements a Flutter-based Android application supported by a FastAPI backend, bundling 300 curated Gandaki Province destinations, 771 accommodation records, local photographs, descriptions, structured attributes, and precomputed semantic embeddings. The final recommendation architecture combines SBERT semantic retrieval, collaborative and popularity signals, contextual reranking, machine-learning rescoring, cold-start handling, diversity control, and explanation generation. The mobile application preserves recommendation capability offline using local embeddings and contextual scoring. Local persistence uses SQLite for saved destinations and reviews, Hive for recommendation caches, preferences, and queued interactions, and SharedPreferences for lightweight settings. A bundled MBTiles package provides offline map display. The chatbot combines local language processing, hybrid intent classification, retrieval-augmented response generation, emergency detection, dialogue memory, translation support, and optional online language-model enhancement.
+
+Evaluation used five tourism recommendation scenarios and the ranking metrics Precision@10, Recall@10, normalised Discounted Cumulative Gain at 10, and Mean Reciprocal Rank. The hybrid recommender achieved average Precision@10 of 0.6800, Recall@10 of 0.4408, nDCG@10 of 0.7543, and MRR of 1.0000. Current automated verification also shows that Flutter static analysis passes and nine backend tests pass. The full Flutter suite exposed one remaining widget-test lifecycle issue, while a focused performance test showed that warm offline translation exceeded its 500 ms target on the test machine. These findings support the viability of the architecture while identifying concrete limitations for further improvement.
+
+Paila Nepal demonstrates how offline-first mobile architecture, combined with curated rural tourism content, can improve information accessibility and travel safety for rural tourism in Nepal. The project achieves a balance between comprehensive feature richness and practical offline reliability, contributing to both academic understanding of offline-first design patterns and practical tools for rural tourism promotion.
+
+\textbf{Keywords:} rural tourism, Flutter, offline-first architecture, Gandaki Province, MBTiles, OSRM routing, SQLite, recommendation systems, chatbot, OpenStreetMap, mobile application design.
+
+\newpage
+\chapter*{Acknowledgements}
+
+I would like to express my sincere gratitude to Sumanta Silwal, my supervisor at Birmingham City University, for his guidance, constructive feedback, and encouragement throughout this project. His insights on system design, offline-first architecture, and mobile application development have been invaluable.
+
+I am grateful to the Faculty of Computing, Engineering and the Built Environment at Birmingham City University for providing a rigorous academic environment and access to resources necessary for this work. The course CMP6200: Individual Honours Project has allowed me to integrate knowledge from multiple domains---software engineering, data structures, mobile development, and tourism informatics---into one cohesive system.
+
+I acknowledge the open-source community for the technologies that made this project possible: Flutter, FastAPI, OpenStreetMap, OSRM, SQLite, and MBTiles. These tools embody principles of openness and accessibility that align with the goals of rural tourism development.
+
+Finally, I dedicate this work to the communities and destinations of Gandaki Province, Nepal, whose tourism potential I hope this application helps to advance.
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+
+\chapter*{Abbreviations}
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Abbreviation} & \textbf{Meaning} \\
+\midrule
+API & Application Programming Interface \\
+APK & Android Package \\
+CRUD & Create, Read, Update, Delete \\
+GPS & Global Positioning System \\
+HTTP & Hypertext Transfer Protocol \\
+IDE & Integrated Development Environment \\
+JSON & JavaScript Object Notation \\
+MBTiles & Map Box Tiles \\
+FAISS & Facebook AI Similarity Search \\
+Hive & Local key-value database used by the Flutter application \\
+MRR & Mean Reciprocal Rank \\
+nDCG & Normalised Discounted Cumulative Gain \\
+NLP & Natural Language Processing \\
+OSRM & Open Source Routing Machine \\
+RAG & Retrieval-Augmented Generation \\
+SBERT & Sentence-BERT \\
+SQLite & Structured Query Language Lite \\
+UI & User Interface \\
+UX & User Experience \\
+WebP & Efficient modern image format \\
+XYZ & Tile coordinate system (tile.openstreetmap.org/{z}/{x}/{y}) \\
+TMS & Tile Map Service \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+\clearpage
+\pagenumbering{arabic}
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Background and Motivation}
+\label{sec:background}
+
+Tourism is an important economic and cultural sector in Nepal, generating employment, foreign exchange, and opportunities for regional development \parencite{NepalTourism2023}. Gandaki Province contains Pokhara, a major tourism gateway, alongside rural villages, mountains, lakes, trekking routes, cultural settlements, and pilgrimage sites. Yet digital coverage is concentrated on Pokhara and famous routes, while many rural destinations remain poorly represented.
+
+This information gap is intensified by unreliable connectivity. Travelers moving through rural Gandaki frequently encounter weak mobile data, high bandwidth costs, power disruption, and inconsistent internet access at accommodation. Most mainstream tourism platforms assume a continuous connection: they download content on demand, stream images, and request live routes. When the network fails, maps, descriptions, accommodation details, recommendations, and assistance can disappear together.
+
+Paila Nepal is motivated by the principle that rural travel support should remain useful without continuous internet access. It therefore treats locally stored information and computation as the operational foundation, using the network to enhance results when available. This is the central idea of offline-first design.
+
+\section{Problem Statement}
+\label{sec:problem}
+
+Rural travelers in Gandaki Province face three connected problems. First, geographic context and navigation can disappear when map tiles and live route requests fail. Second, many destinations lack structured information about activities, accessibility, budgets, seasons, culture, family suitability, adventure level, and nearby accommodation. Third, general-purpose maps, booking platforms, and review aggregators do not prioritise Gandaki's villages, homestays, viewpoints, or low-connectivity travel conditions. These weaknesses create uncertainty for travelers and reduce the visibility and potential economic benefit of rural destinations.
+
+The core problem addressed by this project can be stated as follows:
+
+\begin{center}
+\textit{How can a mobile application provide offline-capable destination discovery, map access, route guidance, personalized recommendations, and tourism assistance for Gandaki Province rural tourism, particularly in contexts where internet connectivity is unreliable or unavailable?}
+\end{center}
+
+Addressing the problem requires more than cached maps. It requires bundled destination data and media, local map tiles, route caching and fallback computation, local tourism intelligence, persistent storage, meaningful destination attributes, and optional online enhancement.
+
+\section{Project Aim and Objectives}
+\label{sec:objectives}
+
+The primary aim of this project is to design and implement a Flutter-based Android mobile application that provides offline-first rural tourism support for Gandaki Province, demonstrating how offline-first architecture can enhance digital accessibility in low-connectivity tourism contexts.
+
+The specific objectives are:
+
+\begin{enumerate}
+\item To build a fully offline-capable Flutter mobile application for Android that launches, displays destination data, supports map exploration, provides route guidance, and answers tourism queries without requiring internet connectivity.
+
+\item To curate and integrate a structured dataset of 300 rural tourism destinations in Gandaki Province, including geographic coordinates, categories, activities, seasonality, budget levels, accessibility ratings, family-friendliness indicators, adventure levels, cultural attributes, nature attributes, descriptions, tags, and image references.
+
+\item To bundle local destination photographs using optimised WebP compression (approximately 300 images), allowing destination cards, list views, and detail screens to display rich visual content offline.
+
+\item To integrate a local MBTiles raster map package focused on Gandaki Province (zoom levels 7--12), enabling users to browse Pokhara and surrounding rural areas without downloading tiles at runtime.
+
+\item To implement a three-tier routing architecture: (1) SQLite route cache for previously-requested routes, (2) online OSRM routing when internet is available, and (3) offline Haversine straight-line route computation as a fallback.
+
+\item To implement an offline-capable chatbot using local language processing, hybrid intent classification, knowledge retrieval, dialogue memory, emergency detection, structured response generation, and optional online LLM enhancement.
+
+\item To provide explainable personalized destination recommendations using semantic embeddings, contextual matching, cold-start handling, diversity filtering, interaction-derived collaborative signals, and machine-learning reranking.
+
+\item To support persistent user data including saved destinations, reviews, recommendation caches, queued interactions, and preferences through SQLite, Hive, and SharedPreferences.
+
+\item To integrate a FastAPI backend for online enhancements including AI chatbot responses, advanced recommendations, user authentication, and analytics, while preserving core local functionality.
+
+\item To evaluate the application through offline functionality testing, performance analysis, user experience assessment, and critical evaluation of design decisions and limitations.
+\end{enumerate}
+
+\section{Scope and Limitations}
+\label{sec:scope}
+
+The project focuses on Gandaki Province, particularly destinations accessible from Pokhara. Its 300 curated destination records provide meaningful coverage while remaining practical for offline distribution. The bundled raster map covers zoom levels 7--12; extending this to street-level detail across every village would make the application substantially larger.
+
+Routing uses OSRM for road-aware instructions when online, cached routes when available, and a Haversine approximation when disconnected. The fallback is useful for direction and distance estimation, but it is not offline turn-by-turn navigation. The local chatbot does not run an LLM on-device; instead, it combines multilingual text processing, hybrid intent classification, retrieval, dialogue state, safety rules, and templates, with optional cloud-model enhancement.
+
+The deployment target is Android. iOS testing and distribution are outside the present scope. Other limitations include best-available photographs that may be representative rather than exact, no real-time traffic or weather, incomplete community-contribution workflows, and no bundled road graph for fully offline navigation.
+
+\section{Report Structure}
+\label{sec:report_structure}
+
+The remaining chapters review relevant literature, present the architecture and implementation, evaluate the completed system, discuss technical challenges, and conclude with contributions, limitations, and future work.
+\chapter{Literature Review}
+\label{ch:literature}
+
+\section{Rural Tourism in Nepal and Gandaki Province}
+\label{sec:rural_tourism}
+
+Rural tourism links Nepal's landscapes and cultural heritage with community-based economic development. Unlike tourism concentrated in cities or famous routes, it can distribute spending to homestays, local guides, small guesthouses, craft producers, and agricultural communities. Gandaki Province is especially important because Pokhara provides a gateway to villages such as Ghandruk, Ghorepani, Bandipur, and Sikles, as well as trekking, lake, adventure, pilgrimage, and cultural experiences.
+
+Tourism can support livelihoods, infrastructure, conservation, and cultural preservation, but it can also create environmental pressure, dependency, and cultural commodification. Accessible and accurate information is therefore important: travelers need to understand routes, accommodation, seasons, activities, costs, culture, and safety before choosing lesser-known places. Many rural Gandaki destinations remain poorly described online, and their information often becomes inaccessible when connectivity fails.
+
+Paila Nepal treats rural destination information as core local content. Structured attributes, photographs, maps, and supporting knowledge remain available offline and can also support recommendation and conversational assistance.
+
+\section{Offline-First Mobile Application Architecture}
+\label{sec:offline_first}
+
+Offline-first architecture treats local data and computation as the operational foundation rather than treating disconnection as an exceptional error. The network becomes a channel for synchronisation, remote computation, fresh data, and improved results. Common patterns include reading local data first, applying local updates immediately, queueing remote operations, resolving conflicts after reconnection, communicating synchronisation state, and degrading unavailable services to useful local alternatives. SQLite suits durable relational records because it is embedded and serverless \parencite{SQLite2026}, while Flutter provides one mobile codebase with access to storage and mapping packages \parencite{Flutter2026}.
+
+Paila Nepal applies these patterns by bundling 300 destination records and local WebP images, storing raster maps in MBTiles, caching routes in SQLite, computing a Haversine fallback, running local tourism intelligence, and persisting saved places, reviews, preferences, and queued interactions. This combination allows the user interface and core local workflows to remain available while remote services are unreachable.
+
+MBTiles is central to the mapping strategy because it stores tiled map data in one SQLite-based container rather than thousands of separate files. This simplifies distribution, validation, and version management. The map derives from OpenStreetMap data \parencite{OpenStreetMap2026}, while OSRM supplies road-network routes when online \parencite{OSRM2026}. The project's \texttt{pokhara.mbtiles} file is approximately 7.79 MB and covers the focused area at several zoom levels.
+
+\section{Recommendation Systems in Tourism}
+\label{sec:recommendation_systems}
+
+Recommendation systems help users navigate large collections by suggesting items predicted to be relevant or interesting. In tourism contexts, recommender systems can suggest destinations, attractions, accommodations, activities, routes, or trip plans based on user preferences and contextual factors.
+
+Tourism recommendation is more complex than recommending generic products because travel decisions involve multiple interconnected dimensions: geographic distance, seasonality, budget, activity preferences, cultural interests, family composition, physical accessibility, adventure tolerance, weather conditions, and personal mood. A destination that is ideal for a solo trekker may be unsuitable for a family with young children. A destination attractive in autumn may be dangerous during monsoon. Budget-conscious tourists need different recommendations than luxury travelers.
+
+The first prototype of Paila Nepal used content-based filtering, in which destination attributes were compared directly with user preferences. This was appropriate during early development because content-based methods remain usable during cold start, when a newly installed application has no interaction history. However, a purely content-based design risks overspecialisation and cannot learn effectively from user behaviour. Recommender-system literature therefore identifies hybridisation as a practical way to combine the strengths of different signals while reducing their individual weaknesses \parencite{Adomavicius2005,Burke2002}.
+
+The destination dataset supports content-based filtering through category, activities, best season, budget, accessibility, adventure level, family suitability, cultural richness, nature score, tags, and descriptive text.
+
+A recommendation algorithm computes a match score between user preferences and each destination's attributes. For example, if a user indicates preferences for ``trekking in autumn with moderate budget and family-friendly options,'' the system can score destinations by measuring alignment with these criteria. High-scoring destinations are recommended first. Diversity constraints can ensure that recommendations include varied destination types rather than clustering on a single category.
+
+The final Paila Nepal recommender is hybrid. On the backend, a natural-language preference query is encoded using Sentence-BERT, which is designed to produce semantically meaningful sentence embeddings suitable for similarity comparison \parencite{Reimers2019}. Candidate destinations are retrieved through a normalised embedding index using FAISS when available and a NumPy dot-product fallback otherwise. Retrieval scores are then combined with structured activity and category signals. A collaborative component uses stored interactions when a user has sufficient history; popularity provides a limited cold-start prior. A contextual reranker evaluates season, budget, activity, vibe, accessibility, family suitability, adventure preference, and accommodation fit. Finally, a trained LightGBM LambdaRank model can rescore the candidates, while a fixed-weight fallback preserves operation when no trained model is available. The application also generates human-readable reasons so that users can inspect why a destination was recommended.
+
+The mobile offline recommender uses precomputed destination embeddings and contextual attributes stored in application assets. Its first stage combines semantic embedding similarity with contextual fit, after which constraint penalties, local affinity signals, and diversity limits are applied. This differs from the earlier TF--IDF and simple cosine-similarity prototypes discussed in the interim submission: those prototypes established the feasibility of local ranking, while the final implementation uses richer semantic vectors and a broader set of contextual signals. TF--IDF nevertheless remains an important baseline because it represents text through weighted term frequency rather than semantic meaning \parencite{Salton1988}.
+
+Tourism recommendation literature emphasises the importance of context and personalisation. \cite{Tkalcic2019} discuss context-aware recommendation systems, emphasising how travel recommendations must account for season, weather, company (solo, family, group), and activity preferences. \cite{Ye2010} examine location-based recommendation systems, noting that geographic proximity and user activity patterns significantly influence tourism recommendations.
+
+\section{Natural Language Processing and Chatbots for Tourism}
+\label{sec:nlp_chatbots}
+
+Chatbots in tourism applications serve various functions: answering frequently-asked questions, providing contextual information, facilitating bookings, offering safety guidance, and providing translation services. Advanced chatbots using large language models (LLMs) can engage in fluent natural conversation and provide nuanced responses to varied questions.
+
+However, cloud-based LLMs create a dependency on internet connectivity and API availability. In a system designed for offline-first rural tourism, relying entirely on cloud AI would reproduce the same connectivity vulnerability that the project is addressing. A practical alternative is to implement local natural language processing using bounded resources.
+
+Bounded local chatbots generally combine a domain knowledge base, intent classification, entity extraction, response templates, and fallback handling. Their scope is narrower than a cloud LLM, but their behaviour is predictable, testable, private, and independent of API availability.
+
+The earliest chatbot prototype used a local knowledge base, keyword matching, and structured templates. The final application expands this into a modular offline intelligence pipeline. English, Devanagari Nepali, and romanised Nepali text is normalised, tokenised, stemmed, enriched with synonyms, and analysed for named entities. Hybrid intent classification and semantic/BM25-style retrieval produce grounded answers, while dialogue state, slot filling, clarification questions, and memory support multi-turn interaction. It answers questions about seasons, budgets, family suitability, transport, and activities. A safety layer runs before normal response generation, ensuring that messages such as ``I'm lost'' or ``I'm injured'' receive deterministic emergency guidance.
+
+When backend connectivity and API keys are configured, the chatbot can request online language-model enhancement. The enhancement is applied to the locally generated answer rather than replacing the complete local pipeline. However, the offline chatbot remains the reliable base layer. This design follows the offline-first principle: cloud enhancement is available when possible, but is not required for core operation. The implementation also distinguishes backend reachability from provider availability so that the interface does not incorrectly imply that online AI is active when only fallback logic is available.
+
+\section{Related Work in Tourism Applications}
+\label{sec:related_work}
+
+Several existing applications and systems are relevant to Paila Nepal:
+
+Google Maps provides extensive navigation and points of interest, but its richer services remain connectivity-dependent and are not focused on rural destination discovery. TripAdvisor supplies reviews and commercial tourism content but is primarily online. OSMAnd provides strong offline maps and navigation without curated Gandaki tourism assistance. Komoot and AllTrails support outdoor route discovery, yet focus mainly on hiking and community trails. Local tourism-board guides may provide regional information, but their data coverage and offline functionality vary.
+
+\cref{tbl:related_work} compares these systems against Paila Nepal along several dimensions.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{System} & \textbf{Offline} & \textbf{Gandaki} & \textbf{Chatbot} & \textbf{Recommen.} & \textbf{Routing} & \textbf{Saved} \\
+& \textbf{Maps} & \textbf{Focus} & & & & \\
+\midrule
+Google Maps & Partial & No & No & No & Yes & Yes \\
+TripAdvisor & No & No & No & Yes & No & Yes \\
+OSMAnd & Yes & No & No & No & Yes & No \\
+Komoot & Yes & No & No & No & Yes & Yes \\
+AllTrails & Partial & No & No & No & No & Yes \\
+Paila Nepal & Yes & Yes & Yes & Yes & Yes & Yes \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of tourism applications and Paila Nepal. ``Offline Maps'' indicates whether offline map display is supported. ``Gandaki Focus'' indicates rural Gandaki destination specialisation. ``Chatbot'' indicates conversational tourism assistance. ``Recommen.'' indicates recommendation system. ``Routing'' indicates route guidance. ``Saved'' indicates saved place functionality.}
+\label{tbl:related_work}
+\end{table}
+
+The distinctive contribution of Paila Nepal is the integration of offline-first architecture, rural Gandaki tourism content specialisation, and comprehensive offline functionality (maps, routing fallback, chatbot, recommendations). This combination addresses the specific needs of rural tourism in low-connectivity environments, a gap not fully addressed by existing applications.
+\chapter{System Design and Architecture}
+\label{ch:design}
+
+\section{System Architecture Overview}
+\label{sec:arch_overview}
+
+Paila Nepal follows a layered architecture separating presentation, domain, data, and service layers. This separation of concerns improves testability, maintainability, and enables offline/online behavior to be managed cleanly. \cref{fig:layered_arch} illustrates the layered architecture.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=4mm,
+  layer/.style={draw, line width=1.3pt, text width=13cm, minimum height=1.25cm, align=center, inner sep=5pt},
+  flow/.style={->, line width=1.4pt, color=black!55}
+]
+  \node[layer, fill=blue!18, draw=blue] (presentation)
+    {\textbf{Presentation Layer}\\Flutter screens, widgets, navigation, and reactive UI state};
+  \node[layer, fill=green!18, draw=green!70!black, below=of presentation] (domain)
+    {\textbf{Domain Layer}\\Destination, UserProfile, RouteResult, ChatMessage, and recommendation models};
+  \node[layer, fill=orange!20, draw=orange!80!black, below=of domain] (data)
+    {\textbf{Data Layer}\\LocalDataService, SQLite persistence, Hive caches, SharedPreferences, JSON, images, and MBTiles};
+  \node[layer, fill=red!16, draw=red!75!black, below=of data] (services)
+    {\textbf{Core Services Layer}\\Routing and route cache; chatbot and translation; recommendation and image services; connectivity and backend configuration};
+  \node[layer, fill=purple!15, draw=purple, dashed, below=of services] (resources)
+    {\textbf{Resource Boundary}\\Local storage and bundled assets remain available offline; the FastAPI backend is used when reachable};
+
+  \draw[flow] (presentation) -- (domain);
+  \draw[flow] (domain) -- (data);
+  \draw[flow] (data) -- (services);
+  \draw[flow] (services) -- (resources);
+\end{tikzpicture}
+\caption{Layered system architecture. The application separates presentation logic, domain models, data persistence, and core services. Services access both local resources (storage, assets) and optional external backend services. This separation enables offline-first operation.}
+\label{fig:layered_arch}
+\end{figure}
+
+The \textbf{Presentation Layer} consists of Flutter widgets, screens, UI components, dialogs, bottom sheets, and navigation logic. Examples include the home screen, destination list, destination detail view, map screen, chatbot interface, recommendations screen, and settings screens. The presentation layer receives input from users and displays output by rendering widgets. It communicates with services and providers to retrieve data and trigger actions.
+
+The \textbf{Domain Layer} contains entities and models representing core application concepts. Examples include:
+
+\begin{itemize}
+\item \texttt{Destination} model with attributes: id, name, description, latitude, longitude, category, activities, best\_season, budget\_level, accessibility, adventure\_level, family\_friendly, cultural\_richness, nature\_score, tags, image\_url.
+\item \texttt{UserProfile} model with preferences: interests, budget, adventure\_level, family\_status.
+\item \texttt{RouteResult} model with: origin, destination, distance, duration, polyline, steps, is\_fallback.
+\item \texttt{ChatMessage} model with: content, sender (user/chatbot), timestamp, intent.
+\item \texttt{RecommendationResult} model with: recommended\_destinations, scores, reasoning.
+\end{itemize}
+
+Domain models define the structure of data independently of UI or persistence concerns. This ensures that data can move between services, screens, and storage mechanisms in a type-safe manner.
+
+The \textbf{Data Layer} manages all local and remote data access. It includes:
+
+\begin{itemize}
+\item \texttt{LocalDataService}: Loads destinations and accommodations, manages SQLite records for saved destinations, reviews, events, and profiles, and coordinates Hive-backed recommendation data.
+\item Asset loading: JSON files containing destination data, chatbot knowledge bases, phrasebooks, embeddings.
+\item \texttt{HiveStorageService}: Stores recommendation caches, user preferences, local interactions, and interactions queued for backend synchronisation.
+\item \texttt{SharedPreferences}: Lightweight key-value storage for settings and web fallbacks.
+\item Image services: Access to destination images stored as WebP assets and cached network images.
+\item MBTiles provider: Access to offline map tiles via \texttt{flutter\_map\_mbtiles}.
+\end{itemize}
+
+The \textbf{Services Layer} contains cross-cutting logic that coordinates lower layers:
+
+\begin{itemize}
+\item \texttt{RoutingService}: Coordinates route retrieval from cache, online OSRM, or fallback Haversine computation.
+\item \texttt{IntelligenceOrchestrator}: Coordinates multilingual normalisation, intent classification, entity recognition, hybrid retrieval, dialogue state, safety checks, translation, and optional online enhancement.
+\item \texttt{OfflineTileProvider}: Validates and loads MBTiles file for map display.
+\item \texttt{ImageService}: Coordinates image loading from assets, cache, or backend.
+\item \texttt{OfflineProvider} and \texttt{BackendConfig}: Distinguish general connectivity, backend reachability, and the availability of online enhancement.
+\item \texttt{RecommenderService} and \texttt{RecommendationApiService}: Provide offline semantic/contextual ranking and access to the backend hybrid recommender.
+\item \texttt{InteractionSyncService}: Queues local interactions and synchronises them in batches when the backend becomes available.
+\item \texttt{BackendConfigService}: Manages backend API configuration, authentication, and availability.
+\end{itemize}
+
+This layered architecture supports offline-first operation because most presentation features depend on local services and persistent data first. The backend provides enhancement and synchronisation but is not a dependency for core functionality.
+
+\section{Feature-Based Code Organisation}
+\label{sec:feature_org}
+
+In addition to the layered architecture, Paila Nepal uses feature-based code organisation, grouping related screens, models, services, and widgets into feature modules. This improves modularity and allows individual features to be developed and tested semi-independently.
+
+Key feature modules include:
+
+\begin{itemize}
+\item \textbf{features/destinations:} Destination browsing, search, filtering, detail view, gallery view, and saved destination management.
+\item \textbf{features/map:} Interactive map with route display, marker handling, map tile switching, offline map status, and navigation controls.
+\item \textbf{features/chatbot and features/intelligence:} Chatbot UI, offline NLP, hybrid intent classification, RAG-style knowledge retrieval, safety handling, dialogue state, translation, and optional online enhancement.
+\item \textbf{features/recommendations:} Personalised recommendation display, semantic/contextual offline ranking, backend hybrid ranking, preference management, score explanations, and recommendation caching.
+\item \textbf{core/navigation and features/map:} Route request, route display, navigation UI, route caching, OSRM access, and offline route fallback indication.
+\item \textbf{features/auth:} User authentication UI, login/signup screens, session management, and backend integration.
+\item \textbf{features/account:} User profile, preferences, saved destinations, trip history, and settings.
+\item \textbf{features/home:} Home screen, discovery feed, quick access widgets, and onboarding.
+\item \textbf{features/shell:} Bottom navigation, tab layout, and overall app structure.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  module/.style={draw, line width=1.2pt, minimum width=3.7cm, minimum height=0.85cm, align=center, font=\bfseries},
+  shared/.style={draw=red!75!black, fill=red!12, line width=1.3pt, text width=12.7cm, minimum height=1.15cm, align=center}
+]
+  \node[font=\large\bfseries] at (0,1.1) {Paila Nepal Feature Architecture};
+
+  \node[module, fill=blue!12, draw=blue] at (-4,0) {home};
+  \node[module, fill=blue!12, draw=blue] at (0,0) {destinations};
+  \node[module, fill=blue!12, draw=blue] at (4,0) {map};
+
+  \node[module, fill=green!12, draw=green!70!black] at (-4,-1.35) {chatbot / intelligence};
+  \node[module, fill=green!12, draw=green!70!black] at (0,-1.35) {routing};
+  \node[module, fill=green!12, draw=green!70!black] at (4,-1.35) {recommendations};
+
+  \node[module, fill=orange!14, draw=orange!80!black] at (-4,-2.7) {auth};
+  \node[module, fill=orange!14, draw=orange!80!black] at (0,-2.7) {account};
+  \node[module, fill=orange!14, draw=orange!80!black] at (4,-2.7) {home / shell / about};
+
+  \node[shared] at (0,-4.25)
+    {\textbf{Shared Core and Services}\\Routing, chatbot, translation, local data, offline tiles, connectivity, and backend configuration};
+\end{tikzpicture}
+\caption{Feature-based code organisation. Each feature module contains related screens, models, and widgets. The core/services layer provides shared functionality to all features.}
+\label{fig:feature_org}
+\end{figure}
+
+\section{Offline-First Routing Architecture}
+\label{sec:offline_routing}
+
+The routing architecture is central to offline-first operation. It implements a three-tier strategy that ensures route guidance is always available, even when the online routing service is unreachable.
+
+\textbf{Tier 1: SQLite Route Cache.} The application maintains a `RouteCache` SQLite table storing previously-computed routes. The cache key deterministically encodes the origin coordinates, destination coordinates, and travel mode. When a user requests a route, the system first checks the cache. If a valid cached entry exists (with a timestamp less than 30 days old), the cached route is returned immediately. This eliminates the need for a network request and provides instant route results.
+
+\textbf{Tier 2: Online OSRM Routing.} If no valid cached route exists, the application attempts to retrieve an online route from the OSRM (Open Source Routing Machine) public demo server. The request includes:
+
+\begin{itemize}
+\item Origin and destination coordinates.
+\item \texttt{geometries=geojson} for polygon response format.
+\item \texttt{steps=true} for turn-by-turn instructions.
+\item Travel mode (driving, walking, cycling).
+\item HTTP timeout of 12 seconds.
+\end{itemize}
+
+If the OSRM request succeeds, the response is parsed to extract the route geometry (polyline), total distance, total duration, and step-by-step instructions. The route is then stored in the SQLite cache and returned to the user. The cache entry will provide instant results for subsequent requests to the same origin-destination pair, even if the device goes offline.
+
+\textbf{Tier 3: Haversine Straight-Line Fallback.} If OSRM is unreachable (due to network failure, server timeout, or parsing error), the application falls back to an approximate offline route. It uses the Haversine formula to compute the great-circle distance between origin and destination. The displayed route polyline contains two points: origin and destination. Duration is estimated using travel-mode speed assumptions:
+
+\begin{itemize}
+\item Driving: 60 km/h.
+\item Walking: 5 km/h.
+\item Cycling: 15 km/h.
+\end{itemize}
+
+The estimated duration is computed as: $\text{duration} = \frac{\text{haversine\_distance}}{speed}$.
+
+The route result is marked with `isFallback = true`, allowing the UI to display a warning message such as: ``This is an approximate route. Turn-by-turn navigation requires internet connectivity.'' This manages user expectations clearly.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=0.9]
+  % Start
+  \draw[fill=green!20, draw=green, line width=2pt, rounded corners=5pt] (3, 10) rectangle (7, 10.8);
+  \node at (5, 10.4) {User Requests Route};
+  
+  % Check cache
+  \draw[fill=blue!20, draw=blue, line width=2pt, rounded corners=5pt] (1.5, 8.5) rectangle (8.5, 9.3);
+  \node at (5, 8.9) {Check SQLite RouteCache for [origin, dest, mode]};
+  
+  % Cache hit
+  \draw[fill=green!10, draw=green, line width=1.5pt, rounded corners=5pt] (0.5, 6.8) rectangle (3.5, 7.6);
+  \node[align=center, font=\small] at (2, 7.2) {Cache Hit? \\ Return Cached};
+  
+  % Try OSRM
+  \draw[fill=blue!10, draw=blue, line width=1.5pt, rounded corners=5pt] (4, 6.8) rectangle (7, 7.6);
+  \node[align=center, font=\small] at (5.5, 7.2) {OSRM Request \\ (12s timeout)};
+  
+  % OSRM success
+  \draw[fill=green!10, draw=green, line width=1.5pt, rounded corners=5pt] (4.2, 5.1) rectangle (6.8, 5.9);
+  \node[align=center, font=\small] at (5.5, 5.5) {Parse \& Cache \\ Return Route};
+  
+  % OSRM fail
+  \draw[fill=red!10, draw=red, line width=1.5pt, rounded corners=5pt] (7.2, 5.1) rectangle (9.8, 5.9);
+  \node[align=center, font=\small] at (8.5, 5.5) {Haversine \\ Fallback};
+  
+  % All paths return
+  \draw[fill=blue!20, draw=blue, line width=2pt, rounded corners=5pt] (2, 3) rectangle (8, 3.8);
+  \node at (5, 3.4) {Return RouteResult to User};
+  
+  % Arrows
+  \draw[->, line width=1.5pt] (5, 10) -- (5, 9.3);
+  \draw[->, line width=1.5pt] (4, 8.5) -- (2, 7.6);
+  \draw[-, line width=1.5pt] (6, 8.5) -- (5.5, 7.6);
+  \draw[->, line width=1.5pt] (5.5, 6.8) -- (5.5, 5.9);
+  \draw[->, line width=1.5pt] (6.5, 6.8) -- (8.5, 5.9);
+  \draw[->, line width=1.5pt] (2, 6.8) -- (5, 3.8);
+  \draw[->, line width=1.5pt] (5.5, 5.1) -- (5, 3.8);
+  \draw[->, line width=1.5pt] (8.5, 5.1) -- (5, 3.8);
+  
+\end{tikzpicture}
+\caption{Three-tier routing architecture. The system checks the SQLite route cache first, then attempts online OSRM routing if needed. If OSRM fails, a Haversine straight-line fallback is computed. All paths guarantee a route result to the user.}
+\label{fig:routing_arch}
+\end{figure}
+
+This architecture ensures that users always receive route guidance, even in severely constrained connectivity situations. Cached routes provide instant results for frequently-requested routes. OSRM provides high-quality road-network routes when connectivity allows. The Haversine fallback ensures the app never fails with an error, but instead provides approximate guidance with transparent warnings.
+
+\section{Data Architecture and Storage}
+\label{sec:data_arch}
+
+Paila Nepal uses multiple storage layers to support offline operation:
+
+\subsection{Local Asset Data}
+
+\texttt{assets/data/destinations.json} contains 300 curated destination records. Each destination includes:
+
+\begin{lstlisting}
+{
+  "id": "destination_001",
+  "name": "Ghandruk",
+  "description": "A scenic Gurung village in the Annapurna foothills...",
+  "latitude": 28.3956,
+  "longitude": 83.8622,
+  "category": "village",
+  "activities": ["trekking", "village_tour", "culture"],
+  "best_season": ["autumn", "spring"],
+  "budget_level": "budget",
+  "accessibility": "moderate",
+  "adventure_level": 2,
+  "family_friendly": true,
+  "cultural_richness": 8,
+  "nature_score": 7,
+  "tags": ["gandaki", "annapurna", "gurung"],
+  "image_url": "ghandruk.webp"
+}
+\end{lstlisting}
+
+This JSON is loaded into memory on app startup and remains accessible offline. The data structure supports efficient searching, filtering, and recommendation scoring.
+
+\subsection{Destination Images}
+
+\texttt{assets/destination\_images/} contains 300 WebP format images (approximately 8.74 MB total). WebP provides better compression than JPEG or PNG, reducing the bundle size while maintaining visual quality suitable for mobile displays.
+
+\subsection{SQLite and Hive Persistence}
+
+The application uses two SQLite databases together with several Hive boxes. This separation reflects the different access patterns of each data type: relational records and indexed queries remain in SQLite, while typed caches and synchronisation queues use Hive.
+
+\textbf{Main App Database} (\texttt{paila.db}):
+
+\begin{table}[h]
+\centering
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{p{4.0cm}p{4.0cm}p{6.0cm}}
+\toprule
+\textbf{Table} & \textbf{Columns} & \textbf{Purpose} \\
+\midrule
+\texttt{saved\_destinations} & id, payload, saved\_at & User-saved destinations \\
+\texttt{app\_events} & id, event\_type, payload, created\_at & Local application event log \\
+\texttt{destination\_reviews} & destination\_id, rating, review\_text, created\_at & Local destination ratings and reviews \\
+\texttt{user\_profiles/interactions} & profile and interaction fields & Personalisation history and migration support \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\textbf{Route Cache Database} (\texttt{route\_cache.db}):
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Table} & \textbf{Columns} & \textbf{Purpose} \\
+\midrule
+\texttt{cached\_routes} & key, data, cached\_at & Route caching (30-day TTL) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Hive Boxes:}
+
+\begin{itemize}
+\item \texttt{recommendation\_cache\_v1}: cached recommendation payloads and timestamps.
+\item \texttt{user\_preferences\_v1}: the current structured recommendation preferences.
+\item \texttt{user\_interactions\_v1}: local interaction history used for personalisation.
+\item \texttt{pending\_backend\_interactions\_v1}: queued events waiting for batch synchronisation.
+\end{itemize}
+
+\subsection{SharedPreferences}
+
+Lightweight key-value storage for:
+
+\begin{itemize}
+\item Selected map style.
+\item Lightweight settings and web-platform fallbacks.
+\item Last app version opened.
+\item Offline map validation status.
+\item User authentication token (if available).
+\end{itemize}
+
+\subsection{Backend API Data}
+
+When connectivity is available, the FastAPI backend can provide:
+
+\begin{itemize}
+\item Enhanced chatbot responses via LLM integration.
+\item Hybrid recommendations using SBERT retrieval, collaborative and popularity signals, contextual reranking, and optional ML rescoring.
+\item User authentication and account synchronisation.
+\item Interaction batch synchronisation, analytics, recommendation-quality monitoring, and model training/evaluation endpoints.
+\item Image lookup and CDN delivery.
+\item Trip planning suggestions.
+\end{itemize}
+
+The backend is optional for core local workflows. It enhances the experience with road-aware routing, online AI, account services, synchronisation, analytics, and the most advanced recommendation pipeline when connectivity is available.
+
+\section{State Management with Riverpod}
+\label{sec:state_mgmt}
+
+Paila Nepal uses Flutter Riverpod for reactive state management and dependency injection. Riverpod provides a provider-based architecture in which widgets observe state changes without tight coupling to service implementations.
+
+Example providers:
+
+\begin{lstlisting}
+// Async data provider
+final destinationsProvider = FutureProvider<List<Destination>>((ref) async {
+  final service = ref.watch(localDataServiceProvider);
+  return service.loadDestinations();
+});
+
+// Filtered destinations based on criteria
+final filteredDestinationsProvider = 
+  FutureProvider.family<List<Destination>, FilterCriteria>((ref, criteria) async {
+  final destinations = await ref.watch(destinationsProvider.future);
+  return destinations.where((d) => d.matchesCriteria(criteria)).toList();
+});
+
+// Recommendations
+final recommendationsProvider = 
+  FutureProvider<List<Destination>>((ref) async {
+  final prefs = ref.watch(userPreferencesProvider);
+  final engine = ref.watch(recommendationEngineProvider);
+  return engine.generateRecommendations(prefs);
+});
+
+// Async route computation
+final routeProvider = FutureProvider.family<RouteResult, RouteRequest>((ref, request) async {
+  final routing = ref.watch(routingServiceProvider);
+  return routing.getRoute(request);
+});
+\end{lstlisting}
+
+Local widget state (StatefulWidget) is used for transient UI state such as animation controllers, selected filters, text input, and map controller interactions. This mixed approach balances reactivity with simplicity.
+\chapter{Implementation}
+\label{ch:implementation}
+
+\section{Technology Stack}
+\label{sec:tech_stack}
+
+\cref{tbl:tech_stack} summarises the primary technologies used in Paila Nepal.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Technology} & \textbf{Version/Details} \\
+\midrule
+Framework & Flutter & SDK >= 3.0.0 \\
+Language & Dart & 3.x \\
+State Management & flutter\_riverpod & 3.3.1 \\
+Maps & flutter\_map & 8.2.2 \\
+Offline Tiles & flutter\_map\_mbtiles & 1.0.4 \\
+Database & sqflite & 2.3.3+1 \\
+Typed Local Cache & Hive / hive\_flutter & 2.2.3 / 1.1.0 \\
+Connectivity & connectivity\_plus & 7.1.1 \\
+Location Services & geolocator & 14.0.1 \\
+HTTP Networking & http & 1.2.0 \\
+Image Caching & cached\_network\_image & 3.4.1 \\
+UI Fonts & google\_fonts & 6.2.1 \\
+Analytics & PostHog + Sentry & posthog\_flutter 5.24.2, sentry\_flutter 9.0.0 \\
+Speech & flutter\_tts + speech\_to\_text & 3.8.5 / 7.0.0 \\
+Backend & FastAPI & Python 3.9+ \\
+Backend Database & PostgreSQL & with SQLite fallback \\
+Semantic Retrieval & Sentence-BERT + FAISS & NumPy fallback when FAISS is unavailable \\
+Learning-to-Rank & LightGBM LambdaRank & Fixed weighted fallback before training \\
+Backend Cache & Redis & In-memory fallback for local operation \\
+\bottomrule
+\end{tabular}
+\caption{Primary technology stack for Paila Nepal. The application uses Flutter/Dart for mobile development, SQLite and Hive for local persistence, and FastAPI for backend services.}
+\label{tbl:tech_stack}
+\end{table}
+
+\textbf{Flutter} was selected as the primary framework because it enables rapid development of polished mobile UIs, provides consistent rendering across devices, supports hot reload for development iteration, and offers plugin support for databases, location, connectivity, and maps \parencite{Flutter2026}.
+
+\textbf{Dart} provides null-safety, async/await syntax, and strong type checking, making it well-suited for building reliable mobile applications.
+
+\textbf{Riverpod} provides reactive state management, enabling UI to react to data changes without tightly coupling presentation logic to service implementations.
+
+\textbf{flutter\_map} provides open-source map rendering using OpenStreetMap data, without depending on proprietary Google Maps SDK or requiring API keys.
+
+\textbf{flutter\_map\_mbtiles} enables offline map display by reading raster tiles from local MBTiles files.
+
+\textbf{sqflite} provides SQLite support for relational local records, while \textbf{Hive} provides typed boxes for recommendation caches, preferences, local interactions, and queued synchronisation events.
+
+\textbf{connectivity\_plus} detects network availability, allowing the app to determine whether it should use online or offline-only paths.
+
+\textbf{FastAPI} on the backend provides a typed Python framework for API endpoints, automatic OpenAPI documentation, and straightforward integration with the mobile client \parencite{FastAPI2026}.
+
+\section{Offline Map Implementation}
+\label{sec:map_impl}
+
+The offline map implementation uses a local MBTiles file (\texttt{pokhara.mbtiles}, approximately 7.79 MB) containing raster PNG tiles for the focused project area. The MBTiles format is a SQLite database containing map tiles, metadata, and other data.
+
+\subsection{Map Tile Generation}
+
+Map tiles were generated by downloading raster PNG tiles from the OpenStreetMap tile server for the Gandaki bounding box (approximately 83.4°E to 85.2°E, 27.8°N to 29.2°N). Tiles at zoom levels 7--12 were selected to provide regional overview to destination-level detail. The tiles were aggregated into a single MBTiles SQLite database.
+
+The MBTiles file structure includes:
+
+\begin{itemize}
+\item \textbf{Metadata table:} Key-value pairs storing map name, type, version, attribution, and bounds.
+\item \textbf{Tiles table:} Records containing zoom level (z), tile column (x), tile row (y), and tile data (PNG bytes).
+\end{itemize}
+
+\subsection{Map Validation and Loading}
+
+Before using the MBTiles file, the app validates it:
+
+\begin{lstlisting}
+Future<bool> validateMBTiles(String filePath) async {
+  try {
+    final file = File(filePath);
+    if (!file.existsSync()) return false;
+    
+    final stat = file.statSync();
+    if (stat.sizeSync() < 1000000) return false; // < 1MB is suspicious
+    
+    // Check SQLite magic header
+    final bytes = file.readAsBytesSync().take(16).toList();
+    final signature = String.fromCharCodes(bytes.take(13));
+    return signature.startsWith('SQLite format');
+  } catch (e) {
+    return false;
+  }
+}
+\end{lstlisting}
+
+If validation succeeds, the app loads tiles using the \texttt{flutter\_map\_mbtiles} provider. If validation fails or the file is missing, the app falls back to online tile providers (OpenStreetMap, CartoDB).
+
+\subsection{Map Controls and Styling}
+
+The map UI includes:
+
+\begin{itemize}
+\item Zoom controls (plus/minus buttons).
+\item Current location button (centers map on user's GPS position).
+\item Map style selector (enabling users to switch between Voyager, Positron, Dark Matter, or offline styles).
+\item Scale indicator.
+\item Offline/online status indicator showing whether local MBTiles is currently being used.
+\item Destination markers for browsable destinations.
+\item Route polyline display overlaid on the map.
+\end{itemize}
+
+\section{Routing Service Implementation}
+\label{sec:routing_impl}
+
+The \texttt{RoutingService} orchestrates the three-tier routing strategy:
+
+\begin{lstlisting}
+class RoutingService {
+  final RouteCache routeCache;
+  final http.Client httpClient;
+  
+  Future<RouteResult> getRoute(RouteRequest request) async {
+    // Tier 1: Check cache
+    final cacheKey = _generateCacheKey(request);
+    final cached = await routeCache.get(cacheKey);
+    if (cached != null && !cached.isExpired) {
+      return cached;
+    }
+    
+    // Tier 2: Try OSRM online
+    try {
+      final result = await _fetchOSRMRoute(request)
+          .timeout(Duration(seconds: 12));
+      await routeCache.save(cacheKey, result);
+      return result;
+    } catch (e) {
+      // Tier 3: Fallback to Haversine
+      return _computeHaversineRoute(request);
+    }
+  }
+  
+  Future<RouteResult> _fetchOSRMRoute(RouteRequest request) async {
+    final url = Uri.parse(
+      'https://router.project-osrm.org/route/v1/driving/'
+      '${request.origin.lng},${request.origin.lat};'
+      '${request.destination.lng},${request.destination.lat}'
+      '?geometries=geojson&steps=true&overview=full'
+    );
+    
+    final response = await httpClient.get(url);
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final route = json['routes'][0];
+      
+      return RouteResult(
+        origin: request.origin,
+        destination: request.destination,
+        distance: (route['distance'] / 1000).toDouble(), // meters to km
+        duration: (route['duration'] / 60).toDouble(), // seconds to minutes
+        polyline: route['geometry']['coordinates'],
+        steps: route['legs'][0]['steps'].map((s) => _parseStep(s)).toList(),
+        isFallback: false,
+      );
+    }
+    throw Exception('OSRM request failed');
+  }
+  
+  RouteResult _computeHaversineRoute(RouteRequest request) {
+    final distance = _haversineDistance(
+      request.origin.lat, request.origin.lng,
+      request.destination.lat, request.destination.lng,
+    );
+    
+    final speedKmH = _getTravelModeSpeed(request.travelMode);
+    final duration = distance / speedKmH * 60; // km / (km/h) * 60 = minutes
+    
+    return RouteResult(
+      origin: request.origin,
+      destination: request.destination,
+      distance: distance,
+      duration: duration,
+      polyline: [
+        [request.origin.lng, request.origin.lat],
+        [request.destination.lng, request.destination.lat],
+      ],
+      steps: [],
+      isFallback: true,
+    );
+  }
+}
+\end{lstlisting}
+
+\section{Chatbot Implementation}
+\label{sec:chatbot_impl}
+
+The initial chatbot prototype used a knowledge base and simple intent patterns stored in JSON assets. The following simplified example illustrates the early design rather than the complete final implementation:
+
+\begin{lstlisting}
+{
+  "intents": [
+    {
+      "intent": "ask_best_season",
+      "patterns": [
+        "what is the best time to visit",
+        "when should i go",
+        "best season for"
+      ],
+      "response_template": "The best time to visit {destination} is {season}."
+    },
+    {
+      "intent": "ask_budget",
+      "patterns": [
+        "how much budget",
+        "cost for",
+        "price of visiting"
+      ],
+      "response_template": "{destination} is suitable for {budget_level} travelers."
+    },
+    {
+      "intent": "emergency",
+      "patterns": [
+        "injured", "lost", "emergency", "help", "police", "ambulance"
+      ],
+      "response_template": "Emergency assistance may be required. Show verified Nepal emergency contacts and the user's available location."
+    }
+  ],
+  "destinations_knowledge": [
+    {
+      "name": "Ghandruk",
+      "facts": [
+        "A scenic Gurung village in the Annapurna region",
+        "Known for hospitality and homestays",
+        "Traditional stone houses and terraced fields",
+        "Popular for trekking and cultural tourism"
+      ]
+    }
+  ]
+}
+\end{lstlisting}
+
+The early prototype processed user input using deterministic emergency checks, intent matching, entity extraction, and template generation:
+
+\begin{lstlisting}
+class ChatbotService {
+  final ChatbotKnowledge knowledge;
+  
+  Future<String> processUserInput(String userInput) async {
+    // Emergency detection
+    if (_isEmergency(userInput)) {
+      return _generateEmergencyResponse();
+    }
+    
+    // Intent classification
+    final intent = _classifyIntent(userInput);
+    
+    // Entity extraction
+    final entities = _extractEntities(userInput, intent);
+    
+    // Response generation
+    final response = _generateResponse(intent, entities);
+    
+    return response;
+  }
+  
+  String _classifyIntent(String input) {
+    final lowerInput = input.toLowerCase();
+    for (final intent in knowledge.intents) {
+      for (final pattern in intent.patterns) {
+        if (lowerInput.contains(pattern)) {
+          return intent.intent;
+        }
+      }
+    }
+    return 'unknown';
+  }
+  
+  Map<String, String> _extractEntities(String input, String intent) {
+    final entities = <String, String>{};
+    
+    // Extract destination name
+    for (final dest in knowledge.destinations) {
+      if (input.contains(dest.name)) {
+        entities['destination'] = dest.name;
+      }
+    }
+    
+    return entities;
+  }
+}
+\end{lstlisting}
+
+In the final system, \texttt{IntelligenceOrchestrator} initialises the complete offline intelligence stack. It loads the tourism knowledge repository, destination and accommodation gazetteers, intent examples, semantic embeddings, BM25 index, translation resources, and emergency contacts. Each user message passes through multilingual normalisation, tokenisation, stemming, stop-word removal, named-entity recognition, synonym expansion, hybrid intent classification, dialogue-state tracking, retrieval reranking, and response generation. The safety layer is checked before ordinary tourism logic, and every response path records the completed dialogue turn so that conversation memory remains consistent.
+
+When the backend is available, the chatbot can request online enhancement through the actual \texttt{/chat} endpoint. The local answer and local state remain available if that request fails:
+
+\begin{lstlisting}
+Future<String> enhanceWithLLM(String userInput, String offlineResponse) async {
+  try {
+    final response = await http.post(
+      Uri.parse('${backendUrl}/chat'),
+      body: jsonEncode({
+        'question': userInput,
+        'language': 'en',
+        'top_k': 5,
+        'history': recentHistory,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    ).timeout(Duration(seconds: 5));
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['answer'] ?? data['reply'];
+    }
+  } catch (e) {
+    // Timeout or network error; use offline response
+  }
+  
+  return offlineResponse;
+}
+\end{lstlisting}
+
+\section{Recommendation Engine}
+\label{sec:recommendation_impl}
+
+The first mobile recommendation prototype scored destinations through direct attribute matching and diversity rules. The simplified listing below represents that development stage and explains the foundation described in the interim submission:
+
+\begin{lstlisting}
+class RecommendationEngine {
+  final List<Destination> allDestinations;
+  
+  List<Destination> generateRecommendations(UserPreferences prefs) {
+    // Score each destination
+    final scored = allDestinations.map((dest) {
+      double score = 0.0;
+      
+      // Category matching
+      if (prefs.preferredCategories.contains(dest.category)) {
+        score += 10;
+      }
+      
+      // Activity matching
+      final matchingActivities = dest.activities
+          .where((a) => prefs.preferredActivities.contains(a))
+          .length;
+      score += matchingActivities * 2;
+      
+      // Budget alignment
+      if (dest.budgetLevel == prefs.budgetLevel) {
+        score += 5;
+      }
+      
+      // Season appropriateness
+      final currentMonth = DateTime.now().month;
+      final currentSeason = _getSeasonFromMonth(currentMonth);
+      if (dest.bestSeason.contains(currentSeason)) {
+        score += 5;
+      }
+      
+      // Adventure level
+      if ((dest.adventureLevel - prefs.adventureLevel).abs() <= 1) {
+        score += 3;
+      }
+      
+      // Family-friendly preference
+      if (prefs.travelingWithFamily && dest.familyFriendly) {
+        score += 5;
+      }
+      
+      return (destination: dest, score: score);
+    }).toList();
+    
+    // Sort by score and apply diversity
+    scored.sort((a, b) => b.score.compareTo(a.score));
+    
+    final recommendations = <Destination>[];
+    final categoriesSeen = <String>{};
+    
+    for (final entry in scored) {
+      // Ensure diversity: don't recommend too many from same category
+      if (!categoriesSeen.contains(entry.destination.category) ||
+          categoriesSeen.length < scored.length / 3) {
+        recommendations.add(entry.destination);
+        categoriesSeen.add(entry.destination.category);
+      }
+      
+      if (recommendations.length >= 10) break;
+    }
+    
+    return recommendations;
+  }
+}
+\end{lstlisting}
+
+The final backend recommendation pipeline is substantially more advanced. It builds a natural-language query from activity, budget, season, vibe, family, and adventure preferences. A Sentence-BERT encoder retrieves semantically related destinations from a normalised embedding index. Candidate scores are blended with structured activity/category signals before collaborative and popularity information is introduced. Cold-start requests deliberately suppress collaborative weight and use a limited popularity prior; warm-user requests give greater weight to interaction-derived collaborative scores. The contextual reranker then assesses activity, vibe, season, budget, accessibility, family suitability, adventure preference, and accommodation fit. It also applies district and category diversity constraints.
+
+The final ranking stage uses a LightGBM LambdaRank model when a trained model is available. The ranker consumes semantic, collaborative, contextual, popularity, activity, season, budget, and vibe features. Before sufficient interaction data exists, it applies a deterministic fallback formula of 0.50 semantic, 0.20 collaborative, and 0.30 contextual score. The response includes component scores and natural-language recommendation reasons. This makes the result more transparent than a single unexplained match value and directly supports the ``Why recommended'' panel and score breakdown shown by the Flutter interface.
+
+The offline Flutter recommender uses precomputed destination embeddings, contextual components, local affinity signals, constraint penalties, and diversity limits. Therefore, losing the backend does not reduce recommendation behaviour to a static popularity list. Instead, the app continues to produce personalised results from its bundled data while cached recommendations and queued interactions preserve continuity.
+
+\section{Destination Data Curation}
+\label{sec:data_curation}
+
+The destination dataset comprises 300 curated entries for Gandaki Province, supported by 771 accommodation records and 300 local WebP destination images. Each destination was researched using:
+
+\begin{itemize}
+\item Wikipedia articles on Gandaki villages and tourism sites.
+\item OpenStreetMap geographic data.
+\item Nepal Tourism Board official resources.
+\item Local tourism guides and travel blogs.
+\item Community input and field knowledge.
+\end{itemize}
+
+Each destination record includes 15+ attributes: name, description, coordinates, category, activities, best season, budget level, accessibility, adventure level, family-friendliness, cultural richness, nature score, tags, and image reference.
+
+\cref{tbl:sample_destinations} shows sample destination records.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llllll}
+\toprule
+\textbf{Name} & \textbf{Category} & \textbf{Activities} & \textbf{Budget} & \textbf{Season} & \textbf{Family} \\
+\midrule
+Ghandruk & Village & Trekking, Culture & Budget & Aut, Spr & Yes \\
+Ghorepani & Trekking & Hiking, Sunrise & Budget & Aut, Spr & Yes \\
+Pokhara & City & Paragliding, Lake & Moderate & Year & Yes \\
+Bandipur & Historic & Walking, Culture & Budget & Aut, Spr & Yes \\
+Sikles & Village & Trekking, Nature & Budget & Aut, Spr & Yes \\
+\bottomrule
+\end{tabular}
+\caption{Sample destination records from the Gandaki dataset. Each destination includes 15+ attributes for filtering and recommendation.}
+\label{tbl:sample_destinations}
+\end{table}
+
+\section{Key Application Screens}
+\label{sec:screens}
+
+The application includes 11 primary screens:
+
+\subsection{Home Screen}
+
+Displays destination discovery, recommendations, search access, and quick-access widgets for saved places and recent activity.
+
+\subsection{Destination Browsing}
+
+Displays destinations as cards with photos, names, ratings, and categories. Supports filtering by category, budget, activity, season, and adventure level.
+
+\subsection{Destination Detail}
+
+Shows comprehensive information for a selected destination, including description, activities, best season, budget, accommodations, gallery, map location, and save button.
+
+\subsection{Map Screen}
+
+Interactive map showing destinations as markers, route display, user location, map controls, and offline status.
+
+\subsection{Chatbot Screen}
+
+Chat interface for asking tourism questions, showing message history, typing indicator, and offline/online mode indication.
+
+\subsection{Recommendations Screen}
+
+Displays personalized destination recommendations based on user preferences.
+
+\subsection{Saved Places Screen}
+
+Shows destinations saved by the user, with removal options and quick navigation.
+
+\subsection{Account/Preferences Screen}
+
+User profile, preference settings, saved destinations, trip history, and account management.
+
+\subsection{Settings Screen}
+
+App settings including map style, language, offline map status, analytics preferences, and app information.
+
+\subsection{Onboarding Screen}
+
+Initial app experience introducing features, permission requests (location, storage), and preference selection.
+
+\subsection{About Screen}
+
+Project information, team credits, open-source acknowledgements, and links.
+\chapter{Evaluation}
+\label{ch:evaluation}
+
+\section{Evaluation Methodology}
+\label{sec:eval_method}
+
+The evaluation of Paila Nepal addresses four dimensions:
+
+\begin{enumerate}
+\item \textbf{Offline Functionality:} Testing that core features (destination display, map rendering, routing fallback, chatbot responses) operate correctly without network connectivity.
+
+\item \textbf{Recommendation Quality:} Measuring ranked retrieval with Precision@10, Recall@10, nDCG@10, and MRR across five tourism scenarios.
+
+\item \textbf{Software Verification and Performance:} Running static analysis, backend tests, Flutter tests, and focused performance checks, while recording failures rather than suppressing them.
+
+\item \textbf{Usability:} Preparing a System Usability Scale (SUS) instrument and identifying the limitations created by the absence of a completed formal participant study.
+\end{enumerate}
+
+These dimensions provide triangulation rather than relying on one favourable measure. Manual offline checks establish whether the intended traveler workflows remain available; automated checks expose code and lifecycle defects; recommendation metrics measure ranking behaviour; asset inspection quantifies the distribution cost of local capability; and the usability discussion limits claims that cannot yet be supported by participant evidence. The evaluation therefore distinguishes implemented capability, measured quality, and remaining uncertainty. This distinction is important because an offline-first prototype can appear successful during a short demonstration while still containing weaknesses in ranking coverage, test isolation, performance consistency, accessibility, or real-world field reliability under realistic conditions.
+
+\section{Offline Functionality Testing}
+\label{sec:offline_testing}
+
+Testing was conducted by launching the application in offline mode (via airplane mode or connectivity disabling) and verifying that:
+
+\begin{enumerate}
+\item Application launches successfully.
+\item Home screen displays without network errors.
+\item Destination list loads all 300 destinations from local JSON assets.
+\item Destination cards display photographs from local WebP assets.
+\item Map screen renders with local MBTiles tiles at zoom levels 7--12.
+\item Route computation falls back to Haversine formula when OSRM is unavailable.
+\item Chatbot processes user input and generates responses using local knowledge base.
+\item Saved destinations persist in SQLite and remain accessible.
+\item Recommendations can be generated from local cached preferences and destination data.
+\item No unhandled exceptions occur during normal usage patterns.
+\end{enumerate}
+
+The development-stage manual checks recorded in Table \ref{tbl:offline_tests} indicate that the intended offline paths were available. These checks are useful evidence of feature integration, but they should not be treated as a replacement for a controlled multi-device field study.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Feature} & \textbf{Online Mode} & \textbf{Offline Mode} & \textbf{Result} \\
+\midrule
+App Launch & Yes & Yes & Pass \\
+Home Screen & Yes & Yes & Pass \\
+Destination List & Yes & Yes & Pass \\
+Destination Detail & Yes & Yes & Pass \\
+Map Display & Yes & Yes & Pass \\
+Route (OSRM) & Yes & No & Online only \\
+Route (Fallback) & Yes & Yes & Pass \\
+Chatbot (Offline) & Yes & Yes & Pass \\
+Chatbot (LLM) & Yes & No & Graceful degradation \\
+Saved Destinations & Yes & Yes & Pass \\
+Recommendations & Yes & Yes & Pass \\
+Image Display & Yes & Yes & Pass \\
+\bottomrule
+\end{tabular}
+\caption{Development-stage offline functionality checks. OSRM and online LLM enhancement are intentionally unavailable offline, while local fallbacks preserve core functionality.}
+\label{tbl:offline_tests}
+\end{table}
+
+\section{Software Verification and Performance}
+\label{sec:performance}
+
+\subsection{Automated Verification Results}
+
+The final verification pass used commands that can be repeated from the project repository. The results are deliberately reported with their failures because a critical evaluation is more useful than an unsupported claim that every test passes.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{5cm}p{2.2cm}p{6cm}}
+\toprule
+\textbf{Verification} & \textbf{Result} & \textbf{Interpretation} \\
+\midrule
+\texttt{flutter analyze --no-pub} & Pass & No static-analysis issues were reported. \\
+\texttt{pytest backend/tests -q} & Pass & Nine backend tests passed. \\
+\texttt{flutter test --no-pub} & Partial failure & Eighteen tests passed before the recommendation-tab widget test exposed a pending backend-health timer after disposal. \\
+Focused intelligence performance test & Partial failure & Deterministic emergency detection passed its target, but warm offline translation took 570 ms and exceeded the 500 ms target. \\
+\texttt{pytest evaluation -q} & No tests discovered & The evaluation package contains benchmark code but no pytest-discoverable tests. \\
+\bottomrule
+\end{tabular}
+\caption{Repeatable automated verification results from the final report pass.}
+\end{table}
+
+The static-analysis and backend-test results indicate that the core codebase is structurally sound and that the tested backend services behave as expected. However, the widget-test failure reveals a lifecycle issue: the recommendation screen starts a backend health check that remains active after the test disposes the widget tree. This does not demonstrate a user-facing crash, but it weakens test isolation and should be corrected by injecting or cancelling the timer. The translation performance failure is similarly informative. A 570 ms warm offline response remains usable, but it exceeds the project's defined target and suggests that asset loading, matching, or initialisation should be profiled and cached more aggressively.
+
+\subsection{APK Size Analysis}
+
+The latest release APK in the project build output is approximately 94.97 MB. The largest deliberately bundled offline asset groups include approximately 8.74 MB of local WebP destination images, an 8.17 MB MBTiles map package, a 1.38 MB destination JSON file, and a 0.40 MB accommodation JSON file. The remaining size includes the Flutter runtime, native libraries, plugins, fonts, code, and other resources. This size is a direct trade-off: a smaller network-dependent app would be easier to distribute, whereas the current package protects functionality after connectivity is lost. Future optimisation should focus on Android App Bundles, architecture splits, image quality experiments, and downloadable regional map packs.
+
+\section{Quantitative Evaluation Results}
+\label{sec:quant_eval}
+
+The recommendation system was evaluated across five tourism scenarios using graded relevance labels from zero to three. A destination with a relevance grade of at least two was treated as relevant for Precision@10, Recall@10, and MRR, while nDCG@10 retained ranking-sensitive graded relevance. Precision measures how many returned destinations are relevant; recall measures how many of all relevant destinations are recovered; nDCG rewards placing highly relevant destinations near the top; and MRR records the reciprocal rank of the first relevant result \parencite{Jarvelin2002}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Scenario} & \textbf{P@10} & \textbf{R@10} & \textbf{nDCG@10} & \textbf{MRR} \\
+\midrule
+Cultural trekking & 0.8000 & 0.3333 & 0.8305 & 1.0000 \\
+High adventure & 0.7000 & 0.4375 & 0.6797 & 1.0000 \\
+Budget relaxation & 0.5000 & 0.5000 & 0.6152 & 1.0000 \\
+Family-friendly cultural & 0.8000 & 0.3333 & 0.8701 & 1.0000 \\
+Pilgrimage route & 0.6000 & 0.6000 & 0.7759 & 1.0000 \\
+\midrule
+\textbf{Average} & \textbf{0.6800} & \textbf{0.4408} & \textbf{0.7543} & \textbf{1.0000} \\
+\bottomrule
+\end{tabular}
+\caption{Recommendation-quality results across the five dissertation scenarios.}
+\label{tbl:recommendation_metrics}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  title=Recommendation Quality by Scenario,
+  ylabel=Score,
+  ybar,
+  bar width=0.12cm,
+  symbolic x coords={Cultural,Adventure,Budget,Family,Pilgrimage},
+  xtick=data,
+  x tick label style={rotate=25,anchor=east},
+  legend style={at={(0.5,-0.28)},anchor=north,legend columns=3},
+  ymin=0,
+  ymax=1.05,
+]
+\addplot coordinates {(Cultural,0.8000) (Adventure,0.7000) (Budget,0.5000) (Family,0.8000) (Pilgrimage,0.6000)};
+\addplot coordinates {(Cultural,0.3333) (Adventure,0.4375) (Budget,0.5000) (Family,0.3333) (Pilgrimage,0.6000)};
+\addplot coordinates {(Cultural,0.8305) (Adventure,0.6797) (Budget,0.6152) (Family,0.8701) (Pilgrimage,0.7759)};
+\legend{P@10,R@10,nDCG@10}
+\end{axis}
+\end{tikzpicture}
+\caption{Precision, recall, and ranking quality across five tourism scenarios.}
+\label{fig:recommendation_metrics}
+\end{figure}
+
+The results show that the recommender is strongest for cultural trekking and family-friendly cultural queries. These scenarios achieve Precision@10 of 0.8000 and nDCG@10 above 0.83, suggesting that explicit cultural, family, activity, and season attributes are represented effectively in the dataset and ranking features. Budget relaxation is the weakest scenario, with Precision@10 of 0.5000 and nDCG@10 of 0.6152. This result is understandable because concepts such as peacefulness, relaxation, low cost, and proximity to suitable accommodation are less precisely represented than explicit categories such as pilgrimage or cultural heritage. Improving accommodation pricing, tranquillity features, and budget evidence would therefore be more valuable than simply changing model weights.
+
+MRR is 1.0000 for every scenario, meaning that the first returned destination was relevant in all five tests. This is important for mobile interfaces because users frequently inspect only the first few results. Nevertheless, MRR should not be interpreted as evidence that the complete ranking is perfect. Average Recall@10 is only 0.4408, demonstrating that more than half of all destinations labelled relevant were not recovered in the first ten results. The results therefore support a balanced conclusion: the system is effective at placing at least one useful answer first, but candidate retrieval, attribute completeness, and coverage still require improvement.
+
+\section{Objective Traceability and Evaluation Validity}
+\label{sec:validity}
+
+The evaluation evidence can be traced directly to the project objectives. Offline launch, local destination loading, WebP image display, and MBTiles rendering demonstrate that the application preserves its core discovery experience without a network. The routing checks exercise both the online OSRM path and the Haversine fallback. Local chatbot and translation tests examine the offline intelligence objective, while the five recommendation scenarios evaluate semantic retrieval, contextual ranking, and explanation-oriented personalisation. SQLite and Hive behaviour is exercised through saved-place, review, cache, preference, and interaction workflows. Finally, static analysis, backend tests, Flutter tests, APK inspection, and manual offline checks assess the system as an integrated software product rather than as a collection of isolated algorithms.
+
+This traceability also reveals where evidence is weaker. The recommendation metrics show ranking behaviour for defined scenarios, but they do not prove that every tourist would judge relevance in the same way. The relevance labels and scenarios reflect the project's domain assumptions, so changes to labels could change Precision, Recall, nDCG, and MRR. Similarly, a passing offline check proves that a path worked during development; it does not establish long-term reliability across all Android versions, memory constraints, or unusual user actions. The absence of a completed SUS participant study means that ease of use, accessibility, and trust cannot be inferred from functional tests alone.
+
+Several threats to validity therefore remain. Internal validity is affected by the interaction between cached state, device performance, and test order. For example, a warmed recommendation or translation path can appear faster than a first launch. Construct validity is limited because ranking metrics measure relevance and ordering, not whether a recommendation leads to a safe or satisfying visit. External validity is limited by the focus on Gandaki Province, a single Android-oriented implementation, five evaluation scenarios, and development hardware. Ecological validity is also constrained because airplane-mode testing cannot reproduce every rural condition, such as intermittent connectivity, low battery, inaccurate GPS, or rapidly changing road access.
+
+Reproducibility was improved by recording the commands, dataset sizes, asset sizes, metric definitions, scenario-level results, and observed failures. Future evaluation should run the same checks on multiple physical devices, distinguish cold and warm performance, simulate intermittent rather than simply absent connectivity, and recruit domestic and international travelers for task-based testing. Recommendation labels should be reviewed by tourism-domain participants, and online experiments should compare the semantic baseline, contextual reranker, and learned ranking components. These steps would convert the present development evidence into stronger claims about reliability, usability, and real-world tourism value.
+
+\section{Usability Evaluation}
+\label{sec:usability}
+
+The System Usability Scale (SUS) was selected as the intended formal usability instrument because it provides a concise ten-item questionnaire that can be applied across different interactive systems \parencite{Brooke1996}. The questionnaire is retained in Table \ref{tbl:sus_items} so that a later participant study can use a consistent instrument. However, a completed formal SUS study with a defensible participant sample was not available at the time of this report. Consequently, no SUS score is reported, and usability conclusions are limited to development feedback, static analysis, widget testing, and observation of the implemented interaction flows.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Item} & \textbf{Statement} \\
+\midrule
+1 & I think that I would like to use this system frequently. \\
+2 & I found the system unnecessarily complex. \\
+3 & I thought the system was easy to use. \\
+4 & I think that I would need the support of a technical person to use this system. \\
+5 & I found the various functions in this system were well integrated. \\
+6 & I thought there was too much inconsistency in this system. \\
+7 & I would imagine that most people would learn to use this system very quickly. \\
+8 & I found the system very cumbersome to use. \\
+9 & I felt very confident using the system. \\
+10 & I needed to learn a lot of things before I could get going with this system. \\
+\bottomrule
+\end{tabular}
+\caption{System Usability Scale (SUS) items used for usability evaluation.}
+\label{tbl:sus_items}
+\end{table}
+
+This limitation matters because functional correctness does not guarantee that tourists with different languages, ages, technical confidence, or accessibility needs will find the interface easy to use. A future study should recruit both domestic and international travellers, ask them to complete offline discovery, map, chatbot, translation, save, and recommendation tasks, and combine SUS scores with task completion rates and qualitative interviews.
+
+\section{Comparison with Related Work}
+\label{sec:comparison}
+
+\cref{tbl:feature_comparison} compares Paila Nepal with related tourism applications on key features.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Feature} & \textbf{Google} & \textbf{Trip} & \textbf{OS} & \textbf{Paila} \\
+& \textbf{Maps} & \textbf{Advisor} & \textbf{MAnd} & \textbf{Nepal} \\
+\midrule
+Offline Maps & $\bullet$ & Not supported & $\bullet$ & $\bullet$$\bullet$ \\
+Gandaki Focus & Not supported & Not supported & Not supported & $\bullet$$\bullet$ \\
+Chatbot Assistance & Not supported & Partial & Not supported & $\bullet$ \\
+Destination Recommendations & Partial & $\bullet$ & Not supported & $\bullet$ \\
+Offline Routing & Not supported & Not supported & $\bullet$ & $\bullet$ \\
+Saved Destinations & $\bullet$ & $\bullet$ & Not supported & $\bullet$ \\
+Offline Image Display & Not supported & Not supported & $\bullet$ & $\bullet$$\bullet$ \\
+Local NLP Chatbot & Not supported & Not supported & Not supported & $\bullet$ \\
+\midrule
+\textbf{Offline-First Design} & Not supported & Not supported & Partial & $\bullet$$\bullet$ \\
+\textbf{Tourism Specialisation} & Not supported & $\bullet$ & Not supported & $\bullet$$\bullet$ \\
+\bottomrule
+\end{tabular}
+\caption{Feature comparison of tourism applications. Legend: $\bullet$$\bullet$ = full support, $\bullet$ = partial support, Not supported = not supported. Paila Nepal uniquely combines offline-first architecture with rural Gandaki tourism specialisation.}
+\label{tbl:feature_comparison}
+\end{table}
+
+Paila Nepal's distinctive contributions are:
+
+\begin{enumerate}
+\item \textbf{Rural Gandaki Specialisation:} Focuses specifically on rural Gandaki Province destinations, rather than global coverage.
+
+\item \textbf{Truly Offline-First:} All core features function without network connectivity, rather than relying on online connectivity as primary.
+
+\item \textbf{Local Chatbot:} Provides offline conversational tourism assistance without depending on cloud LLMs.
+
+\item \textbf{Integrated Offline Map + Routing + Recommendations:} Combines multiple offline systems into a single cohesive application.
+
+\item \textbf{Tourism-Specific Design:} Includes tourism-relevant attributes (activities, seasons, budget levels, family-friendliness) in destination models.
+\end{enumerate}
+
+\section{Limitations and Critical Analysis}
+\label{sec:limitations}
+
+Despite the successful implementation of offline-first architecture, several limitations should be acknowledged:
+
+\subsection{Limited Destination Dataset}
+
+The application includes 300 curated Gandaki destinations. While this provides meaningful coverage of major tourism sites, the dataset may not include every lesser-known destination, homestay, or emerging tourism point of interest. Additionally, destination information is static; it does not update in real-time based on community input, seasonal changes, or recent events.
+
+\subsection{Limited Offline Map Zoom}
+
+The offline map MBTiles includes zoom levels 7--12, suitable for regional browsing and destination-level orientation. However, users who zoom beyond level 12 see scaled-up tiles or blank areas if online fallback is disabled. Full street-level mapping would require significantly larger map tiles (potentially 500+ MB), exceeding practical APK distribution constraints.
+
+\subsection{Approximate Offline Routing}
+
+When OSRM is unavailable, the Haversine straight-line route provides direction and distance estimation but not turn-by-turn navigation or road-aware routing. Users must supplement with local knowledge or request directions from residents for final navigation. A fully offline turn-by-turn system would require bundling a complete OpenStreetMap road network, which is beyond current scope.
+
+\subsection{Limited Collaborative Data}
+
+The application includes local ratings/reviews and logs recommendation-related interactions, with queued batch synchronisation to the backend. However, the project has not accumulated a large, representative population of real users. Collaborative scores and learning-to-rank training are therefore constrained by sparse or synthetic interactions. The architecture is ready to learn from future usage, but current evaluation should not imply that the collaborative component has already captured stable population preferences.
+
+\subsection{Language Limitations}
+
+The offline intelligence system supports English, Devanagari Nepali, and romanised Nepali through normalisation, phrasebooks, templates, glossaries, and local retrieval. Nevertheless, it is not equivalent to a large multilingual neural model. Unseen grammar, spelling variation, long-form translation, dialect differences, and culturally specific expressions can still reduce accuracy. The focused performance test also showed a 570 ms warm offline translation result against a 500 ms target, indicating room for optimisation.
+
+\subsection{Device Storage Dependency}
+
+The offline-first design requires bundling significant assets, resulting in a current release APK of approximately 94.97 MB. Older Android devices with limited storage or expensive data plans may find the initial download difficult. This is a reasonable but non-trivial trade-off for comprehensive offline functionality.
+
+\subsection{Lack of Real-Time Data}
+
+The app does not provide real-time information about weather, current events, road conditions, or accommodation availability. This would require continuous backend connectivity to be meaningful.
+
+\section{Societal Impact and Contribution}
+\label{sec:impact}
+
+Paila Nepal demonstrates a potential contribution to rural tourism in Nepal:
+
+\subsection{Information Accessibility}
+
+By bundling comprehensive destination information locally, the application increases information accessibility in rural areas where internet connectivity is unreliable. Travelers have access to structured, contextual destination information regardless of network state.
+
+\subsection{Economic Potential}
+
+By increasing digital visibility of rural Gandaki destinations, the application may contribute to tourism demand for rural accommodations, local guides, artisan goods, and cultural experiences. This potential economic benefit accrues primarily to rural communities.
+
+\subsection{Offline-First Design Pattern Contribution}
+
+Paila Nepal demonstrates how offline-first architecture can enhance accessibility in low-connectivity contexts. The design patterns and lessons learned may inform the development of similar applications for other rural tourism regions or resource-constrained contexts globally.
+
+\subsection{Open-Source Potential}
+
+The project (including code, dataset, and architecture) could be open-sourced, allowing other regions to adapt the platform for their local tourism contexts.
+
+\section{Ethical Considerations}
+\label{sec:ethics}
+
+Several ethical considerations were addressed during development:
+
+\subsection{Data Privacy}
+
+User location data (if shared) is stored locally on the device. The application does not transmit location data to the backend without explicit user consent. Chatbot interactions remain on-device in offline mode; online LLM requests require user acknowledgement.
+
+\subsection{Accessibility}
+
+The application was designed with accessibility in mind, including readable font sizes, high-contrast colors, and support for standard Android accessibility services. However, some complex features (maps, routing) may benefit from additional accessibility enhancements.
+
+\subsection{Cultural Sensitivity}
+
+Destination descriptions and recommendations respect local culture and traditions. The application emphasizes cultural tourism as meaningful exchange rather than exploitation, and includes warnings about respectful conduct in sacred sites.
+
+\subsection{Fair Attribution}
+
+Destination photographs are sourced from Wikimedia Commons, Wikipedia, and openly-licensed sources. Attribution is provided where appropriate. Destination descriptions are either original or paraphrased from openly-available sources.
+\chapter{Challenges and Solutions}
+\label{ch:challenges}
+
+\section{Map Tile Format and Compatibility}
+\label{sec:ch_tiles}
+
+\textbf{Challenge:} Determining the appropriate map tile format (raster vs. vector) and ensuring compatibility with Flutter map libraries.
+
+\textbf{Solution:} Selected raster PNG tiles in MBTiles format. Raster tiles are directly renderable as images, compatible with \texttt{flutter\_map}, and suitable for offline distribution. Vector tiles (PBF format) would require client-side rendering, adding complexity and library dependencies.
+
+\section{MBTiles Coordinate System}
+\label{sec:ch_coords}
+
+\textbf{Challenge:} Resolving coordinate system differences between TMS (Tile Map Service) and XYZ tile coordinate conventions.
+
+\textbf{Solution:} Validated the MBTiles file against both coordinate systems. The Flutter MBTiles provider handles coordinate transformation automatically, so the issue was identified and resolved during testing.
+
+\section{APK Size Management}
+\label{sec:ch_apk_size}
+
+\textbf{Challenge:} The combination of the Flutter runtime, destination images, map tiles, and local data resulted in a large APK.
+
+\textbf{Solution:} Optimised images to WebP format, limited map tile zoom levels to 7--12, and limited the destination dataset to Gandaki Province. These choices balanced offline functionality with a release APK size of approximately 94.97 MB.
+
+\section{Offline Routing Fallback}
+\label{sec:ch_routing}
+
+\textbf{Challenge:} Providing useful route guidance when online OSRM routing is unavailable.
+
+\textbf{Solution:} Implemented the three-tier routing architecture: cache to OSRM to Haversine fallback. The Haversine fallback provides direction and distance estimation, suitable for initial navigation planning.
+
+\section{Vector vs. Raster Tile Performance}
+\label{sec:ch_vector}
+
+\textbf{Challenge:} Vector tiles offer better scalability and smaller file sizes but require client-side rendering.
+
+\textbf{Solution:} Chose raster tiles for simplicity and compatibility with available Flutter libraries. Raster tiles are directly renderable, requiring no client-side vector processing. This trade-off prioritised compatibility over file size.
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+\section{Summary of Achievements}
+\label{sec:summary}
+
+Paila Nepal successfully demonstrates how offline-first mobile architecture can enhance digital accessibility and tourism promotion in rural contexts with limited internet connectivity. The project achieves the following:
+
+\begin{enumerate}
+\item \textbf{Offline-First Android Application:} A working Flutter-based Android prototype that preserves destination discovery, map access, fallback route guidance, recommendations, and chatbot assistance without requiring continuous internet connectivity.
+
+\item \textbf{Comprehensive Destination Dataset:} 300 curated Gandaki Province destinations with more than 20 structured and descriptive attributes, 771 accommodation records, and 300 local images.
+
+\item \textbf{Local Asset Integration:} Bundled 300 destination photographs (WebP format), offline map tiles (MBTiles), and chatbot knowledge bases, enabling rich offline experiences.
+
+\item \textbf{Three-Tier Routing System:} Route guidance that gracefully degrades from OSRM road-aware routing to cached routes to Haversine approximation, ensuring users always receive directional guidance.
+
+\item \textbf{Offline Intelligence:} Local multilingual processing, hybrid intent classification, knowledge retrieval, dialogue memory, safety handling, translation, and optional online LLM enhancement.
+
+\item \textbf{Persistent User Data:} SQLite, Hive, and SharedPreferences support for saved destinations, reviews, recommendation caches, route cache, preferences, and queued interactions.
+
+\item \textbf{Explainable Hybrid Recommendations:} SBERT retrieval, collaborative/popularity signals, contextual reranking, cold-start handling, diversity filtering, ML rescoring, and human-readable recommendation reasons.
+
+\item \textbf{Evidence-Based Evaluation:} Five recommendation scenarios, repeatable software checks, explicit reporting of remaining test failures, and a critical analysis of limitations.
+\end{enumerate}
+
+\section{Contribution to Knowledge}
+\label{sec:contribution}
+
+This project contributes to academic and practical understanding in several areas:
+
+\subsection{Offline-First Architecture for Tourism}
+
+The three-tier routing architecture, tiered data availability, and graceful degradation patterns provide a practical reference for other tourism and low-connectivity applications.
+
+\subsection{Rural Tourism Digitalisation}
+
+The focus on rural Gandaki demonstrates how local content, accessibility, and personalisation can support rural tourism visibility.
+
+\subsection{Mobile Application Design for Low-Connectivity Contexts}
+
+The architecture also illustrates mobile design choices applicable to other regions with unreliable connectivity.
+
+\subsection{Open Dataset and Methodology}
+
+The dataset, knowledge resources, and architecture could be adapted for other regional tourism contexts.
+
+\section{Future Work}
+\label{sec:future}
+
+Several directions could extend Paila Nepal:
+
+\subsection{Real User Feedback and Iteration}
+
+Deploying the application to real travelers in Gandaki Province, collecting usage data, and iterating based on user feedback would validate and refine the design.
+
+\subsection{Expanded Destination Dataset}
+
+Incorporating additional destinations beyond the current 300, including homestays, emerging tourism points, and user-contributed information.
+
+\subsection{Full-Length Offline Routing}
+
+Integrating a local road network (e.g., PBF OpenStreetMap extract) to enable turn-by-turn offline navigation without depending on cached routes.
+
+\subsection{Expanded Multilingual Support}
+
+Extending the existing English, Devanagari Nepali, and romanised Nepali resources with broader vocabulary, stronger neural translation, Hindi, Mandarin, and additional tourism-specific language coverage.
+
+\subsection{Community Contributions}
+
+Implementing a backend system for users to submit destination photos, reviews, and information updates, with moderation and synchronisation to the offline app.
+
+\subsection{iOS Support}
+
+Extending the application to iOS using Flutter's cross-platform capabilities.
+
+\subsection{Recommendation Learning from Real Users}
+
+The current system already contains collaborative filtering, semantic embeddings, contextual reranking, a LambdaRank training path, and experimental two-tower components. Future work should therefore focus on collecting consented real-user interactions, evaluating learned ranking against the semantic-only baseline, monitoring fairness and coverage, and retraining safely from representative data.
+
+\subsection{Integration with Nepal Tourism Services}
+
+Partnering with Nepal Tourism Board, accommodation networks, and local tourism operators to integrate booking, weather, verified transport updates, and real-time availability information.
+
+\section{Reflection on Project Outcomes}
+\label{sec:reflection}
+
+Paila Nepal addresses the research question by combining bundled destination data and maps with route fallback, local intelligence, offline recommendation assets, and persistent local state. Online-only features, including OSRM road routes and language-model enhancement, deliberately degrade to local alternatives.
+
+However, the project also highlights inherent trade-offs in offline-first design. Bundling significant assets (images, maps) results in a larger APK. Static offline data cannot reflect real-time changes in availability, weather, or events. Offline route computation is approximate compared to road-aware online routing. These trade-offs are intentional and reflect the priorities of accessibility and offline reliability over comprehensiveness and currency.
+
+The evaluation shows both promise and incompleteness. MRR of 1.0000 demonstrates that every tested scenario placed a relevant destination first, while average Recall@10 of 0.4408 shows that relevant destinations are still missed. Static analysis and backend tests pass, but the remaining Flutter widget-test timer and translation performance target demonstrate that further engineering work is required. This balanced outcome is more valuable than claiming production readiness: the project establishes a substantial and testable foundation for future tourism applications and rural digital development initiatives.
+
+\section{Final Remarks}
+\label{sec:final}
+
+Paila Nepal demonstrates that tourism technology can respect connectivity constraints by treating offline operation as a core requirement. Its practical patterns, documented limitations, and extensible architecture provide a foundation in practice for future systems serving Gandaki Province and other low-connectivity regions.
+\printbibliography[title=References]
+
+\appendix
+
+\chapter{Sample Destination Data}
+\label{app:destinations}
+
+\cref{tbl:sample_data} shows the first five destinations from the curated dataset in JSON structure.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Field} & \textbf{Example Value} \\
+\midrule
+id & destination\_001 \\
+name & Ghandruk \\
+description & A scenic Gurung village in the Annapurna foothills with traditional stone houses, terraced fields, and warm hospitality... \\
+latitude & 28.3956 \\
+longitude & 83.8622 \\
+category & village \\
+activities & ["trekking", "village\_tour", "culture", "nature"] \\
+best\_season & ["autumn", "spring"] \\
+budget\_level & budget \\
+accessibility & moderate \\
+adventure\_level & 2 \\
+family\_friendly & true \\
+cultural\_richness & 8 \\
+nature\_score & 7 \\
+\bottomrule
+\end{tabular}
+\caption{Sample destination data structure showing attributes included for each of 300 Gandaki Province destinations.}
+\label{tbl:sample_data}
+\end{table}
+
+\chapter{API Endpoint Specifications}
+\label{app:api_spec}
+
+The FastAPI backend provides the following endpoints:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{4.5cm}p{1.8cm}p{7cm}}
+\toprule
+\textbf{Endpoint} & \textbf{Method} & \textbf{Purpose} \\
+\midrule
+/health & GET & Health check \\
+/recommend & POST & Hybrid ranked destinations with scores, reasons, cache metadata, and interaction logging \\
+/chat & POST & Online chatbot response with local fallback support \\
+/chat/offline & POST & Explicit offline rule-based/retrieval response \\
+/translate & POST & Supported-pair translation endpoint \\
+\path{/auth/register}, \path{/auth/login}, \path{/auth/me} & POST/GET & Authentication and current-user access \\
+\path{/destinations}, \path{/destinations/{id}} & GET & Destination catalogue and detail access \\
+\path{/destinations/{id}/accommodations} & GET & Accommodation records linked to a destination \\
+/similar/\{id\} & GET & Similar-destination semantic retrieval \\
+/interactions, /interactions/batch & POST & Single and queued-batch interaction logging \\
+/analytics/recommender & GET & Recommender analytics \\
+/evaluate/ & POST & Recommendation evaluation metrics \\
+/evaluate/train-ranker & POST & Train the LightGBM LambdaRank model \\
+/admin/rebuild-index & POST & Rebuild the semantic destination index \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Testing Checklist}
+\label{app:testing}
+
+Testing checklist for offline functionality:
+
+\begin{enumerate}
+\item Enable airplane mode on test device
+\item Launch application and verify successful startup
+\item Navigate to home screen and verify no network errors
+\item Scroll destination list and verify all 300 destinations load
+\item View destination detail screens and verify images display
+\item View map screen and verify map tiles render
+\item Request route between two destinations and verify Haversine fallback
+\item Submit chatbot query and verify offline response
+\item Save a destination and verify it persists to SQLite
+\item Disable airplane mode and verify app transitions to online mode gracefully
+\item Request route and verify OSRM online routing works
+\item Clear cache and request previously-used route; verify cache miss and re-computation
+\end{enumerate}
+
+\chapter{Database Schema Diagrams}
+\label{app:schema}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  schema/.style={draw, rounded corners=2mm, line width=1.3pt, text width=5.2cm, minimum height=2.2cm, align=left, inner sep=7pt}
+]
+  \node[font=\large\bfseries] at (0,3.2) {SQLite Schema};
+
+  \node[schema] at (-3.3,1.5) {
+    \textbf{saved\_destinations}\\[3pt]
+    \texttt{id: TEXT PK}\\
+    \texttt{payload: TEXT}\\
+    \texttt{saved\_at: INTEGER}
+  };
+
+  \node[schema] at (3.3,1.5) {
+    \textbf{destination\_reviews}\\[3pt]
+    \texttt{destination\_id: TEXT}\\
+    \texttt{rating: INTEGER}\\
+    \texttt{created\_at: INTEGER}
+  };
+
+  \node[schema] at (0,-1.25) {
+    \textbf{cached\_routes}\\[3pt]
+    \texttt{key: TEXT PK}\\
+    \texttt{data: TEXT}\\
+    \texttt{cached\_at: INTEGER}
+  };
+\end{tikzpicture}
+\caption{Simplified SQLite schema for Paila Nepal. The main application database stores saved destinations and reviews, while a separate SQLite database stores the 30-day route cache. Recommendation caches and pending interactions use Hive.}
+\label{fig:db_schema}
+\end{figure}
+
+\chapter{System Requirements}
+\label{app:requirements}
+
+\textbf{Minimum Device Requirements:}
+
+\begin{itemize}
+\item Android 7.0 (API level 24) or higher
+\item 2 GB RAM
+\item 150 MB free storage (for app + data)
+\item GPS and location services
+\end{itemize}
+
+\textbf{Recommended Requirements:}
+
+\begin{itemize}
+\item Android 10 or higher
+\item 4+ GB RAM
+\item 200+ MB free storage
+\item WiFi + cellular connectivity options
+\end{itemize}
+
+\textbf{Development Requirements:}
+
+\begin{itemize}
+\item Flutter SDK 3.0.0+
+\item Dart 3.x
+\item Android Studio 4.1+
+\item Android NDK (for native dependencies)
+\item Xcode (for iOS development)
+\end{itemize}
+\input{appendices_expanded}
+\end{document}

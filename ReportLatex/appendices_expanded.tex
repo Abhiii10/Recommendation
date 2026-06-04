@@ -1,0 +1,848 @@
+% Expanded submission evidence. These appendices are intentionally excluded
+% from the declared 8,000-word main-body count.
+
+\newcommand{\EvidenceSheet}[7]{%
+\clearpage
+\section{#1}
+\noindent
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}X}
+\toprule
+Identifier & #2 \\
+Purpose & #3 \\
+Preconditions & #4 \\
+Procedure or decision & #5 \\
+Acceptance evidence & #6 \\
+Residual risk & #7 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.8cm}
+
+\noindent\textbf{Traceability note.}
+This record connects a stated project requirement to a concrete implementation
+or verification activity. It is retained as submission evidence so that the
+system can be assessed against observable behaviour rather than feature claims
+alone.
+}
+
+\chapter{Requirements Catalogue and Traceability}
+\label{app:traceability}
+
+This appendix expands the project objectives into assessable requirements.
+Priority follows the MoSCoW convention: Must, Should, Could, and Won't for the
+current release. The verification column identifies the strongest available
+form of evidence.
+
+\begin{longtable}{p{1.4cm}p{8.7cm}p{2.0cm}p{2.2cm}}
+\caption{Functional requirements catalogue.}\label{tbl:functional_requirements}\\
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Priority} & \textbf{Evidence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Priority} & \textbf{Evidence} \\
+\midrule
+\endhead
+FR-01 & The application shall launch and expose its core destination catalogue without an active internet connection. & Must & Airplane-mode scenario \\
+FR-02 & The application shall load all 300 curated Gandaki Province destination records from bundled assets. & Must & Dataset validation \\
+FR-03 & A user shall be able to search and filter destinations by meaningful tourism attributes. & Must & Widget and manual tests \\
+FR-04 & A destination detail view shall present descriptive, geographic, seasonal, activity, and image information. & Must & UI inspection \\
+FR-05 & The map shall render bundled Gandaki tiles when online tile services are unavailable. & Must & Airplane-mode scenario \\
+FR-06 & The routing service shall prefer a cached route, then an online OSRM route, then an offline Haversine fallback. & Must & Routing branch tests \\
+FR-07 & Users shall be able to save destinations and retain them between application sessions. & Must & Persistence test \\
+FR-08 & Users shall be able to submit and retain local destination reviews. & Should & Persistence test \\
+FR-09 & The system shall produce explainable personalized destination recommendations. & Must & Scenario evaluation \\
+FR-10 & Recommendation capability shall remain available without the backend. & Must & Offline recommendation test \\
+FR-11 & The chatbot shall answer tourism-oriented questions using local intelligence when disconnected. & Must & Intelligence end-to-end test \\
+FR-12 & Emergency-like messages shall receive deterministic safety-oriented handling. & Must & Safety scenario test \\
+FR-13 & Translation shall support the application's declared English and Nepali travel phrases. & Should & Translation evaluation \\
+FR-14 & The application shall queue user interactions locally when the backend is unavailable. & Should & Synchronisation test \\
+FR-15 & Queued interactions shall be submitted to the backend after connectivity returns. & Should & Integration scenario \\
+FR-16 & The backend shall expose authenticated registration, login, and current user endpoints. & Should & Backend tests \\
+FR-17 & The backend shall expose destination and accommodation catalogue endpoints. & Must & API contract test \\
+FR-18 & The backend shall expose recommendation, similar-destination, and evaluation endpoints. & Must & API contract test \\
+FR-19 & Administrators shall be able to rebuild the semantic destination index. & Could & Endpoint inspection \\
+FR-20 & The application shall communicate backend unavailability clearly without preventing local use. & Must & Offline UX inspection \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\begin{longtable}{p{1.4cm}p{8.7cm}p{2.0cm}p{2.2cm}}
+\caption{Non-functional requirements catalogue.}\label{tbl:nonfunctional_requirements}\\
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Priority} & \textbf{Evidence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Priority} & \textbf{Evidence} \\
+\midrule
+\endhead
+NFR-01 & Core discovery, saved data, local recommendations, maps, and local assistance shall tolerate a complete loss of network connectivity. & Must & Airplane-mode suite \\
+NFR-02 & The Android release shall remain practical to distribute despite bundled maps, images, and recommendation assets. & Must & APK size inspection \\
+NFR-03 & Personal data and authentication secrets shall not be embedded in public application assets. & Must & Configuration review \\
+NFR-04 & Backend passwords shall be stored using a one-way password hashing mechanism. & Must & Auth service test \\
+NFR-05 & Recommendation results shall include understandable reasons rather than scores alone. & Should & Response inspection \\
+NFR-06 & Ranking evaluation shall use repeatable relevance scenarios and standard information-retrieval metrics. & Must & Evaluation script \\
+NFR-07 & The app shall use accessible contrast, readable labels, and touch targets suitable for repeated mobile use. & Should & UI inspection \\
+NFR-08 & Failures in online enhancement services shall degrade to local capability rather than crash the application. & Must & Failure injection \\
+NFR-09 & Local route cache entries shall expire after a defined freshness period. & Should & Cache inspection \\
+NFR-10 & Source modules shall retain clear separation between presentation, domain logic, storage, and remote services. & Should & Architecture review \\
+NFR-11 & Automated static analysis shall complete without reported Flutter issues. & Must & \texttt{flutter analyze} \\
+NFR-12 & Backend automated tests shall pass in the documented environment. & Must & \texttt{pytest} result \\
+NFR-13 & The application shall be maintainable through central configuration of its backend base URL. & Should & Configuration review \\
+NFR-14 & Dataset fields shall use a consistent schema that can be validated before packaging. & Must & Dataset validation \\
+NFR-15 & Safety responses shall be deterministic and shall not depend exclusively on an external language model. & Must & Emergency tests \\
+\bottomrule
+\end{longtable}
+
+\EvidenceSheet
+{Offline Launch and Core Discovery}
+{REQ-TRACE-01 / FR-01, FR-02, NFR-01}
+{Demonstrate that the application remains useful at initial launch when no network is available.}
+{A release build is installed; airplane mode is enabled; bundled assets have not been removed.}
+{Launch the app, dismiss onboarding if required, open the home destination feed, perform a destination search, and open a destination detail view. Repeat after force-closing the application.}
+{The shell loads without a blocking network error; locally packaged destination content is visible; search and detail navigation remain available; the app can be relaunched.}
+{Live events, weather, remote reviews, and newly changed destination information cannot be guaranteed while disconnected.}
+
+\EvidenceSheet
+{Bundled Destination Catalogue Integrity}
+{REQ-TRACE-02 / FR-02, NFR-14}
+{Establish that the packaged catalogue is structurally valid and sufficiently rich for filtering and recommendation.}
+{The destination JSON asset is present and the application's destination model is available.}
+{Parse the complete asset; check identifier uniqueness; validate coordinates; confirm required text, category, activity, season, budget, accessibility, family, culture, nature, and image fields; report malformed records.}
+{All 300 intended destination records load through the real model mapping and can be used by discovery and recommendation services.}
+{Curated data can become stale; a future release requires a governed update and validation process.}
+
+\EvidenceSheet
+{Offline Map Availability}
+{REQ-TRACE-03 / FR-05, NFR-01}
+{Confirm that map exploration does not disappear when an online tile provider cannot be reached.}
+{The Gandaki MBTiles asset is packaged; location permission is granted or a known map location is selected.}
+{Enable airplane mode, open the map, pan across Pokhara and surrounding Gandaki areas, change supported zoom levels, and reopen the map after restarting the app.}
+{Raster tiles render from the bundled database for the declared coverage and zoom range without a tile-network dependency.}
+{Coverage is deliberately bounded; street-level tiles outside the packaged region or zoom range are unavailable.}
+
+\EvidenceSheet
+{Three-Tier Route Resolution}
+{REQ-TRACE-04 / FR-06, NFR-08, NFR-09}
+{Verify deterministic routing behaviour across cached, online, and fully disconnected states.}
+{Two valid coordinates are selected and the route cache can be inspected or cleared.}
+{Request a route once online, repeat to exercise the cache, then clear the relevant entry and request the route in airplane mode. Compare route source, distance, and presentation.}
+{The first eligible online request uses OSRM, the repeated request can use the SQLite cache, and the disconnected cache miss produces a Haversine fallback instead of a crash.}
+{The Haversine line is an estimate and must not be presented as road-aware turn-by-turn navigation.}
+
+\EvidenceSheet
+{Persistent Saved Destinations and Reviews}
+{REQ-TRACE-05 / FR-07, FR-08}
+{Confirm that user-created local state survives navigation and process restarts.}
+{At least one destination is available; application storage has not been manually cleared.}
+{Save a destination, submit a local review, navigate away, force-close the app, relaunch, and inspect saved and reviewed content. Then remove the saved item and confirm the change persists.}
+{SQLite-backed saved and review state remains consistent across sessions and reflects create and delete actions.}
+{Device uninstall or storage clearing removes local-only state unless a future synchronisation feature has uploaded it.}
+
+\EvidenceSheet
+{Offline Recommendation Continuity}
+{REQ-TRACE-06 / FR-09, FR-10, NFR-05}
+{Demonstrate that personalization is not exclusively dependent on the FastAPI service.}
+{Destination assets and local recommendation resources are packaged; user preferences can be supplied.}
+{Generate recommendations online, disable connectivity, change a preference or context, and generate recommendations again. Inspect ordering, reasons, and absence of blocking errors.}
+{The offline pipeline returns ranked destinations with human-readable reasons and uses locally available semantic and contextual signals.}
+{Offline ranking does not have access to fresh cross-user interaction data or newly trained backend models.}
+
+\EvidenceSheet
+{Local Tourism Assistance and Safety}
+{REQ-TRACE-07 / FR-11, FR-12, NFR-15}
+{Verify that local intelligence can answer supported tourism questions and prioritise emergency handling.}
+{Offline knowledge assets and intelligence services are initialized; network connectivity is disabled.}
+{Ask for a destination suggestion, a practical travel phrase, a follow-up question requiring context, and an emergency-style message. Inspect response mode and safety content.}
+{Supported tourism queries receive local retrieval or template responses; conversation state is retained; emergency content is handled by deterministic safety logic.}
+{The assistant is not a substitute for emergency services, medical advice, or verified real-time trail conditions.}
+
+\EvidenceSheet
+{Backend Failure Degradation}
+{REQ-TRACE-08 / FR-20, NFR-08, NFR-13}
+{Confirm that a backend outage is visible but does not disable local application features.}
+{The app is configured with a deliberately unreachable backend URL while local assets remain intact.}
+{Launch the app, trigger a backend-enhanced action, inspect the user-facing state, then continue to discovery, map, saved items, local recommendations, and local chatbot functions.}
+{The application communicates that online services are unavailable and continues to expose its offline-capable workflows.}
+{Remote-only capabilities such as authentication, fresh analytics, and online model responses remain unavailable until connectivity and backend health recover.}
+
+\chapter{Data Dictionary and Dataset Evidence}
+\label{app:data_dictionary}
+
+The recommendation and discovery experience depends on consistent structured
+data. The following dictionary documents the principal destination fields used
+across Flutter and FastAPI components.
+
+\begin{longtable}{p{3.2cm}p{2.2cm}p{6.1cm}p{2.5cm}}
+\caption{Destination data dictionary.}\label{tbl:data_dictionary}\\
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Meaning and use} & \textbf{Validation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Meaning and use} & \textbf{Validation} \\
+\midrule
+\endhead
+\texttt{id} & string & Stable destination key used by UI, persistence, routes, interactions, and recommendation outputs. & Required; unique \\
+\texttt{name} & string & Human-readable destination name displayed throughout the application. & Required; non-empty \\
+\texttt{description} & string & Curated descriptive content for details, retrieval, and semantic embedding. & Required; non-empty \\
+\texttt{latitude} & number & Geographic latitude used by maps, distance features, and routing. & -90 to 90 \\
+\texttt{longitude} & number & Geographic longitude used by maps, distance features, and routing. & -180 to 180 \\
+\texttt{category} & string & Primary tourism category such as village, lake, viewpoint, temple, or trek. & Controlled value \\
+\texttt{activities} & list & Supported experiences such as trekking, culture, nature, photography, or pilgrimage. & Non-empty list \\
+\texttt{best\_season} & list & Seasons in which the destination is most suitable. & Controlled values \\
+\texttt{budget\_level} & string & Relative cost category used by filters and contextual scoring. & Controlled value \\
+\texttt{accessibility} & string & Relative access difficulty used in suitability filtering and explanations. & Controlled value \\
+\texttt{adventure\_\allowbreak level} & integer & Ordinal indicator of desired physical/adventure intensity. & Bounded scale \\
+\texttt{family\_\allowbreak friendly} & boolean & Indicates suitability for family-oriented discovery scenarios. & Boolean \\
+\texttt{cultural\_\allowbreak richness} & number & Relative cultural value used in filters and ranking features. & Bounded scale \\
+\texttt{nature\_score} & number & Relative natural-attraction value used in filters and ranking features. & Bounded scale \\
+\texttt{tags} & list & Additional searchable and semantically useful descriptive labels. & Normalised strings \\
+\texttt{image} & string & Local or resolvable image reference used by cards and detail presentation. & Asset existence \\
+\texttt{sbert\_text} & string & Prepared semantic text combining meaningful destination attributes. & Non-empty text \\
+\texttt{province} & string & Administrative region used to constrain and describe coverage. & Gandaki scope \\
+\bottomrule
+\end{longtable}
+
+\EvidenceSheet
+{Dataset Identity and Uniqueness}
+{DATA-EVIDENCE-01}
+{Prevent ambiguous persistence, interaction, and recommendation references.}
+{The complete destination asset is available to a validation script or model loader.}
+{Collect every destination identifier and name; report empty values, duplicate identifiers, and suspicious duplicate normalized names; verify that referenced identifiers remain stable between app and backend assets.}
+{Every packaged destination has one stable unique identifier and a usable display name.}
+{Name changes and future record merges require migration rules so saved items and interactions remain associated correctly.}
+
+\EvidenceSheet
+{Geographic Validity}
+{DATA-EVIDENCE-02}
+{Ensure that destination points can be rendered, measured, and routed without invalid coordinates.}
+{All records have been parsed into numeric latitude and longitude values.}
+{Check global coordinate bounds, inspect whether points fall within the intended Nepal/Gandaki coverage, and plot outliers for manual review.}
+{All intended destinations produce valid map points and no record silently defaults to an unrelated coordinate.}
+{A valid coordinate does not guarantee a safe or publicly accessible arrival point; field verification remains necessary.}
+
+\EvidenceSheet
+{Semantic Retrieval Readiness}
+{DATA-EVIDENCE-03}
+{Confirm that recommendation and chatbot retrieval operate on informative text rather than destination names alone.}
+{Each record exposes description, category, activity, tag, and prepared semantic text fields.}
+{Inspect representative records across categories; compare source attributes with prepared semantic text; check for empty or duplicated semantic content; verify embedding-index alignment with identifiers.}
+{Semantic records contain enough distinct tourism context to support similarity search and scenario-oriented ranking.}
+{Curated descriptions may reflect author bias and can underrepresent less documented communities.}
+
+\EvidenceSheet
+{Local Media Integrity}
+{DATA-EVIDENCE-04}
+{Verify that offline destination presentation can resolve packaged images reliably.}
+{The Flutter asset manifest and local image directory are available.}
+{Resolve each destination image reference, identify missing or duplicate assets, open a sample across image sizes, and inspect card/detail fallback behaviour.}
+{Intended local image references resolve and missing media does not crash a destination card or details screen.}
+{Image licensing, accessibility text, and future content updates require an explicit governance process.}
+
+\EvidenceSheet
+{Accommodation Relationship Integrity}
+{DATA-EVIDENCE-05}
+{Confirm that accommodation records can be associated with their destination context.}
+{The accommodation dataset and destination identifier set are available.}
+{Validate accommodation identifiers, destination foreign-key references, coordinates, names, types, price data, and duplicated records; inspect destinations with zero and many linked accommodations.}
+{Each of the 771 intended accommodation records is parseable and every declared destination relationship resolves.}
+{Availability and prices are not real-time and must be labelled accordingly in future booking-oriented releases.}
+
+\chapter{Detailed API Contract Catalogue}
+\label{app:api_contracts}
+
+Each contract sheet records the behaviour expected by the Flutter client and by
+administrative or evaluation tooling. Exact payloads remain versioned by the
+backend implementation; the sheets focus on externally observable obligations.
+
+\EvidenceSheet
+{Health Check Contract}
+{API-01 / \texttt{GET /health}}
+{Provide a low-cost signal that the FastAPI process is reachable before online enhancement is attempted.}
+{The backend process has started and its configured port is reachable.}
+{Send an unauthenticated GET request; inspect status code and response body; repeat while a downstream optional model provider is unavailable.}
+{The endpoint returns a successful service-health response without requiring user credentials or an external model provider.}
+{Process health alone does not prove that every optional dependency or data source is healthy.}
+
+\EvidenceSheet
+{Destination Collection Contract}
+{API-02 / \texttt{GET /destinations}}
+{Expose the destination catalogue for online consumers and consistency checks.}
+{The backend destination repository has loaded its dataset.}
+{Request the collection; inspect record count, identifiers, names, coordinates, and pagination or limit behaviour if configured.}
+{The response is valid JSON, uses stable identifiers, and exposes fields compatible with the client destination model.}
+{Large future datasets require explicit pagination and version-aware client handling.}
+
+\EvidenceSheet
+{Destination Detail and Accommodation Contract}
+{API-03 / \texttt{GET /destinations/\{id\}} and accommodation route}
+{Expose one destination and its linked accommodation context.}
+{A valid destination identifier and an invalid test identifier are available.}
+{Request a valid detail record, request its accommodations, then request a missing identifier and inspect error semantics.}
+{Valid requests return the intended record and relationships; missing identifiers return a controlled not-found response rather than a server error.}
+{Accommodation data remains informational unless integrated with a verified availability provider.}
+
+\EvidenceSheet
+{Recommendation Contract}
+{API-04 / \texttt{POST /recommend}}
+{Return ranked and explainable destination suggestions for a supplied user and context.}
+{The destination index and recommendation service are initialized; a valid request payload is available.}
+{Submit a cold-start request, a preference-rich request, and a request with contextual attributes; inspect ordering, scores, reasons, metadata, and repeatability.}
+{The endpoint returns a bounded ranked list with stable identifiers, interpretable reasons, and metadata sufficient for client presentation and analysis.}
+{Sparse or synthetic interactions limit confidence in collaborative and learned ranking signals.}
+
+\EvidenceSheet
+{Similar Destination Contract}
+{API-05 / \texttt{GET /similar/\{id\}}}
+{Support related-destination discovery using semantic similarity.}
+{A valid indexed destination identifier is available.}
+{Request similar destinations, verify that the source destination is excluded, inspect similarity ordering, and test a missing identifier.}
+{The response contains valid alternatives with scores or ordering consistent with the semantic index.}
+{Semantic similarity can reinforce catalogue-description bias and does not automatically provide diversity.}
+
+\EvidenceSheet
+{Interaction Logging Contract}
+{API-06 / \texttt{POST /interactions} and \texttt{/interactions/batch}}
+{Accept behavioural events used for analytics and future recommendation improvement.}
+{The interaction repository is writable and test user/destination identifiers are available.}
+{Submit a single event, submit a mixed batch, inspect accepted counts, test validation failures, and verify repository persistence.}
+{Valid events are stored once with required context; invalid events receive controlled validation responses; batch results expose partial-failure semantics.}
+{Interaction collection requires consent, retention controls, and protection against event duplication or manipulation.}
+
+\EvidenceSheet
+{Chat Contract}
+{API-07 / \texttt{POST /chat}}
+{Provide online-enhanced tourism assistance while preserving controlled fallback behaviour.}
+{The chat route is registered; at least one provider or fallback service is available.}
+{Send representative discovery, route, translation, follow-up, unsupported, and provider-failure prompts; inspect response source and safety handling.}
+{The endpoint returns a structured response and does not expose provider exceptions directly to the client.}
+{External provider content can be inaccurate; the client must preserve safety disclaimers and local fallback.}
+
+\EvidenceSheet
+{Offline Chat Contract}
+{API-08 / \texttt{POST /chat/offline}}
+{Expose the backend's deterministic offline-oriented retrieval response for explicit testing and fallback use.}
+{Offline chat data and service initialization have completed.}
+{Submit supported and unsupported tourism prompts and inspect intent, response text, and destination references.}
+{The endpoint responds without calling a cloud language model and returns controlled content for supported local knowledge.}
+{The available response range is narrower than generative online assistance.}
+
+\EvidenceSheet
+{Translation Contract}
+{API-09 / \texttt{POST /translate}}
+{Provide supported travel translation with explicit language-pair and failure semantics.}
+{Translation resources are initialized and a supported-pair matrix is documented.}
+{Submit representative supported phrases, mixed-case input, romanised Nepali, an unsupported pair, and empty or excessive input.}
+{Supported requests return structured translated text and language metadata; invalid requests receive controlled validation errors.}
+{Coverage remains domain-specific and should not be represented as general professional translation.}
+
+\EvidenceSheet
+{Authentication Contract}
+{API-10 / registration, login, and current-user routes}
+{Provide identity for optional synchronized and personalized online capability.}
+{The authentication repository and secret configuration are available.}
+{Register a new account, reject duplicate or invalid input, login with correct and incorrect credentials, then access the current-user route with valid, expired, and missing tokens.}
+{Passwords are not returned or stored in plain text; successful login returns a usable token; protected access rejects invalid credentials.}
+{Authentication security also depends on deployment TLS, secret rotation, rate limiting, and production monitoring.}
+
+\chapter{Verification Test Catalogue}
+\label{app:test_catalogue}
+
+The following cases describe repeatable acceptance and regression checks. They
+supplement automated unit and widget tests with integrated offline-first
+scenarios that cross storage, presentation, networking, and intelligence
+boundaries.
+
+\EvidenceSheet
+{Cold Offline Startup Test}
+{TEST-ACC-01}
+{Test the most important failure condition: no connection at the start of a session.}
+{Install the release build; clear recent tasks; enable airplane mode before launching.}
+{Launch, complete or skip onboarding, open home, search, details, map, saved items, recommendations, chatbot, and translation in sequence.}
+{Core local screens remain reachable; no infinite loading state or uncaught network exception prevents continued use.}
+{Some screens can correctly show that optional online enhancement is unavailable.}
+
+\EvidenceSheet
+{Warm Online-to-Offline Transition Test}
+{TEST-ACC-02}
+{Check graceful degradation when connectivity disappears during active use.}
+{The application is open and the backend is initially reachable.}
+{Load online recommendations and a road route, disable connectivity, repeat both actions, then open local content and send a chatbot query.}
+{Cached or local alternatives are used where designed; the state change is communicated without a crash.}
+{An in-flight remote request may take until its configured timeout before fallback occurs.}
+
+\EvidenceSheet
+{Offline-to-Online Recovery Test}
+{TEST-ACC-03}
+{Check that the app recovers online capability without requiring reinstallation or data loss.}
+{The app has been used offline and contains queued interactions.}
+{Restore connectivity, trigger health checking or retry, request an online route, and observe interaction synchronization.}
+{Online capability returns; queued events can be submitted; local saved state and caches remain intact.}
+{Recovery timing depends on platform connectivity signals and backend availability.}
+
+\EvidenceSheet
+{Route Cache Precedence Test}
+{TEST-ACC-04}
+{Prove that an eligible cached route takes precedence and avoids unnecessary network use.}
+{A known OSRM route has been cached and remains within the configured freshness period.}
+{Request the identical coordinate pair with network available and inspect route source and outgoing traffic; repeat after expiry or cache removal.}
+{The fresh cache serves the repeat request; expired or absent entries allow later routing tiers to execute.}
+{Coordinate rounding and cache-key design can affect hit rate for nearly identical points.}
+
+\EvidenceSheet
+{Haversine Fallback Test}
+{TEST-ACC-05}
+{Confirm that a disconnected cache miss still returns a useful directional estimate.}
+{No relevant route is cached and the device is offline.}
+{Request a route between two valid destinations and compare reported straight-line distance with an independently calculated Haversine value.}
+{A clearly identified fallback route is returned with plausible distance and without turn-by-turn claims.}
+{Terrain, roads, bridges, closures, and walking feasibility are not represented by the fallback line.}
+
+\EvidenceSheet
+{Recommendation Scenario Evaluation Test}
+{TEST-REC-01}
+{Measure ranked retrieval quality against the report's five defined tourism scenarios.}
+{Scenario queries, relevance sets, and the candidate destination catalogue are fixed for the run.}
+{Generate top-ten rankings for every scenario and calculate Precision@10, Recall@10, nDCG@10, and MRR using the same relevance judgments.}
+{Metric calculation is reproducible and results can be compared with the documented hybrid recommender values.}
+{Five scenarios are useful for project evaluation but insufficient to establish population-level effectiveness.}
+
+\EvidenceSheet
+{Recommendation Explanation Test}
+{TEST-REC-02}
+{Verify that recommendation reasons correspond to actual ranking features and destination attributes.}
+{A set of recommendations with score components and destination records is available.}
+{Inspect reasons for season, activity, budget, distance, culture, nature, popularity, and similar-item signals; compare each statement with source attributes.}
+{Reasons are understandable and do not claim attributes that the destination record or ranking path does not support.}
+{Simplified explanations cannot fully describe every interaction within a learned ranking model.}
+
+\EvidenceSheet
+{Cold-Start Recommendation Test}
+{TEST-REC-03}
+{Confirm that a new user receives useful, diverse suggestions without an interaction history.}
+{Use a new anonymous identifier or clear local recommendation history.}
+{Request recommendations with no preferences, then with onboarding preferences; inspect relevance, diversity, and explanation changes.}
+{The system supplies reasonable defaults and responds to explicit preferences without requiring collaborative history.}
+{Popularity-based defaults can overexpose already prominent destinations.}
+
+\EvidenceSheet
+{Emergency Detection Test}
+{TEST-AI-01}
+{Verify deterministic priority handling of messages that indicate immediate danger or need for assistance.}
+{The local intelligence pipeline is initialized and external AI providers are disabled.}
+{Submit representative emergency, injury, lost-person, and benign messages in supported language forms; inspect detection and response precedence.}
+{Emergency-like messages trigger the safety layer before normal tourism recommendation generation; benign queries avoid false emergency escalation.}
+{Language variation and ambiguous messages require continuing review with domain experts.}
+
+\EvidenceSheet
+{Dialogue Continuity Test}
+{TEST-AI-02}
+{Check that follow-up questions can use recent conversation context.}
+{Start a fresh conversation and ask for a destination recommendation with explicit constraints.}
+{Send follow-ups that omit the destination name but refer to cost, route, season, and alternatives; then reset the conversation.}
+{Relevant recent slots and entities are retained before reset and are not incorrectly reused after reset.}
+{Long conversations and topic changes can still create ambiguity requiring clarification.}
+
+\EvidenceSheet
+{Translation Coverage Test}
+{TEST-AI-03}
+{Evaluate supported travel phrases, normalization, and controlled fallback behaviour.}
+{The local glossary, phrasebook, templates, and available online adapter are known.}
+{Test exact phrases, punctuation and case variants, romanised Nepali, Devanagari input, unsupported text, and provider unavailability.}
+{Supported local phrases translate consistently; response metadata distinguishes translation source or fallback state.}
+{General prose, specialist terminology, and dialect variation remain outside validated coverage.}
+
+\EvidenceSheet
+{Static Analysis and Automated Regression Test}
+{TEST-ENG-01}
+{Provide repeatable engineering-quality evidence for Flutter and backend components.}
+{Dependencies are installed in the documented environments.}
+{Run Flutter static analysis, focused intelligence and recommendation tests, backend pytest, and relevant widget tests; retain command, date, environment, and outcome.}
+{Static analysis and focused suites produce a clear pass/fail signal; known failures are documented rather than concealed.}
+{Environment-specific timing and golden-image rendering can differ across machines and SDK versions.}
+
+\chapter{User Manual and Operational Workflows}
+\label{app:user_manual}
+
+This manual describes the intended end-user workflows. Screen names may evolve,
+but the operational sequence and offline expectations remain part of the
+project's acceptance baseline.
+
+\EvidenceSheet
+{First Launch and Onboarding}
+{USER-01}
+{Help a first-time traveler configure useful preferences without blocking immediate exploration.}
+{The application is installed and launched for the first time.}
+{Review onboarding, choose available preferences where offered, grant only required permissions, and continue to the main dashboard.}
+{The user reaches the application shell; declared preferences can influence discovery and recommendation; denied optional permissions do not prevent catalogue browsing.}
+{Location-dependent convenience is reduced when location permission is denied.}
+
+\EvidenceSheet
+{Browse and Search Destinations}
+{USER-02}
+{Find relevant destinations from the bundled Gandaki catalogue.}
+{The home or discovery screen is open.}
+{Scroll destination content, enter a search term, apply available filters, clear the query, and open a result.}
+{Results respond to the query and filters; destination cards remain readable; clearing controls restores broader discovery.}
+{Search quality depends on the vocabulary represented in the curated dataset.}
+
+\EvidenceSheet
+{Read Destination Details}
+{USER-03}
+{Inspect practical and descriptive information before deciding to travel.}
+{A destination card or recommendation has been selected.}
+{Review description, images, category, activities, season, budget, accessibility, location, and available accommodation context; follow map or save actions.}
+{Information is presented consistently and available local assets remain visible without a connection.}
+{Static descriptions cannot replace local safety advice or real-time access information.}
+
+\EvidenceSheet
+{Save and Review a Destination}
+{USER-04}
+{Retain personal travel interests and feedback locally.}
+{A destination detail view is open and local storage is available.}
+{Toggle the saved state, locate the destination in saved content, create or update a review, restart the app, and inspect persistence.}
+{Saved and review state remains available after restart and can be intentionally changed or removed.}
+{Local-only state is lost if application storage is cleared or the app is uninstalled.}
+
+\EvidenceSheet
+{Explore the Offline Map}
+{USER-05}
+{Use geographic context in places with unreliable mobile data.}
+{The map screen is available and the bundled tile database is packaged.}
+{Open the map, move to a known Gandaki area, pan and zoom within supported coverage, select a destination marker, and inspect the details action.}
+{The map remains usable within packaged coverage and destination points connect to discovery workflows.}
+{The bundled raster map is a snapshot and does not show live closures or every street-level detail.}
+
+\EvidenceSheet
+{Request Directions}
+{USER-06}
+{Obtain the best available route representation for the current connectivity state.}
+{Origin and destination coordinates are available; location permission is granted if current position is used.}
+{Request a route; inspect whether it is cached, road-aware online, or straight-line fallback; review distance and any warning; repeat offline.}
+{The route source is understandable and the app does not imply road guidance when only a Haversine estimate is available.}
+{Users must verify local conditions and should not rely solely on the fallback for safety-critical navigation.}
+
+\EvidenceSheet
+{Receive Personalized Recommendations}
+{USER-07}
+{Discover destinations that align with interests, season, budget, accessibility, and context.}
+{The recommendation view is open and local destination data has loaded.}
+{Provide or change available preference controls, request recommendations, read explanation text, open a suggested destination, and repeat without connectivity.}
+{Ranked results update meaningfully and expose reasons that help the user judge suitability.}
+{Recommendations assist discovery but do not guarantee satisfaction, safety, or availability.}
+
+\EvidenceSheet
+{Use the Tourism Chatbot}
+{USER-08}
+{Ask natural-language tourism questions and receive the best available local or online-enhanced response.}
+{The chatbot screen is open.}
+{Ask a specific question, use a follow-up, request an alternative, disconnect the network, and ask another supported local question.}
+{The conversation remains usable; response state distinguishes fallback where appropriate; local questions continue to receive controlled assistance.}
+{Generated or retrieved answers can be incomplete and should be verified for high-stakes decisions.}
+
+\EvidenceSheet
+{Translate a Travel Phrase}
+{USER-09}
+{Support practical communication using available English and Nepali resources.}
+{The translation screen is open and source/target languages can be selected.}
+{Enter a supported travel phrase, translate it, swap direction where supported, test romanised or Devanagari input, and repeat offline.}
+{Supported content produces a readable result and offline resources remain available for their declared coverage.}
+{The feature is not a certified interpreter and should not be relied on for legal or medical communication.}
+
+\EvidenceSheet
+{Recognise Offline and Recovery States}
+{USER-10}
+{Help users understand which capabilities remain local and which require the network.}
+{The application is running and connectivity can be toggled.}
+{Disable the network, observe messaging while using local features, attempt an online enhancement, restore connectivity, and retry.}
+{The application communicates backend or connectivity loss without hiding local capability and recovers online actions when service returns.}
+{Connectivity indicators can lag behind the actual reachability of a particular external service.}
+
+\chapter{Deployment, Configuration, and Troubleshooting}
+\label{app:operations}
+
+\EvidenceSheet
+{Flutter Development Setup}
+{OPS-01}
+{Provide a repeatable setup path for application development and verification.}
+{Flutter, Dart, Android tooling, and a supported device or emulator are available.}
+{Open the \texttt{app} directory, obtain dependencies, inspect environment configuration, run static analysis and focused tests, then launch a debug build.}
+{Dependencies resolve, analysis completes, tests provide a clear result, and the app launches against the intended local or remote backend configuration.}
+{SDK and plugin upgrades can change build behaviour; versions should be recorded for reproducibility.}
+
+\EvidenceSheet
+{Backend Development Setup}
+{OPS-02}
+{Provide a repeatable FastAPI setup for recommendation, chat, authentication, and analytics development.}
+{A supported Python environment and project dependencies are available.}
+{Configure environment variables, initialize required data, run backend tests, start the API server, and request the health endpoint.}
+{Tests and health checking provide a clear operational signal and registered routes are visible through FastAPI documentation.}
+{Optional provider keys and production databases require separate secure configuration.}
+
+\EvidenceSheet
+{Backend URL and Environment Switching}
+{OPS-03}
+{Avoid scattered host literals and support emulator, device, and deployed environments.}
+{The central application backend configuration is available.}
+{Set the intended backend environment or base URL, launch the app, inspect the health request, and verify that feature services derive their URIs from the central configuration.}
+{Runtime requests use the selected central base URL and backend failure is surfaced through the intended offline UX.}
+{Physical devices, emulators, and remote deployments have different network addressing and firewall constraints.}
+
+\EvidenceSheet
+{Android Release Build and Asset Verification}
+{OPS-04}
+{Produce a distributable package containing the offline assets required by the project.}
+{Release signing and Flutter Android tooling are configured.}
+{Build the release APK, inspect size, install it on a clean device, enable airplane mode, and verify destination data, images, MBTiles, and local intelligence assets.}
+{The release installs and core offline workflows operate without relying on development-machine files.}
+{Bundled assets increase download size and must be revalidated after asset-manifest changes.}
+
+\EvidenceSheet
+{Operational Troubleshooting Guide}
+{OPS-05}
+{Provide a systematic response to common failures without masking data loss or unsafe behaviour.}
+{Logs, app settings, and health endpoints are available to the developer or tester.}
+{For startup failure, inspect asset parsing and storage initialization; for backend failure, inspect base URL and health; for blank maps, inspect MBTiles packaging; for stale routes, inspect cache age; for AI failure, inspect local initialization before provider status.}
+{Troubleshooting isolates the affected tier and preserves local functionality wherever possible.}
+{Clearing application data is a last resort because it removes saved local state and can hide the original fault.}
+
+\chapter{Architecture Decision Records}
+\label{app:adrs}
+
+\EvidenceSheet
+{Use Flutter for the Mobile Client}
+{ADR-01 / Accepted}
+{Deliver a maintainable Android application with a consistent component model and future cross-platform potential.}
+{The project requires a rich mobile interface, local storage, maps, and broad plugin support.}
+{Adopt Flutter and Dart; structure features around presentation, domain models, and services; use platform integrations only where required.}
+{The implemented client provides the intended screens, local data access, maps, and testable Dart services from one codebase.}
+{Plugin quality and native build complexity can affect platform-specific behaviour.}
+
+\EvidenceSheet
+{Treat Offline Operation as the Default Architecture}
+{ADR-02 / Accepted}
+{Preserve useful travel support in the low-connectivity conditions central to the research problem.}
+{Core catalogue, media, maps, routing fallback, storage, recommendations, and assistance can be packaged or computed locally.}
+{Design local capability first and layer remote enhancement behind reachability checks, timeouts, caching, queues, and controlled fallback.}
+{The application remains useful during backend or network loss and does not place every workflow behind authentication.}
+{Offline assets are static and increase package size; synchronization requires careful conflict and freshness handling.}
+
+\EvidenceSheet
+{Use FastAPI for Online Enhancement Services}
+{ADR-03 / Accepted}
+{Expose typed Python services for recommendation, semantic search, evaluation, chat, analytics, and authentication.}
+{The recommendation and NLP ecosystem is primarily Python-based and benefits from automatic API documentation.}
+{Implement versioned route modules and application services in FastAPI; keep offline-critical capability in Flutter.}
+{Online services can evolve independently while the client preserves local fallback.}
+{A production deployment still requires TLS, observability, scaling, rate limiting, and secret management.}
+
+\EvidenceSheet
+{Combine SQLite, Hive, and SharedPreferences}
+{ADR-04 / Accepted}
+{Match local persistence mechanisms to relational records, high-frequency cached objects, queues, and lightweight settings.}
+{Saved destinations, reviews, routes, recommendation caches, interactions, and preferences have different access patterns.}
+{Use SQLite for relational saved/review/route data, Hive for recommendation cache and pending interactions, and SharedPreferences for small settings.}
+{Each local data category has a storage mechanism appropriate to its structure and lifecycle.}
+{Multiple stores increase migration, backup, and debugging complexity.}
+
+\EvidenceSheet
+{Bundle MBTiles for Offline Map Coverage}
+{ADR-05 / Accepted}
+{Ensure that geographic context remains available without runtime tile downloads.}
+{A bounded Gandaki coverage area and practical zoom range are acceptable for the project.}
+{Package a local raster MBTiles database and use online services only as optional enhancement.}
+{The app renders the intended Gandaki map region in airplane mode.}
+{Higher zoom levels and expanded coverage would substantially increase package size.}
+
+\EvidenceSheet
+{Use Cache, OSRM, then Haversine for Routing}
+{ADR-06 / Accepted}
+{Provide the best available route response while guaranteeing a disconnected fallback.}
+{Road-aware offline routing data is too large or complex for the current scope.}
+{Resolve routes through a fresh SQLite cache, then online OSRM, then a clearly identified straight-line Haversine approximation.}
+{Repeated routes are efficient, online routes can be road-aware, and disconnected cache misses still return useful orientation.}
+{The fallback must never be confused with safe road or trail instructions.}
+
+\EvidenceSheet
+{Hybrid Explainable Recommendation Pipeline}
+{ADR-07 / Accepted}
+{Balance semantic relevance, context, interaction evidence, diversity, and understandable user-facing reasons.}
+{The catalogue contains rich text and attributes, while real-user interaction volume remains limited.}
+{Combine semantic candidates, collaborative/popularity signals, contextual reranking, optional learned rescoring, diversity control, and explanation generation.}
+{Scenario evaluation demonstrates strong first-result placement and exposes measurable recall limitations.}
+{Learned and collaborative components require representative consented usage data before strong production claims.}
+
+\EvidenceSheet
+{Keep Deterministic Local Safety and Intelligence}
+{ADR-08 / Accepted}
+{Avoid making tourism assistance and emergency handling wholly dependent on a network or generative provider.}
+{Local language processing, retrieval, dialogue state, phrase resources, and emergency rules can run on-device.}
+{Run deterministic safety handling and local intelligence for every relevant message, using online language models only as an optional enhancement.}
+{Supported queries and emergency-like messages retain controlled handling during provider or network failure.}
+{Local coverage is finite and requires continued multilingual testing and expert review.}
+
+\chapter{Selected Implementation Listings}
+\label{app:listings}
+
+The following listings are drawn directly from the implemented project. They
+are included as technical evidence rather than as a claim that every source
+file belongs in the dissertation. Line numbers support discussion and review.
+
+\clearpage
+\section{FastAPI Recommendation Route}
+\lstinputlisting[
+  language=Python,
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Implemented recommendation API route.}
+]{../backend/api/v1/recommend.py}
+
+\clearpage
+\section{Backend Recommendation Application Service}
+\lstinputlisting[
+  language=Python,
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Implemented hybrid recommendation application service.}
+]{../backend/application/services/recommendation_service.py}
+
+\clearpage
+\section{Backend Contextual Reranker Excerpt}
+\lstinputlisting[
+  language=Python,
+  firstline=1,
+  lastline=260,
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Selected contextual reranking implementation.}
+]{../backend/infrastructure/ml/contextual_reranker.py}
+
+\clearpage
+\section{Flutter Routing Service}
+\lstinputlisting[
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Implemented Flutter routing service with fallback tiers.}
+]{../app/lib/core/navigation/routing_service.dart}
+
+\clearpage
+\section{Offline Semantic Encoder}
+\lstinputlisting[
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Implemented offline semantic encoding support.}
+]{../app/lib/features/recommendations/data/services/offline_semantic_encoder.dart}
+
+\clearpage
+\section{Intelligence Orchestrator Excerpt}
+\lstinputlisting[
+  firstline=1,
+  lastline=320,
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Selected orchestration logic for local and online intelligence.}
+]{../app/lib/features/intelligence/services/intelligence_orchestrator.dart}
+
+\clearpage
+\section{Backend Collaborative Filtering Test}
+\lstinputlisting[
+  language=Python,
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Automated collaborative filtering tests.}
+]{../backend/tests/test_collaborative_filter.py}
+
+\clearpage
+\section{Flutter Intelligence End-to-End Test}
+\lstinputlisting[
+  numbers=left,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Automated local intelligence end-to-end tests.}
+]{../app/test/intelligence/end_to_end_test.dart}
+
+\chapter{Project Governance, Risk, and Evidence Index}
+\label{app:governance}
+
+\begin{longtable}{p{1.2cm}p{4.7cm}p{1.8cm}p{1.8cm}p{3.9cm}}
+\caption{Project risk register.}\label{tbl:risk_register}\\
+\toprule
+\textbf{ID} & \textbf{Risk} & \textbf{Prob.} & \textbf{Impact} & \textbf{Control} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Risk} & \textbf{Prob.} & \textbf{Impact} & \textbf{Control} \\
+\midrule
+\endhead
+R-01 & Rural connectivity prevents online maps, routes, or AI responses. & High & High & Local assets, caches, route fallback, and local intelligence. \\
+R-02 & Curated destination information becomes stale. & Medium & High & Versioned dataset, validation, update governance, and visible limitations. \\
+R-03 & Haversine fallback is misunderstood as a safe road route. & Medium & High & Explicit source labelling and warning language. \\
+R-04 & Recommendation results reinforce popularity bias. & Medium & Medium & Diversity control, explanations, coverage metrics, and future real-user evaluation. \\
+R-05 & External language model provides inaccurate advice. & Medium & High & Local deterministic safety layer, controlled fallback, and disclaimers. \\
+R-06 & Packaged maps and images make the application too large. & Medium & Medium & Bounded coverage, WebP compression, and release-size inspection. \\
+R-07 & Interaction logging creates privacy concerns. & Medium & High & Consent, minimisation, retention policy, pseudonymous identifiers, and secure deployment. \\
+R-08 & Authentication or secret configuration is deployed insecurely. & Low & High & Password hashing, environment secrets, TLS, rotation, and production review. \\
+R-09 & Local databases become inconsistent across app upgrades. & Medium & Medium & Schema versioning, migrations, tests, and cautious storage clearing. \\
+R-10 & Automated tests differ across SDK or operating-system versions. & Medium & Medium & Record environment, use focused suites, and document known failures. \\
+R-11 & Destination images have unclear rights or attribution. & Medium & High & Maintain provenance and licensing records before public release. \\
+R-12 & Rural communities are represented inaccurately or without benefit. & Medium & High & Community review, respectful descriptions, corrections, and local partnership. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Ethical and Responsible-Use Checklist}
+\begin{longtable}{p{5.0cm}p{8.8cm}}
+\toprule
+\textbf{Consideration} & \textbf{Project response and future obligation} \\
+\midrule
+Connectivity equity & Core travel information is packaged locally so lack of mobile data does not remove the entire service. \\
+Community representation & Descriptions should be reviewed with local stakeholders and corrected when they oversimplify culture or accessibility. \\
+Recommendation fairness & Popularity and interaction signals should be monitored for exposure imbalance and should not erase lesser-known destinations. \\
+Privacy & Interaction data should be minimized, consented, protected, retained only as needed, and never silently treated as harmless. \\
+Safety & Route fallbacks and chatbot answers must expose limitations and avoid implying verified emergency or medical authority. \\
+Accessibility & Interfaces should support readable contrast, adequate touch targets, meaningful labels, and continued testing with diverse users. \\
+Image rights & Every distributable image requires provenance, permission or licence compatibility, and appropriate attribution where required. \\
+Environmental impact & Recommendations should avoid encouraging unsafe overcrowding or environmentally damaging access without local guidance. \\
+Transparency & Users should understand when content is local, cached, online-enhanced, generated, approximate, or potentially stale. \\
+Correction process & A future public deployment requires a straightforward way for communities and users to report inaccurate or harmful content. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Project Milestone Record}
+\begin{longtable}{p{2.9cm}p{3.5cm}p{4.8cm}p{2.4cm}}
+\toprule
+\textbf{Phase} & \textbf{Primary output} & \textbf{Completion evidence} & \textbf{Review focus} \\
+\midrule
+Problem definition & Research question, scope, objectives & Proposal and literature review & Relevance and feasibility \\
+Data preparation & Destination and accommodation assets & Validated structured datasets and local media & Coverage and consistency \\
+Architecture & Offline-first design and service boundaries & Diagrams, ADRs, and implementation structure & Failure tolerance \\
+Core Flutter app & Discovery, details, persistence, map & Running screens and local storage & Usability and offline operation \\
+Routing & Cache, OSRM, and Haversine tiers & Routing service and integrated scenarios & Source clarity and safety \\
+Recommender & Semantic, context, collaborative, ranking, explanation & Services, scenario metrics, and tests & Relevance and limitations \\
+Intelligence & Local NLP, retrieval, dialogue, safety, translation & Focused tests and integrated UI & Reliability and safety \\
+Backend & API routes, auth, interactions, analytics & FastAPI implementation and pytest & Contracts and security \\
+Evaluation & Metrics, regression evidence, critical review & Results chapter and appendices & Honest interpretation \\
+Submission & Publication-quality report and reproducible artifacts & Compiled PDF, bibliography, and evidence index & Submission quality \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Submission Evidence Index}
+\begin{longtable}{p{4.5cm}p{5.0cm}p{4.5cm}}
+\toprule
+\textbf{Evidence category} & \textbf{Location in report} & \textbf{Assessment value} \\
+\midrule
+Research problem and motivation & Introduction and literature review & Establishes significance and academic context \\
+Requirements and scope & Objectives, scope, Appendices E--F & Enables traceable assessment against intended behaviour \\
+Architecture & Design chapter, diagrams, Appendix L & Explains structural decisions and trade-offs \\
+Implementation & Implementation chapter and Appendix M listings & Demonstrates concrete engineering work \\
+Destination and accommodation data & Data sections and Appendix G & Supports catalogue, retrieval, and recommendation claims \\
+Recommendation evaluation & Evaluation chapter and Appendix I & Provides repeatable quantitative quality evidence \\
+Offline verification & Evaluation chapter and test catalogue & Tests the central research contribution \\
+API contracts & Appendix H & Documents client-backend boundaries and failure semantics \\
+User operation & Appendix J & Demonstrates complete intended workflows \\
+Deployment and reproducibility & Appendix K & Supports repeatable setup, build, and troubleshooting \\
+Risk and ethics & Critical evaluation and Appendix N & Demonstrates responsible limitations and future obligations \\
+\bottomrule
+\end{longtable}

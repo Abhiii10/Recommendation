@@ -35,6 +35,7 @@ class GlossaryTranslator implements TranslationEngine {
     await load();
     var output = request.text;
     var replacements = 0;
+    final meaningfulWordCount = _meaningfulWordCount(request.text);
     final toEnglish =
         request.direction == IntelligenceTranslationDirection.nepaliToEnglish ||
             (request.direction == IntelligenceTranslationDirection.auto &&
@@ -55,6 +56,9 @@ class GlossaryTranslator implements TranslationEngine {
       }
     }
     if (replacements == 0 || output == request.text) return null;
+    final coverageRatio =
+        meaningfulWordCount == 0 ? 0.0 : replacements / meaningfulWordCount;
+    if (coverageRatio < 0.60) return null;
     return TranslationResponse(
       translatedText: output,
       method: TranslationMethod.glossary,
@@ -63,6 +67,13 @@ class GlossaryTranslator implements TranslationEngine {
       sourceLanguage: toEnglish ? 'ne' : 'en',
       targetLanguage: toEnglish ? 'en' : 'ne',
     );
+  }
+
+  int _meaningfulWordCount(String text) {
+    return TextUtils.normalizeSearchText(text)
+        .split(RegExp(r'\s+'))
+        .where((word) => word.length > 1)
+        .length;
   }
 }
 

@@ -46,14 +46,22 @@ void main() {
   test('simple English templates translate offline', () async {
     final service = TranslationService(client: _RejectingClient());
 
-    final greeting = await service.translateText(
-      'hello there',
+    final alias = await service.translateText(
+      'thanks',
       TranslationDirection.englishToNepali,
       allowOnline: false,
     );
-    expect(greeting.source, TranslationSource.template);
-    expect(greeting.translatedText, 'नमस्ते');
-    expect(greeting.romanized, 'Namaste');
+    expect(alias.source, TranslationSource.phrasebook);
+    expect(alias.translatedText, contains('धन्यवाद'));
+
+    final confirmation = await service.translateText(
+      'ok',
+      TranslationDirection.englishToNepali,
+      allowOnline: false,
+    );
+    expect(confirmation.source, TranslationSource.template);
+    expect(confirmation.translatedText, 'ठिक छ');
+    expect(confirmation.romanized, 'Thik cha');
 
     final currentlyDoing = await service.translateText(
       'I am currently doing my project',
@@ -64,6 +72,28 @@ void main() {
     expect(currentlyDoing.translatedText, contains('म हाल'));
     expect(currentlyDoing.translatedText, contains('प्रोजेक्ट'));
     expect(currentlyDoing.translatedText, contains('गर्दैछु'));
+  });
+
+  test('asset templates and Roman Nepali dictionary improve offline matching',
+      () async {
+    final service = TranslationService(client: _RejectingClient());
+
+    final template = await service.translateText(
+      'is there a hotel nearby',
+      TranslationDirection.englishToNepali,
+      allowOnline: false,
+    );
+    expect(template.source, TranslationSource.template);
+    expect(template.translatedText, contains('होटल'));
+    expect(template.translatedText, contains('नजिकै'));
+
+    final roman = await service.translateText(
+      'tapai kasari hunuhuncha',
+      TranslationDirection.autoDetect,
+      allowOnline: false,
+    );
+    expect(roman.source, TranslationSource.template);
+    expect(roman.translatedText, 'How are you?');
   });
 
   test('low confidence MyMemory result still returns with warning', () async {
